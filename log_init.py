@@ -2,8 +2,6 @@ import datetime
 import logging
 import time
 
-import config
-
 
 # Used to reset time reference at start of run
 def reset_logging_time_reference():
@@ -44,7 +42,7 @@ class DeltaTimeFormatter(logging.Formatter):
 
 
 # This should be called once in main, before any calls to the logging library
-def initialize_logging(game_name: str):
+def initialize_logging(game_name: str, config_data: dict):
     # Defines the format of the colored logs
     color_log_fmt = (
         "%(color)s[%(delta)s] %(name)-16s %(levelname)-8s %(message)s%(color_reset)s"
@@ -67,7 +65,6 @@ def initialize_logging(game_name: str):
     logging.getLogger("").root.handlers[0].setFormatter(bw_log_formatter)
 
     # Get the visible log level for the console logger from config.yaml
-    config_data = config.open_config()
     console_log_level = config_data.get("verbosity", "DEBUG")
     color_log = config_data.get("color_log", False)
 

@@ -1,22 +1,17 @@
 # This needs to be before the other imports in case they decide to log things when imported
-import log_init
-
-# This sets up console and file logging (should only be called once)
-log_init.initialize_logging("Evoland")
-
 # Libraries
 import logging
 
-# Core files
-import controller
+import config
+import log_init
 
 logger = logging.getLogger(__name__)
 
-
 # Main entry point of TAS
 if __name__ == "__main__":
-    logger.info("Hello world")
-    c = controller.handle()
+    # This sets up console and file logging (should only be called once)
+    config_data = config.open_config()
+    game_name = config_data.get("game", "Evoland1")
+    log_init.initialize_logging(game_name=game_name, config_data=config_data)
 
-    c.set_button("btn_x", 1)
-    c.set_button("btn_x", 0)
+    logger.info("Hello world")
