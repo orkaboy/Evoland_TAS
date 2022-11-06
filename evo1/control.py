@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 class Evoland1Controller:
     def __init__(self):
         self.ctrl = controller.handle()
-        logger.info("Setting up Evoland1 controller.")
+        logger.info("Setting up Evoland1 controller wrapper.")
 
     # Wrappers
     def set_button(self, x_key: str, value):

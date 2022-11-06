@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 
 class VgTranslator:
     def __init__(self):
+        logger.info("Setting up emulated Xbox360 controller.")
         self.gamepad = vg.VX360Gamepad()
 
     def _set_dpad(self, value: int):
