@@ -7,11 +7,9 @@ import log_init
 
 # This sets up console and file logging (should only be called once)
 config_data = config.open_config()
-game_name = config_data.get("game", "Evoland1")
-log_init.initialize_logging(game_name=game_name, config_data=config_data)
+log_init.initialize_logging(game_name="Evoland", config_data=config_data)
 
-import evo1.TAS as evo1
-import evo2.TAS as evo2
+from main_menu import main_menu
 
 logger = logging.getLogger(__name__)
 
@@ -19,14 +17,9 @@ logger = logging.getLogger(__name__)
 if __name__ == "__main__":
     logger.info("Initialized logging.")
 
+    # Capture and log top level exceptions
     try:
-        if game_name == "Evoland1":
-            evo1.perform_TAS(config_data)
-        elif game_name == "Evoland2":
-            evo2.perform_TAS(config_data)
-        else:
-            logger.error(f"Invalid game name: {game_name}. Exiting...")
-
+        main_menu(config_data)
         logger.info("TAS exited cleanly")
     except Exception as E:
         logger.exception(E)

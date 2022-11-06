@@ -1,6 +1,3 @@
-# High level config
-game                    : "Evoland1"
-
 # Logging
 color_log               : False  # Colors the console output. May not work on some systems
 verbosity               : DEBUG  # Verbosity of log messages in the console.
