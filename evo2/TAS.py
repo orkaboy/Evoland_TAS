@@ -1,10 +1,10 @@
 # Libraries and Core Files
 import logging
 
-import evo2.control
+import evo2.control as control
 
 logger = logging.getLogger(__name__)
-ctrl = evo2.control.handle()
+ctrl = control.handle()
 
 
 def perform_TAS(config_data):
