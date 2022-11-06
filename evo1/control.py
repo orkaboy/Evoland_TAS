@@ -8,10 +8,10 @@ logger = logging.getLogger(__name__)
 
 
 class Evoland1Controller:
-    def __init__(self):
+    def __init__(self, delay):
         self.ctrl = controller.handle()
-        self.dpad = self.DPad(self.ctrl)
-        logger.info("Setting up Evoland1 controller wrapper.")
+        self.delay = delay
+        self.dpad = self.DPad(ctrl=self.ctrl, delay=self.delay)
 
     # Wrappers
     def set_button(self, x_key: str, value):
@@ -32,10 +32,9 @@ class Evoland1Controller:
     }
 
     class DPad:
-        BUTTON_DELAY = 10
-
-        def __init__(self, ctrl: controller.VgTranslator):
+        def __init__(self, ctrl: controller.VgTranslator, delay: float):
             self.ctrl = ctrl
+            self.delay = delay
 
         def up(self):
             self.ctrl.set_button(x_key="d_pad", value=1)
@@ -54,52 +53,50 @@ class Evoland1Controller:
 
         def tap_up(self):
             self.up()
-            memory.wait_frames(self.BUTTON_DELAY)
+            memory.wait_frames(self.delay)
             self.none()
-            memory.wait_frames(self.BUTTON_DELAY)
+            memory.wait_frames(self.delay)
 
         def tap_down(self):
             self.down()
-            memory.wait_frames(self.BUTTON_DELAY)
+            memory.wait_frames(self.delay)
             self.none()
-            memory.wait_frames(self.BUTTON_DELAY)
+            memory.wait_frames(self.delay)
 
         def tap_left(self):
             self.left()
-            memory.wait_frames(self.BUTTON_DELAY)
+            memory.wait_frames(self.delay)
             self.none()
-            memory.wait_frames(self.BUTTON_DELAY)
+            memory.wait_frames(self.delay)
 
         def tap_right(self):
             self.right()
-            memory.wait_frames(self.BUTTON_DELAY)
+            memory.wait_frames(self.delay)
             self.none()
-            memory.wait_frames(self.BUTTON_DELAY)
-
-    BUTTON_DELAY = 10
+            memory.wait_frames(self.delay)
 
     def confirm(self):
         self.set_button(x_key=self.BUTTONS["confirm"], value=1)
-        memory.wait_frames(self.BUTTON_DELAY)
+        memory.wait_frames(self.delay)
         self.set_button(x_key=self.BUTTONS["confirm"], value=0)
 
     def cancel(self):
         self.set_button(x_key=self.BUTTONS["cancel"], value=1)
-        memory.wait_frames(self.BUTTON_DELAY)
+        memory.wait_frames(self.delay)
         self.set_button(x_key=self.BUTTONS["cancel"], value=0)
 
     def attack(self):
         self.set_button(x_key=self.BUTTONS["attack"], value=1)
-        memory.wait_frames(self.BUTTON_DELAY)
+        memory.wait_frames(self.delay)
         self.set_button(x_key=self.BUTTONS["attack"], value=0)
 
     def menu(self):
         self.set_button(x_key=self.BUTTONS["menu"], value=1)
-        memory.wait_frames(self.BUTTON_DELAY)
+        memory.wait_frames(self.delay)
         self.set_button(x_key=self.BUTTONS["menu"], value=0)
 
 
-_controller = Evoland1Controller()
+_controller = Evoland1Controller(5)
 
 
 def handle():
