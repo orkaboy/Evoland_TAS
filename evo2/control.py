@@ -6,12 +6,12 @@ import controller
 logger = logging.getLogger(__name__)
 
 
-class Evoland1Controller:
+class Evoland2Controller:
     def __init__(self):
         self.handle = controller.handle()
 
 
-_controller = Evoland1Controller()
+_controller = Evoland2Controller()
 
 
 def handle():
