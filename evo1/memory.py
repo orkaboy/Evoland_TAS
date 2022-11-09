@@ -13,6 +13,8 @@ class Evoland1Memory:
     _PLAYER_Y_PTR = [0x7C8, 0x8, 0x3C, 0x30, 0x10]
     _PLAYER_X_FACING_PTR = [0x7C8, 0x8, 0x3C, 0x30, 0x50]
     _PLAYER_Y_FACING_PTR = [0x7C8, 0x8, 0x3C, 0x30, 0x54]
+    _PLAYER_INV_OPEN_PTR = [0x7C8, 0x8, 0x3C, 0x30, 0xA4]
+    _PLAYER_IS_MOVING_PTR = [0x7C8, 0x8, 0x3C, 0x30, 0xA5]
 
     def __init__(self):
         mem = memory.core.handle()
@@ -34,10 +36,18 @@ class Evoland1Memory:
         self.player_y_facing_ptr = self.process.get_pointer(
             self.base_addr + self._LIBHL_OFFSET, offsets=self._PLAYER_Y_FACING_PTR
         )
+        self.player_inv_open_ptr = self.process.get_pointer(
+            self.base_addr + self._LIBHL_OFFSET, offsets=self._PLAYER_INV_OPEN_PTR
+        )
+        self.player_is_moving_ptr = self.process.get_pointer(
+            self.base_addr + self._LIBHL_OFFSET, offsets=self._PLAYER_IS_MOVING_PTR
+        )
         logger.debug(f"Address to player_x: {hex(self.player_x_ptr)}")
         logger.debug(f"Address to player_y: {hex(self.player_y_ptr)}")
         logger.debug(f"Address to player_x_facing: {hex(self.player_x_facing_ptr)}")
         logger.debug(f"Address to player_y_facing: {hex(self.player_y_facing_ptr)}")
+        logger.debug(f"Address to player_inv_open: {hex(self.player_inv_open_ptr)}")
+        logger.debug(f"Address to player_is_moving: {hex(self.player_is_moving_ptr)}")
 
     def get_player_pos(self) -> list[float]:
         return [
@@ -50,3 +60,9 @@ class Evoland1Memory:
             self.process.read_s32(self.player_x_facing_ptr),
             self.process.read_s32(self.player_y_facing_ptr),
         ]
+
+    def get_inv_open(self) -> bool:
+        return self.process.read_u8(self.player_inv_open_ptr) == 1
+
+    def get_player_is_moving(self) -> bool:
+        return self.process.read_u8(self.player_is_moving_ptr) == 1
