@@ -3,6 +3,7 @@ import logging
 
 import evo1.control as control
 import evo1.memory as memory
+import memory.core as core
 from log_init import reset_logging_time_reference
 from menu_control import MenuController
 
@@ -15,15 +16,15 @@ def evoland1_start_game():
     logger.info("Starting Evoland1 from main menu...")
     logger.debug("Press confirm to activate main menu.")
     menu_ctrl.confirm()
-    memory.wait_seconds(1)
+    core.wait_seconds(1)
     logger.debug("Press confirm to select new game.")
     menu_ctrl.confirm()
-    memory.wait_seconds(1)
+    core.wait_seconds(1)
     logger.debug("Press confirm to select Evoland1.")
     logger.info("Starting timer!")
     reset_logging_time_reference()
     menu_ctrl.confirm()
-    memory.wait_seconds(3)
+    core.wait_seconds(3)
     logger.info("In game!")
 
 
@@ -32,16 +33,23 @@ def perform_TAS(config_data: dict):
     evoland1_start_game()
     experimental_move(config_data)
     logger.info("Evoland1 TAS Done!")
-    memory.wait_seconds(3)
+    core.wait_seconds(3)
 
 
 def experimental_move(config_data: dict):
+    mem = memory.Evoland1Memory()
+
+    logger.info("Experimental function")
+    core.wait_seconds(2)
+    logger.debug(f"Player pos: {mem.get_player_pos()}")
+    core.wait_seconds(1)
+
     logger.info("Experimental function")
     ctrl.dpad.right()
-    memory.wait_seconds(1)
+    core.wait_seconds(1)
     ctrl.dpad.none()
     ctrl.dpad.left()
-    memory.wait_seconds(1.5)
+    core.wait_seconds(1.5)
     ctrl.dpad.none()
     ctrl.dpad.tap_right()
     ctrl.dpad.tap_up()
