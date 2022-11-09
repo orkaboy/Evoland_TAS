@@ -41,8 +41,10 @@ def experimental_move(config_data: dict):
 
     logger.info("Experimental function")
     core.wait_seconds(2)
-    logger.debug(f"Player pos: {mem.get_player_pos()}")
-    core.wait_seconds(1)
+    for _ in range(10):
+        logger.debug(f"Player pos: {mem.get_player_pos()}")
+        logger.debug(f"Player facing: {mem.get_player_facing()}")
+        core.wait_seconds(1)
 
     logger.info("Experimental function")
     ctrl.dpad.right()

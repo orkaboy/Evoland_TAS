@@ -27,8 +27,7 @@ class LocProcess(Process):
     def __init__(self, *args, **kwargs):
         super(LocProcess, self).__init__(*args, **kwargs)
 
-    def read_double(self, lp_base_address: int):
-        lp_buffer = ctypes.c_double()
+    def _read_val(self, lp_base_address: int, lp_buffer):
         bytes_read = ctypes.c_size_t()
         if ctypes.windll.kernel32.ReadProcessMemory(
             self.handle,
@@ -39,6 +38,46 @@ class LocProcess(Process):
         ):
             return lp_buffer.value
         raise ctypes.WinError(ctypes.get_last_error())
+
+    def read_float(self, lp_base_address: int):
+        lp_buffer = ctypes.c_float()
+        return self._read_val(lp_base_address=lp_base_address, lp_buffer=lp_buffer)
+
+    def read_double(self, lp_base_address: int):
+        lp_buffer = ctypes.c_double()
+        return self._read_val(lp_base_address=lp_base_address, lp_buffer=lp_buffer)
+
+    def read_s8(self, lp_base_address: int):
+        lp_buffer = ctypes.c_int8()
+        return self._read_val(lp_base_address=lp_base_address, lp_buffer=lp_buffer)
+
+    def read_u8(self, lp_base_address: int):
+        lp_buffer = ctypes.c_uint8()
+        return self._read_val(lp_base_address=lp_base_address, lp_buffer=lp_buffer)
+
+    def read_s16(self, lp_base_address: int):
+        lp_buffer = ctypes.c_int16()
+        return self._read_val(lp_base_address=lp_base_address, lp_buffer=lp_buffer)
+
+    def read_u16(self, lp_base_address: int):
+        lp_buffer = ctypes.c_uint16()
+        return self._read_val(lp_base_address=lp_base_address, lp_buffer=lp_buffer)
+
+    def read_s32(self, lp_base_address: int):
+        lp_buffer = ctypes.c_int32()
+        return self._read_val(lp_base_address=lp_base_address, lp_buffer=lp_buffer)
+
+    def read_u32(self, lp_base_address: int):
+        lp_buffer = ctypes.c_uint32()
+        return self._read_val(lp_base_address=lp_base_address, lp_buffer=lp_buffer)
+
+    def read_s64(self, lp_base_address: int):
+        lp_buffer = ctypes.c_int64()
+        return self._read_val(lp_base_address=lp_base_address, lp_buffer=lp_buffer)
+
+    def read_u64(self, lp_base_address: int):
+        lp_buffer = ctypes.c_uint64()
+        return self._read_val(lp_base_address=lp_base_address, lp_buffer=lp_buffer)
 
 
 # Process Permissions
