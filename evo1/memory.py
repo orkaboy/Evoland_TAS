@@ -9,57 +9,30 @@ logger = logging.getLogger(__name__)
 class Evoland1Memory:
 
     _LIBHL_OFFSET = 0x0004914C
+
+    # Player position on map
     _PLAYER_X_PTR = [0x7C8, 0x8, 0x3C, 0x30, 0x8]
     _PLAYER_Y_PTR = [0x7C8, 0x8, 0x3C, 0x30, 0x10]
-    _PLAYER_X_TILE_PTR = [
-        0x7C8,
-        0x8,
-        0x3C,
-        0x30,
-        0x14,
-    ]  # Same as pos, but only integer part
-    _PLAYER_Y_TILE_PTR = [
-        0x7C8,
-        0x8,
-        0x3C,
-        0x30,
-        0x18,
-    ]  # Same as pos, but only integer part
-    _PLAYER_X_FACING_PTR = [
-        0x7C8,
-        0x8,
-        0x3C,
-        0x30,
-        0x50,
-    ]  # Drop? Doesn't seem that useful
-    _PLAYER_Y_FACING_PTR = [
-        0x7C8,
-        0x8,
-        0x3C,
-        0x30,
-        0x54,
-    ]  # Drop? Doesn't seem that useful
-    _PLAYER_FACING_PTR = [
-        0x7C8,
-        0x8,
-        0x3C,
-        0x30,
-        0x58,
-    ]  # 0=left,1=right,2=up,3=down. Doesn't do diagonal facings.
-    _PLAYER_INV_OPEN_PTR = [
-        0x7C8,
-        0x8,
-        0x3C,
-        0x30,
-        0xA4,
-    ]  # This seems to be set on picking up stuff/opening inventory/opening menu, may be misnamed. Invincibility flag?
-    _PLAYER_IS_MOVING_PTR = [
-        0x7C8,
-        0x8,
-        0x3C,
-        0x30,
-        0xA5,
-    ]  # Only 1 when moving AND has sub-tile movement
+
+    # Same as pos, but only integer part
+    _PLAYER_X_TILE_PTR = [0x7C8, 0x8, 0x3C, 0x30, 0x14]
+    _PLAYER_Y_TILE_PTR = [0x7C8, 0x8, 0x3C, 0x30, 0x18]
+
+    # Drop? Doesn't seem that useful
+    _PLAYER_X_FACING_PTR = [0x7C8, 0x8, 0x3C, 0x30, 0x50]
+    _PLAYER_Y_FACING_PTR = [0x7C8, 0x8, 0x3C, 0x30, 0x54]
+
+    # 0=left,1=right,2=up,3=down. Doesn't do diagonal facings.
+    _PLAYER_FACING_PTR = [0x7C8, 0x8, 0x3C, 0x30, 0x58]
+
+    # This seems to be set on picking up stuff/opening inventory/opening menu, may be misnamed. Invincibility flag?
+    _PLAYER_INV_OPEN_PTR = [0x7C8, 0x8, 0x3C, 0x30, 0xA4]
+
+    # Only 1 when moving AND has sub-tile movement
+    _PLAYER_IS_MOVING_PTR = [0x7C8, 0x8, 0x3C, 0x30, 0xA5]
+
+    # Overworld player health for ATB battle. Only updates outside battle!
+    _PLAYER_HP_OVERWORLD_PTR = [0xA6C, 0x0, 0x90, 0x3C, 0x0]
 
     # TODO: Doesn't seem to be reliable between boots of the game (and requires THREADSTACK0)
     # The value is reallocated in every battle
@@ -102,6 +75,9 @@ class Evoland1Memory:
         self.player_is_moving_ptr = self.process.get_pointer(
             self.base_addr + self._LIBHL_OFFSET, offsets=self._PLAYER_IS_MOVING_PTR
         )
+        self.player_hp_overworld_ptr = self.process.get_pointer(
+            self.base_addr + self._LIBHL_OFFSET, offsets=self._PLAYER_HP_OVERWORLD_PTR
+        )
         logger.debug(f"Address to player_x: {hex(self.player_x_ptr)}")
         logger.debug(f"Address to player_y: {hex(self.player_y_ptr)}")
         logger.debug(f"Address to player_x_facing: {hex(self.player_x_facing_ptr)}")
@@ -109,6 +85,9 @@ class Evoland1Memory:
         logger.debug(f"Address to player_facing: {hex(self.player_facing_ptr)}")
         logger.debug(f"Address to player_inv_open: {hex(self.player_inv_open_ptr)}")
         logger.debug(f"Address to player_is_moving: {hex(self.player_is_moving_ptr)}")
+        logger.debug(
+            f"Address to player_hp_overworld: {hex(self.player_hp_overworld_ptr)}"
+        )
 
     def get_player_pos(self) -> list[float]:
         return [
@@ -139,3 +118,6 @@ class Evoland1Memory:
     # TODO: Rename?
     def get_player_is_moving(self) -> bool:
         return self.process.read_u8(self.player_is_moving_ptr) == 1
+
+    def get_player_hp_overworld(self) -> int:
+        return self.process.read_u32(self.player_hp_overworld_ptr)
