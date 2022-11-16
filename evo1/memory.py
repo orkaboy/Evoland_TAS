@@ -108,8 +108,22 @@ class Evoland1Memory:
             self.process.read_s32(self.player_y_facing_ptr),
         ]
 
+    # 0=left,1=right,2=up,3=down. Doesn't do diagonal facings.
     def get_player_facing(self) -> int:
         return self.process.read_u32(self.player_facing_ptr)
+
+    def get_player_facing_str(self, facing: int) -> str:
+        match facing:
+            case 0:
+                return "left"
+            case 1:
+                return "right"
+            case 2:
+                return "up"
+            case 3:
+                return "down"
+            case other:
+                return "err"
 
     # TODO: Rename?
     def get_inv_open(self) -> bool:
