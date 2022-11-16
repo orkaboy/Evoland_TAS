@@ -43,7 +43,7 @@ class DeltaTimeFormatter(logging.Formatter):
 
 
 # This should be called once in main, before any calls to the logging library
-def initialize_logging(game_name: str, config_data: dict):
+def initialize_logging(game_name: str, config_data: dict, curses_win):
     # Defines the format of the colored logs
     color_log_fmt = (
         "%(color)s[%(delta)s] %(name)-16s %(levelname)-8s %(message)s%(color_reset)s"
@@ -84,6 +84,10 @@ def initialize_logging(game_name: str, config_data: dict):
 
     # Turn off logging in specific sublibraries to prevent even more spam
     logging.getLogger("comtypes").setLevel(logging.WARNING)  # For pyttsx3
+
+    curses_handler = CursesHandler(curses_win)
+    curses_handler.setFormatter(formatter_to_use)
+    logging.getLogger("").addHandler(curses_handler)
 
     # Now the logging to file/console is configured!
 
@@ -161,3 +165,20 @@ def _add_log_level(level_name: str, level_num: int, method_name: Optional[str] =
     setattr(logging, level_name, level_num)
     setattr(logging.getLoggerClass(), method_name, log_for_level)
     setattr(logging, method_name, log_to_root)
+
+
+class CursesHandler(logging.Handler):
+    def __init__(self, screen):
+        logging.Handler.__init__(self)
+        self.screen = screen
+
+    def emit(self, record):
+        try:
+            msg = self.format(record)
+            screen = self.screen
+            screen.addstr(f"\n{msg}")
+            screen.refresh()
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except Exception:
+            self.handleError(record)

@@ -4,8 +4,8 @@ import logging
 import evo1.control as control
 import evo1.memory as memory
 import memory.core as core
-from log_init import reset_logging_time_reference
 from menu_control import MenuController
+from term.log_init import reset_logging_time_reference
 
 logger = logging.getLogger(__name__)
 ctrl = control.handle()
