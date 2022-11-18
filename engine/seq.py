@@ -7,7 +7,7 @@ from typing import List
 logger = logging.getLogger(__name__)
 
 
-class SequenceBase(object):
+class SeqBase(object):
     def __init__(self, name: str):
         self.name = name
 
@@ -26,27 +26,27 @@ class SequenceBase(object):
         return self.name
 
 
-class SequenceLog(SequenceBase):
+class SeqLog(SeqBase):
     def __init__(self, name: str, text: str):
         self.text = text
         super().__init__(name)
 
     def execute(self, delta: float, blackboard: dict) -> bool:
-        logger.getLogger(self.name).info(self.text)
+        logging.getLogger(self.name).info(self.text)
         return True
 
 
-class SequenceDebug(SequenceBase):
+class SeqDebug(SeqBase):
     def __init__(self, name: str, text: str):
         self.text = text
         super().__init__(name)
 
     def execute(self, delta: float, blackboard: dict) -> bool:
-        logger.getLogger(self.name).debug(self.text)
+        logging.getLogger(self.name).debug(self.text)
         return True
 
 
-class SequenceDelay(SequenceBase):
+class SeqDelay(SeqBase):
     def __init__(self, name: str, time_in_s: float):
         self.timer = 0.0
         self.timeout = time_in_s
@@ -67,8 +67,8 @@ class SequenceDelay(SequenceBase):
         return f"Waiting({self.name})... {self.timer:.2f}/{self.timeout:.2f}"
 
 
-class SequenceList(SequenceBase):
-    def __init__(self, name: str, children: List[SequenceBase]):
+class SeqList(SeqBase):
+    def __init__(self, name: str, children: List[SeqBase]):
         self.step = 0
         self.children = children
         super().__init__(name)
@@ -104,10 +104,10 @@ class SequenceList(SequenceBase):
 class SequencerEngine(object):
     """
     Engine for executing sequences of generic TAS events.
-    Each event sequence can be nested using SequenceList.
+    Each event sequence can be nested using SeqList.
     """
 
-    def __init__(self, main_win, stats_win, root: SequenceBase, config_data: dict):
+    def __init__(self, main_win, stats_win, root: SeqBase, config_data: dict):
         self.main_win = main_win
         self.stats_win = stats_win
         self.root = root
@@ -123,11 +123,16 @@ class SequencerEngine(object):
 
     def pause(self) -> None:
         self.paused = True
-        self.main_win.addstr(0, 1, "PAUSED")
+        self.main_win.addstr(0, 3, "== PAUSED ==")
+        logger.info("------------------------")
+        logger.info("  TAS EXECUTION PAUSED  ")
 
     def unpause(self) -> None:
         self.paused = False
         self.timestamp = time.time()
+        logger.info("------------------------")
+        logger.info(" TAS EXECUTION RESUMING ")
+        logger.info("------------------------")
 
     def _handle_input(self) -> None:
         c = self.main_win.getch()
@@ -139,11 +144,14 @@ class SequencerEngine(object):
             else:
                 self.unpause()
 
-    # Execute and render TAS progress
-    def run(self) -> bool:
+    def _get_deltatime(self) -> float:
         now = time.time()
         delta = now - self.timestamp
         self.timestamp = now
+        return delta
+
+    # Execute and render TAS progress
+    def run(self) -> bool:
         # Clear display windows
         self.main_win.clear()
         self.stats_win.clear()
@@ -152,14 +160,15 @@ class SequencerEngine(object):
 
         # Execute current gamestate logic
         ret = False
-        if self.paused == False:
+        if not self.paused:
+            delta = self._get_deltatime()
             ret = self.root.execute(delta=delta, blackboard=self.blackboard)
 
         # Render the current gamestate
         self.root.render(
             main_win=self.main_win, stats_win=self.stats_win, blackboard=self.blackboard
         )
-        self.main_win.addstr(0, 0, f"Gamestate: {self.root}")
+        self.main_win.addstr(1, 1, f"Gamestate: {self.root}")
 
         # Update display windows
         self.main_win.noutrefresh()
