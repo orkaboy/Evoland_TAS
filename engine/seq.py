@@ -10,14 +10,14 @@ class SequenceBase(object):
     def __init__(self, name: str):
         self.name = name
 
-    def reset(self):
+    def reset(self) -> None:
         pass
 
     # Return true if the sequence is done with, or False if we should remain in this state
     def execute(self, blackboard: dict) -> bool:
         return True
 
-    def render(self, main_win, stats_win, blackboard: dict):
+    def render(self, main_win, stats_win, blackboard: dict) -> None:
         pass
 
     # Should be overloaded
@@ -31,7 +31,7 @@ class SequenceList(SequenceBase):
         self.children = children
         super().__init__(name)
 
-    def reset(self):
+    def reset(self) -> None:
         self.step = 0
 
     # Return true if the sequence is done with, or False if we should remain in this state
@@ -46,7 +46,7 @@ class SequenceList(SequenceBase):
                 return True
         return False
 
-    def render(self, main_win, stats_win, blackboard: dict):
+    def render(self, main_win, stats_win, blackboard: dict) -> None:
         cur_child = self.children[self.step]
         cur_child.render(main_win=main_win, stats_win=stats_win, blackboard=blackboard)
 
@@ -73,27 +73,30 @@ class SequencerEngine(object):
         self.paused = False
         self.blackboard = {"config": config_data}
 
-    def reset(self):
+    def reset(self) -> None:
         self.paused = False
         self.blackboard = {"config": self.config}
         self.root.reset()
 
-    def pause(self):
+    def pause(self) -> None:
         self.paused = True
+        self.main_win.addstr(0, 1, "PAUSED")
 
-    # Execute and print
-    def run(self) -> bool:
+    def _handle_input(self) -> None:
         c = self.main_win.getch()
-
-        # Clear display windows
-        self.main_win.clear()
-        self.stats_win.clear()
-
         # Keybinds: Pause TAS
         if c == ord("p"):
             self.paused = not self.paused
             if self.paused:
-                self.main_win.addstr(0, 1, "PAUSED")
+                self.pause()
+
+    # Execute and render TAS progress
+    def run(self) -> bool:
+        # Clear display windows
+        self.main_win.clear()
+        self.stats_win.clear()
+
+        self._handle_input()
 
         # Execute current gamestate logic
         ret = False
@@ -109,5 +112,5 @@ class SequencerEngine(object):
         self.main_win.noutrefresh()
         self.stats_win.noutrefresh()
         curses.doupdate()
-
+        # Return current state of sequence engine (True when the game finishes)
         return ret
