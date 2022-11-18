@@ -1,6 +1,7 @@
 # Libraries and Core Files
 import curses
 import logging
+import time
 from typing import List
 
 logger = logging.getLogger(__name__)
@@ -14,7 +15,7 @@ class SequenceBase(object):
         pass
 
     # Return true if the sequence is done with, or False if we should remain in this state
-    def execute(self, blackboard: dict) -> bool:
+    def execute(self, delta: float, blackboard: dict) -> bool:
         return True
 
     def render(self, main_win, stats_win, blackboard: dict) -> None:
@@ -30,7 +31,7 @@ class SequenceLog(SequenceBase):
         self.text = text
         super().__init__(name)
 
-    def execute(self, blackboard: dict) -> bool:
+    def execute(self, delta: float, blackboard: dict) -> bool:
         logger.getLogger(self.name).info(self.text)
         return True
 
@@ -40,9 +41,30 @@ class SequenceDebug(SequenceBase):
         self.text = text
         super().__init__(name)
 
-    def execute(self, blackboard: dict) -> bool:
+    def execute(self, delta: float, blackboard: dict) -> bool:
         logger.getLogger(self.name).debug(self.text)
         return True
+
+
+class SequenceDelay(SequenceBase):
+    def __init__(self, name: str, time_in_s: float):
+        self.timer = 0.0
+        self.timeout = time_in_s
+        super().__init__(name)
+
+    def reset(self) -> None:
+        self.timer = 0.0
+        return super().reset()
+
+    def execute(self, delta: float, blackboard: dict) -> bool:
+        self.timer = self.timer + delta
+        if self.timer >= self.timeout:
+            self.timer = self.timeout
+            return True
+        return False
+
+    def __repr__(self) -> str:
+        return f"Waiting({self.name})... {self.timer:.2f}/{self.timeout:.2f}"
 
 
 class SequenceList(SequenceBase):
@@ -53,13 +75,14 @@ class SequenceList(SequenceBase):
 
     def reset(self) -> None:
         self.step = 0
+        return super().reset()
 
     # Return true if the sequence is done with, or False if we should remain in this state
-    def execute(self, blackboard: dict) -> bool:
+    def execute(self, delta: float, blackboard: dict) -> bool:
         cur_child = self.children[self.step]
         num_children = len(self.children)
         # Peform logic of current child step
-        ret = cur_child.execute(blackboard=blackboard)
+        ret = cur_child.execute(delta=delta, blackboard=blackboard)
         if ret == True:  # If current child is done
             self.step = self.step + 1
             if self.step >= num_children:
@@ -75,22 +98,22 @@ class SequenceList(SequenceBase):
         cur_child = self.children[self.step]
         num_children = len(self.children)
         cur_step = self.step + 1
-        return f"{self.name}[{cur_step}/{num_children}]:{cur_child}"
-
-
-"""
-Engine for executing sequences of generic TAS events.
-Each event sequence can be nested using SequenceList.
-"""
+        return f"{self.name}[{cur_step}/{num_children}]: {cur_child}"
 
 
 class SequencerEngine(object):
+    """
+    Engine for executing sequences of generic TAS events.
+    Each event sequence can be nested using SequenceList.
+    """
+
     def __init__(self, main_win, stats_win, root: SequenceBase, config_data: dict):
         self.main_win = main_win
         self.stats_win = stats_win
         self.root = root
         self.config = config_data
         self.paused = False
+        self.timestamp = time.time()
         self.blackboard = {"config": config_data}
 
     def reset(self) -> None:
@@ -102,16 +125,25 @@ class SequencerEngine(object):
         self.paused = True
         self.main_win.addstr(0, 1, "PAUSED")
 
+    def unpause(self) -> None:
+        self.paused = False
+        self.timestamp = time.time()
+
     def _handle_input(self) -> None:
         c = self.main_win.getch()
         # Keybinds: Pause TAS
         if c == ord("p"):
-            self.paused = not self.paused
-            if self.paused:
+            paused = not self.paused
+            if paused:
                 self.pause()
+            else:
+                self.unpause()
 
     # Execute and render TAS progress
     def run(self) -> bool:
+        now = time.time()
+        delta = now - self.timestamp
+        self.timestamp = now
         # Clear display windows
         self.main_win.clear()
         self.stats_win.clear()
@@ -121,7 +153,7 @@ class SequencerEngine(object):
         # Execute current gamestate logic
         ret = False
         if self.paused == False:
-            ret = self.root.execute(blackboard=self.blackboard)
+            ret = self.root.execute(delta=delta, blackboard=self.blackboard)
 
         # Render the current gamestate
         self.root.render(
