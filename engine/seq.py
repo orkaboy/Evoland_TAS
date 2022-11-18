@@ -25,6 +25,26 @@ class SequenceBase(object):
         return self.name
 
 
+class SequenceLog(SequenceBase):
+    def __init__(self, name: str, text: str):
+        self.text = text
+        super().__init__(name)
+
+    def execute(self, blackboard: dict) -> bool:
+        logger.getLogger(self.name).info(self.text)
+        return True
+
+
+class SequenceDebug(SequenceBase):
+    def __init__(self, name: str, text: str):
+        self.text = text
+        super().__init__(name)
+
+    def execute(self, blackboard: dict) -> bool:
+        logger.getLogger(self.name).debug(self.text)
+        return True
+
+
 class SequenceList(SequenceBase):
     def __init__(self, name: str, children: List[SequenceBase]):
         self.step = 0
@@ -107,6 +127,7 @@ class SequencerEngine(object):
         self.root.render(
             main_win=self.main_win, stats_win=self.stats_win, blackboard=self.blackboard
         )
+        self.main_win.addstr(0, 0, f"Gamestate: {self.root}")
 
         # Update display windows
         self.main_win.noutrefresh()
