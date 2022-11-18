@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 class SeqBase(object):
-    def __init__(self, name: str):
+    def __init__(self, name: str = ""):
         self.name = name
 
     def reset(self) -> None:
@@ -24,6 +24,18 @@ class SeqBase(object):
     # Should be overloaded
     def __repr__(self) -> str:
         return self.name
+
+
+class SeqFunc(SeqBase):
+    def __init__(self, func, *args, **kwargs):
+        self.func = func
+        self.args = args
+        self.kwargs = kwargs
+        super().__init__(name="Func wrapper")
+
+    def execute(self, delta: float, blackboard: dict) -> bool:
+        self.func(*self.args, **self.kwargs)
+        return True
 
 
 class SeqLog(SeqBase):
@@ -98,7 +110,7 @@ class SeqList(SeqBase):
         cur_child = self.children[self.step]
         num_children = len(self.children)
         cur_step = self.step + 1
-        return f"{self.name}[{cur_step}/{num_children}]: {cur_child}"
+        return f"{self.name}[{cur_step}/{num_children}] > {cur_child}"
 
 
 class SequencerEngine(object):
@@ -111,6 +123,7 @@ class SequencerEngine(object):
         self.main_win = main_win
         self.stats_win = stats_win
         self.root = root
+        self.done = False
         self.config = config_data
         self.paused = False
         self.timestamp = time.time()
@@ -118,6 +131,7 @@ class SequencerEngine(object):
 
     def reset(self) -> None:
         self.paused = False
+        self.done = False
         self.blackboard = {"config": self.config}
         self.root.reset()
 
@@ -151,7 +165,7 @@ class SequencerEngine(object):
         return delta
 
     # Execute and render TAS progress
-    def run(self) -> bool:
+    def run(self) -> None:
         # Clear display windows
         self.main_win.clear()
         self.stats_win.clear()
@@ -159,10 +173,9 @@ class SequencerEngine(object):
         self._handle_input()
 
         # Execute current gamestate logic
-        ret = False
-        if not self.paused:
+        if not self.paused and not self.done:
             delta = self._get_deltatime()
-            ret = self.root.execute(delta=delta, blackboard=self.blackboard)
+            self.done = self.root.execute(delta=delta, blackboard=self.blackboard)
 
         # Render the current gamestate
         self.root.render(
@@ -174,5 +187,7 @@ class SequencerEngine(object):
         self.main_win.noutrefresh()
         self.stats_win.noutrefresh()
         curses.doupdate()
-        # Return current state of sequence engine (True when the game finishes)
-        return ret
+
+    def active(self) -> bool:
+        # Return current state of sequence engine (False when the game finishes)
+        return not self.done
