@@ -2,6 +2,14 @@ import curses
 
 import evo1.TAS as evo1
 import evo2.TAS as evo2
+from app import TAS_VERSION_STRING
+from term.curses import stats_width
+
+
+def write_stats_centered(stats_win, line: int, text: str):
+    text_len = len(text)
+    x_off = int(stats_width / 2 - text_len / 2)
+    stats_win.addstr(line, x_off, text)
 
 
 def main_menu(main_win, stats_win, config_data: dict):
@@ -22,9 +30,10 @@ def main_menu(main_win, stats_win, config_data: dict):
 
         # Update side window
         stats_win.clear()
-        stats_win.addstr(1, 0, "+ Evoland TAS +")
-        stats_win.addstr(2, 0, "    author:    ")
-        stats_win.addstr(3, 0, "    orkaboy    ")
+        write_stats_centered(stats_win=stats_win, line=1, text="+ Evoland TAS +")
+        write_stats_centered(stats_win=stats_win, line=2, text=TAS_VERSION_STRING)
+        write_stats_centered(stats_win=stats_win, line=4, text="author:")
+        write_stats_centered(stats_win=stats_win, line=5, text="orkaboy")
         stats_win.noutrefresh()
 
         # Update main window
@@ -33,7 +42,7 @@ def main_menu(main_win, stats_win, config_data: dict):
         for opt in options:
             key = opt.get("key", "x")
             text = opt.get("name", "ERROR")
-            main_win.addstr(line, 1, f"({key})  {text}")
+            main_win.addstr(line, 1, f"({key}) {text}")
             line = line + 1
         line = line + 1
         main_win.addstr(line, 1, "(q) Quit")

@@ -15,8 +15,8 @@ stats_width = 25
 def create_logger_window(screen):
     # Determine the dimensions of the logger window
     maxy, maxx = screen.getmaxyx()
-    begin_y, begin_x = maxy - logger_height, 1
-    height, width = logger_height, maxx - 2
+    begin_y, begin_x = maxy - logger_height + 1, 1
+    height, width = logger_height - 2, maxx - 2
     # Create curses window to hold the logger
     logger_win = curses.newwin(height, width, begin_y, begin_x)
     # Set parameters on window so that it scrolls automatically
@@ -24,34 +24,42 @@ def create_logger_window(screen):
     logger_win.scrollok(True)
     logger_win.idlok(True)
     logger_win.leaveok(True)
-
     return logger_win
 
 
 def create_main_window(screen):
     # Determine the dimensions of the logger window
     maxy, maxx = screen.getmaxyx()
-    begin_y, begin_x = 0, 0
-    height, width = maxy - logger_height, maxx - stats_width
+    begin_y, begin_x = 1, 1
+    height, width = maxy - logger_height - 1, maxx - stats_width - 3
     # Create curses window to hold the main data
     main_win = curses.newwin(height, width, begin_y, begin_x)
     # Set parameters on window so that it scrolls automatically
     main_win.refresh()
-
     return main_win
 
 
 def create_stats_window(screen):
     # Determine the dimensions of the stats window
     maxy, maxx = screen.getmaxyx()
-    begin_y, begin_x = 0, maxx - stats_width
-    height, width = maxy - logger_height, stats_width
+    begin_y, begin_x = 1, maxx - stats_width - 1
+    height, width = maxy - logger_height - 1, stats_width
     # Create curses window to hold the gamestate data
     stats_win = curses.newwin(height, width, begin_y, begin_x)
     # Set parameters on window so that it scrolls automatically
     stats_win.refresh()
-
     return stats_win
+
+
+def create_borders(screen):
+    maxy, maxx = screen.getmaxyx()
+    # ls, rs, ts, bs, tl, tr, bl, br
+    # Leaving everything as 0 will use the default borders
+    screen.border(0, 0, 0, 0, 0, 0, 0, 0)
+    screen.move(maxy - logger_height, 1)
+    screen.hline(curses.ACS_HLINE, maxx - 2)
+    screen.move(1, maxx - stats_width - 2)
+    screen.vline(curses.ACS_VLINE, maxy - logger_height - 1)
 
 
 def setup_curses(screen, config_data: dict, func):
@@ -65,5 +73,7 @@ def setup_curses(screen, config_data: dict, func):
 
     main_win = create_main_window(screen=screen)
     stats_win = create_stats_window(screen=screen)
+    create_borders(screen=screen)
+    screen.refresh()
 
     func(main_win=main_win, stats_win=stats_win, config_data=config_data)
