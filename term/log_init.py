@@ -66,27 +66,20 @@ def initialize_logging(game_name: str, config_data: dict, curses_win):
     logging.getLogger("").root.handlers[0].setFormatter(bw_log_formatter)
 
     # Get the visible log level for the console logger from config.yaml
-    console_log_level = config_data.get("verbosity", "DEBUG")
+    console_log_level = config_data.get("verbosity", "INFO")
     color_log = config_data.get("color_log", False)
-
-    # Set up the console logger
-    console = logging.StreamHandler()
-    console.setLevel(console_log_level)  # Log the appropriate information to console
 
     # Apply black&white formatter by default
     formatter_to_use = bw_log_formatter
     if color_log:
         formatter_to_use = color_log_formatter  # Apply color formatter
-    console.setFormatter(formatter_to_use)
-
-    # Add the handlers to the root logger
-    logging.getLogger("").addHandler(console)
-
-    # Turn off logging in specific sublibraries to prevent even more spam
-    logging.getLogger("comtypes").setLevel(logging.WARNING)  # For pyttsx3
 
     curses_handler = CursesHandler(curses_win)
+    curses_handler.setLevel(
+        console_log_level
+    )  # Log the appropriate information to console
     curses_handler.setFormatter(formatter_to_use)
+    # Add the handlers to the root logger
     logging.getLogger("").addHandler(curses_handler)
 
     # Now the logging to file/console is configured!

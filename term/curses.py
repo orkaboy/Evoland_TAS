@@ -51,6 +51,12 @@ def create_stats_window(screen):
     return stats_win
 
 
+def write_stats_centered(stats_win, line: int, text: str):
+    text_len = len(text)
+    x_off = int(stats_width / 2 - text_len / 2)
+    stats_win.addstr(line, x_off, text)
+
+
 def create_borders(screen):
     maxy, maxx = screen.getmaxyx()
     # ls, rs, ts, bs, tl, tr, bl, br

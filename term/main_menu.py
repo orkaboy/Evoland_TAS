@@ -3,13 +3,7 @@ import curses
 import evo1.TAS as evo1
 import evo2.TAS as evo2
 from app import TAS_VERSION_STRING
-from term.curses import stats_width
-
-
-def write_stats_centered(stats_win, line: int, text: str):
-    text_len = len(text)
-    x_off = int(stats_width / 2 - text_len / 2)
-    stats_win.addstr(line, x_off, text)
+from term.curses import write_stats_centered
 
 
 def main_menu(main_win, stats_win, config_data: dict):
@@ -50,6 +44,7 @@ def main_menu(main_win, stats_win, config_data: dict):
 
         # Update screen
         curses.doupdate()
+        main_win.nodelay(0)
 
         do_refresh = True
         # Get user input
@@ -63,6 +58,7 @@ def main_menu(main_win, stats_win, config_data: dict):
                 key = opt.get("key", "x")
                 func = opt.get("func", None)
                 if c == ord(key) and func != None:
+                    main_win.nodelay(1)
                     # Call subfunction
                     func(
                         main_win=main_win, stats_win=stats_win, config_data=config_data

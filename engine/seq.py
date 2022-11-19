@@ -91,26 +91,48 @@ class SeqList(SeqBase):
 
     # Return true if the sequence is done with, or False if we should remain in this state
     def execute(self, delta: float, blackboard: dict) -> bool:
-        cur_child = self.children[self.step]
         num_children = len(self.children)
+        if self.step >= num_children:
+            return True
+        cur_child = self.children[self.step]
         # Peform logic of current child step
         ret = cur_child.execute(delta=delta, blackboard=blackboard)
         if ret == True:  # If current child is done
             self.step = self.step + 1
-            if self.step >= num_children:
-                return True
         return False
 
     def render(self, main_win, stats_win, blackboard: dict) -> None:
+        num_children = len(self.children)
+        if self.step >= num_children:
+            return
         cur_child = self.children[self.step]
         cur_child.render(main_win=main_win, stats_win=stats_win, blackboard=blackboard)
 
-    # Should be overloaded
     def __repr__(self) -> str:
-        cur_child = self.children[self.step]
         num_children = len(self.children)
+        if self.step >= num_children:
+            return f"{self.name}[{num_children}/{num_children}]"
+        cur_child = self.children[self.step]
         cur_step = self.step + 1
         return f"{self.name}[{cur_step}/{num_children}] > {cur_child}"
+
+
+class SeqAnnotator(SeqBase):
+    def __init__(self, name: str, wrapped: SeqBase, annotations: dict):
+        self.wrapped = wrapped
+        self.annotations = annotations
+        super().__init__(name)
+
+    def execute(self, delta: float, blackboard: dict) -> bool:
+        blackboard |= self.annotations  # Apply the annotations to the blackboard
+        # Run wrapped sequence node
+        return self.wrapped.execute(delta, blackboard)
+
+    def render(self, main_win, stats_win, blackboard: dict) -> None:
+        return self.wrapped.render(main_win, stats_win, blackboard)
+
+    def __repr__(self) -> str:
+        return self.wrapped.__repr__()
 
 
 class SequencerEngine(object):
@@ -140,6 +162,7 @@ class SequencerEngine(object):
         self.main_win.addstr(0, 3, "== PAUSED ==")
         logger.info("------------------------")
         logger.info("  TAS EXECUTION PAUSED  ")
+        logger.info("------------------------")
 
     def unpause(self) -> None:
         self.paused = False
@@ -167,8 +190,8 @@ class SequencerEngine(object):
     # Execute and render TAS progress
     def run(self) -> None:
         # Clear display windows
-        self.main_win.clear()
-        self.stats_win.clear()
+        # self.main_win.erase()
+        # self.stats_win.erase()
 
         self._handle_input()
 
@@ -181,6 +204,8 @@ class SequencerEngine(object):
         self.root.render(
             main_win=self.main_win, stats_win=self.stats_win, blackboard=self.blackboard
         )
+        self.main_win.move(1, 1)
+        self.main_win.clrtoeol()
         self.main_win.addstr(1, 1, f"Gamestate: {self.root}")
 
         # Update display windows

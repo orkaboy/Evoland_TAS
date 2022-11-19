@@ -1,9 +1,30 @@
 # Libraries and Core Files
 import logging
+from enum import Flag, IntEnum, auto
+from typing import NamedTuple, Tuple
 
 import memory.core
 
 logger = logging.getLogger(__name__)
+
+
+class Vec2(NamedTuple):
+    x: float
+    y: float
+
+
+class Facing(IntEnum):
+    LEFT = 0
+    RIGHT = 1
+    UP = 2
+    DOWN = 3
+
+
+# Representation of game features picked up from chests
+class GameFeatures(Flag):
+    MoveLeft = auto()
+    MoveVertical = auto()
+    MoveSmooth = auto()
 
 
 class Evoland1Memory:
@@ -41,9 +62,9 @@ class Evoland1Memory:
     _PLAYER_APB_CUR_HP_PTR = [0x1C, 0x1C, 0x88, 0x2C, 0x8, 0x10, 0xF4]
 
     def __init__(self):
-        mem = memory.core.handle()
-        self.process = mem.process
-        self.base_addr = mem.base_addr
+        mem_handle = memory.core.handle()
+        self.process = mem_handle.process
+        self.base_addr = mem_handle.base_addr
         logger.debug(f"Base address: {hex(self.base_addr)}")
         self.setup_pointers()
 
@@ -89,38 +110,38 @@ class Evoland1Memory:
             f"Address to player_hp_overworld: {hex(self.player_hp_overworld_ptr)}"
         )
 
-    def get_player_pos(self) -> list[float]:
-        return [
+    def get_player_pos(self) -> Vec2:
+        return Vec2(
             self.process.read_double(self.player_x_ptr),
             self.process.read_double(self.player_y_ptr),
-        ]
+        )
 
-    def get_player_tile_pos(self) -> list[int]:
+    def get_player_tile_pos(self) -> Tuple[int, int]:
         return [
             self.process.read_double(self.player_x_tile_ptr),
             self.process.read_double(self.player_y_tile_ptr),
         ]
 
     # TODO: Remove?
-    def get_player_facing2(self) -> list[int]:
+    def get_player_facing2(self) -> Tuple[int, int]:
         return [
             self.process.read_s32(self.player_x_facing_ptr),
             self.process.read_s32(self.player_y_facing_ptr),
         ]
 
     # 0=left,1=right,2=up,3=down. Doesn't do diagonal facings.
-    def get_player_facing(self) -> int:
+    def get_player_facing(self) -> Facing:
         return self.process.read_u32(self.player_facing_ptr)
 
-    def get_player_facing_str(self, facing: int) -> str:
+    def get_player_facing_str(self, facing: Facing) -> str:
         match facing:
-            case 0:
+            case Facing.LEFT:
                 return "left"
-            case 1:
+            case Facing.RIGHT:
                 return "right"
-            case 2:
+            case Facing.UP:
                 return "up"
-            case 3:
+            case Facing.DOWN:
                 return "down"
             case other:
                 return "err"
@@ -135,3 +156,15 @@ class Evoland1Memory:
 
     def get_player_hp_overworld(self) -> int:
         return self.process.read_u32(self.player_hp_overworld_ptr)
+
+
+_mem = None
+
+
+def load_memory() -> None:
+    global _mem
+    _mem = Evoland1Memory()
+
+
+def get_memory() -> Evoland1Memory:
+    return _mem

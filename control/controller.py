@@ -1,9 +1,24 @@
 # Libraries and Core Files
 import logging
+from enum import IntEnum, auto
 
 import vgamepad as vg
 
 logger = logging.getLogger(__name__)
+
+
+class Buttons(IntEnum):
+    DPAD = auto()
+    TRIG_L = auto()
+    TRIG_R = auto()
+    BACK = auto()
+    START = auto()
+    A = auto()
+    B = auto()
+    X = auto()
+    Y = auto()
+    SHOULDER_L = auto()
+    SHOULDER_R = auto()
 
 
 class VgTranslator:
@@ -26,50 +41,50 @@ class VgTranslator:
             self.gamepad.release_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_LEFT)
             self.gamepad.release_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_RIGHT)
 
-    def set_button(self, x_key: str, value):
+    def set_button(self, x_key: Buttons, value):
         match x_key:
             # Dpad movement
-            case "d_pad":
+            case Buttons.DPAD:
                 self._set_dpad(value)
             # Trigger buttons
-            case "trigger_l":
+            case Buttons.TRIG_L:
                 self.gamepad.left_trigger_float(value_float=value)
-            case "trigger_r":
+            case Buttons.TRIG_R:
                 self.gamepad.right_trigger_float(value_float=value)
             # Buttons
-            case "btn_back":
+            case Buttons.BACK:
                 if value != 0:
                     self.gamepad.press_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_BACK)
                 else:
                     self.gamepad.release_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_BACK)
-            case "btn_start":
+            case Buttons.START:
                 if value != 0:
                     self.gamepad.press_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_START)
                 else:
                     self.gamepad.release_button(
                         button=vg.XUSB_BUTTON.XUSB_GAMEPAD_START
                     )
-            case "btn_a":
+            case Buttons.A:
                 if value != 0:
                     self.gamepad.press_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_A)
                 else:
                     self.gamepad.release_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_A)
-            case "btn_b":
+            case Buttons.B:
                 if value != 0:
                     self.gamepad.press_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_B)
                 else:
                     self.gamepad.release_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_B)
-            case "btn_x":
+            case Buttons.X:
                 if value != 0:
                     self.gamepad.press_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_X)
                 else:
                     self.gamepad.release_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_X)
-            case "btn_y":
+            case Buttons.Y:
                 if value != 0:
                     self.gamepad.press_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_Y)
                 else:
                     self.gamepad.release_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_Y)
-            case "btn_shoulder_l":
+            case Buttons.SHOULDER_L:
                 if value != 0:
                     self.gamepad.press_button(
                         button=vg.XUSB_BUTTON.XUSB_GAMEPAD_LEFT_SHOULDER
@@ -78,7 +93,7 @@ class VgTranslator:
                     self.gamepad.release_button(
                         button=vg.XUSB_BUTTON.XUSB_GAMEPAD_LEFT_SHOULDER
                     )
-            case "btn_shoulder_r":
+            case Buttons.SHOULDER_R:
                 if value != 0:
                     self.gamepad.press_button(
                         button=vg.XUSB_BUTTON.XUSB_GAMEPAD_RIGHT_SHOULDER

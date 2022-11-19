@@ -1,7 +1,8 @@
 # Libraries and Core Files
 import logging
 
-import controller
+import control.controller as controller
+from evo1.memory import Vec2
 
 logger = logging.getLogger(__name__)
 
@@ -11,11 +12,11 @@ class Evoland2Controller:
         self.ctrl = controller.handle()
 
     # Wrappers
-    def set_button(self, x_key: str, value):
+    def set_button(self, x_key: controller.Buttons, value):
         self.set_button(x_key, value)
 
-    def set_joystick(self, x: float, y: float):
-        self.ctrl.set_joystick(x, y)
+    def set_joystick(self, dir: Vec2):
+        self.ctrl.set_joystick(dir.x, dir.y)
 
     def set_neutral(self):
         self.ctrl.set_neutral()
