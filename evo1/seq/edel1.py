@@ -1,5 +1,5 @@
-from engine.seq import SeqList
-from evo1.memory import Facing, Vec2
+from engine.seq import SeqFunc, SeqList
+from evo1.memory import Facing, Vec2, load_zelda_memory
 from evo1.move2d import SeqAttack, SeqGrabChest, SeqMove2D
 
 
@@ -8,6 +8,7 @@ class Edel1(SeqList):
         super().__init__(
             name="Edel Vale",
             children=[
+                SeqFunc(load_zelda_memory),
                 SeqMove2D("Move to chest", coords=[Vec2(14, 52)]),
                 SeqGrabChest("Move Left", direction=Facing.RIGHT),
                 SeqMove2D("Move to chest", coords=[Vec2(11, 52)]),

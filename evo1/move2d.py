@@ -3,7 +3,7 @@ from typing import List
 
 import evo1.control
 from engine.seq import SeqBase
-from evo1.memory import Facing, GameFeatures, Vec2, get_memory
+from evo1.memory import Facing, GameFeatures, Vec2, get_zelda_memory
 from term.curses import write_stats_centered
 
 
@@ -30,8 +30,8 @@ class SeqGrabChest(SeqBase):
                 case Facing.DOWN:
                     ctrl.dpad.tap_down()
         # Wait out any cutscene/pickup animation
-        mem = get_memory()
-        return not mem.get_inv_open()
+        mem = get_zelda_memory()
+        return not mem.player.get_inv_open()
 
     def __repr__(self) -> str:
         return f"Chest({self.name})... awaiting control"
@@ -92,8 +92,8 @@ class SeqMove2D(SeqBase):
             return True
         # Move towards target
         target = self.coords[self.step]
-        mem = get_memory()
-        cur_pos = mem.get_player_pos()
+        mem = get_zelda_memory()
+        cur_pos = mem.player.get_pos()
         self._move_to(cur_pos, target, blackboard=blackboard)
 
         # If arrived, go to next coordinate in the list
@@ -105,11 +105,11 @@ class SeqMove2D(SeqBase):
     def _print_player_stats(self, stats_win, blackboard: dict) -> None:
         write_stats_centered(stats_win=stats_win, line=1, text="Evoland 1 TAS")
         write_stats_centered(stats_win=stats_win, line=2, text="2D section")
-        mem = get_memory()
-        pos = mem.get_player_pos()
+        mem = get_zelda_memory()
+        pos = mem.player.get_pos()
         stats_win.addstr(4, 1, f"  Player X: {pos.x:.3f}")
         stats_win.addstr(5, 1, f"  Player Y: {pos.y:.3f}")
-        facing = mem.get_player_facing_str(mem.get_player_facing())
+        facing = mem.player.get_facing_str()
         stats_win.addstr(6, 1, f"    Facing: {facing}")
 
     def _print_target(self, stats_win, blackboard: dict) -> None:

@@ -29,37 +29,12 @@ class GameFeatures(Flag):
 _LIBHL_OFFSET = 0x0004914C
 
 
+# TODO: Refactor (currently not used)
 class Evoland1Memory:
-
-    # Player position on map
-    _PLAYER_X_PTR = [0x7C8, 0x8, 0x3C, 0x30, 0x8]
-    _PLAYER_Y_PTR = [0x7C8, 0x8, 0x3C, 0x30, 0x10]
-
-    # Same as pos, but only integer part (not needed?)
-    _PLAYER_X_TILE_PTR = [0x7C8, 0x8, 0x3C, 0x30, 0x14]
-    _PLAYER_Y_TILE_PTR = [0x7C8, 0x8, 0x3C, 0x30, 0x18]
-
-    # 0=left,1=right,2=up,3=down. Doesn't do diagonal facings.
-    _PLAYER_FACING_PTR = [0x7C8, 0x8, 0x3C, 0x30, 0x58]
-
-    # This seems to be set on picking up stuff/opening inventory/opening menu, may be misnamed. Invincibility flag?
-    _PLAYER_INV_OPEN_PTR = [0x7C8, 0x8, 0x3C, 0x30, 0xA4]
-
-    # Only 1 when moving AND has sub-tile movement
-    _PLAYER_IS_MOVING_PTR = [0x7C8, 0x8, 0x3C, 0x30, 0xA5]
-
-    # First enemy seen (top octo): 0x104
-    _ENEMY1_X_PTR = [0x7C8, 0x8, 0x3C, 0x48, 0x8, 0x104, 0x8]
-    _ENEMY1_Y_PTR = [0x7C8, 0x8, 0x3C, 0x48, 0x8, 0x104, 0x10]
-    # Second enemy seen (bot octo): 0x108
-    _ENEMY2_X_PTR = [0x7C8, 0x8, 0x3C, 0x48, 0x8, 0x108, 0x8]
-    _ENEMY2_Y_PTR = [0x7C8, 0x8, 0x3C, 0x48, 0x8, 0x108, 0x10]
-    # Offsets from 0x10-0x110 (64 4-byte pointers) in second to last spot appear to be valid?
 
     # Overworld player health for ATB battle. Only updates outside battle!
     _PLAYER_HP_OVERWORLD_PTR = [0xA6C, 0x0, 0x90, 0x3C, 0x0]
-    # Money
-    _GLI_PTR = [0xA6C, 0x0, 0x90, 0x18, 0x10]
+    _GLI_PTR = [0xA6C, 0x0, 0x90, 0x18, 0x10]  # Money
 
     # Zelda player health for roaming battle (hearts)
     _PLAYER_HP_ZELDA_PTR = [0x7FC, 0x8, 0x30, 0x7C, 0x0]
@@ -77,66 +52,16 @@ class Evoland1Memory:
         self.setup_pointers()
 
     def setup_pointers(self):
-        self.player_x_ptr = self.process.get_pointer(
-            self.base_addr + _LIBHL_OFFSET, offsets=self._PLAYER_X_PTR
-        )
-        self.player_y_ptr = self.process.get_pointer(
-            self.base_addr + _LIBHL_OFFSET, offsets=self._PLAYER_Y_PTR
-        )
-        self.player_x_tile_ptr = self.process.get_pointer(
-            self.base_addr + _LIBHL_OFFSET, offsets=self._PLAYER_X_TILE_PTR
-        )
-        self.player_y_tile_ptr = self.process.get_pointer(
-            self.base_addr + _LIBHL_OFFSET, offsets=self._PLAYER_Y_TILE_PTR
-        )
-        self.player_facing_ptr = self.process.get_pointer(
-            self.base_addr + _LIBHL_OFFSET, offsets=self._PLAYER_FACING_PTR
-        )
-        self.player_inv_open_ptr = self.process.get_pointer(
-            self.base_addr + _LIBHL_OFFSET, offsets=self._PLAYER_INV_OPEN_PTR
-        )
-        self.player_is_moving_ptr = self.process.get_pointer(
-            self.base_addr + _LIBHL_OFFSET, offsets=self._PLAYER_IS_MOVING_PTR
-        )
         self.player_hp_overworld_ptr = self.process.get_pointer(
             self.base_addr + _LIBHL_OFFSET, offsets=self._PLAYER_HP_OVERWORLD_PTR
         )
         self.gli_ptr = self.process.get_pointer(
             self.base_addr + _LIBHL_OFFSET, offsets=self._GLI_PTR
         )
-        logger.debug(f"Address to player_inv_open: {hex(self.player_inv_open_ptr)}")
-        logger.debug(f"Address to player_is_moving: {hex(self.player_is_moving_ptr)}")
         logger.debug(
             f"Address to player_hp_overworld: {hex(self.player_hp_overworld_ptr)}"
         )
         logger.debug(f"Address to gli: {hex(self.gli_ptr)}")
-
-    def get_player_pos(self) -> Vec2:
-        return Vec2(
-            self.process.read_double(self.player_x_ptr),
-            self.process.read_double(self.player_y_ptr),
-        )
-
-    def get_player_tile_pos(self) -> Tuple[int, int]:
-        return [
-            self.process.read_double(self.player_x_tile_ptr),
-            self.process.read_double(self.player_y_tile_ptr),
-        ]
-
-    # 0=left,1=right,2=up,3=down. Doesn't do diagonal facings.
-    def get_player_facing(self) -> Facing:
-        return self.process.read_u32(self.player_facing_ptr)
-
-    def get_player_facing_str(self, facing: Facing) -> str:
-        match facing:
-            case Facing.LEFT:
-                return "left"
-            case Facing.RIGHT:
-                return "right"
-            case Facing.UP:
-                return "up"
-            case Facing.DOWN:
-                return "down"
 
     # Only valid in zelda map
     def get_player_hearts(self) -> float:
@@ -161,14 +86,6 @@ class Evoland1Memory:
             offsets=self._PLAYER_APB_MENU_CURSOR_PTR,
         )
         return self.process.read_u32(atb_menu_cursor_ptr)
-
-    # TODO: Rename?
-    def get_inv_open(self) -> bool:
-        return self.process.read_u8(self.player_inv_open_ptr) == 1
-
-    # TODO: Rename?
-    def get_player_is_moving(self) -> bool:
-        return self.process.read_u8(self.player_is_moving_ptr) == 1
 
     def get_player_hp_overworld(self) -> int:
         return self.process.read_u32(self.player_hp_overworld_ptr)
@@ -196,6 +113,8 @@ class GameEntity2D:
     _FACING_PTR = [0x58]  # int
     _ATTACK_PTR = [0x5C]  # byte, bit 5
     _ROTATION_PTR = [0x90]  # double (left = 0.0, up = 1.57, right = 3.14, down = -1.57)
+    # This seems to be set on picking up stuff/opening inventory/opening menu, may be misnamed. Invincibility flag?
+    _INV_OPEN_PTR = [0xA4]
     _DEAD_PTR = [0xF0]  # int, -1 when dead
 
     def __init__(self, process: LocProcess, entity_ptr: int):
@@ -221,6 +140,12 @@ class GameEntity2D:
         self.attack_ptr = self.process.get_pointer(
             self.entity_ptr, offsets=self._ATTACK_PTR
         )
+        self.rotation_ptr = self.process.get_pointer(
+            self.entity_ptr, offsets=self._ROTATION_PTR
+        )
+        self.inv_open_ptr = self.process.get_pointer(
+            self.entity_ptr, offsets=self._INV_OPEN_PTR
+        )
         self.dead_ptr = self.process.get_pointer(
             self.entity_ptr, offsets=self._DEAD_PTR
         )
@@ -244,7 +169,8 @@ class GameEntity2D:
     def get_facing(self) -> Facing:
         return self.process.read_u32(self.facing_ptr)
 
-    def get_facing_str(self, facing: Facing) -> str:
+    def get_facing_str(self) -> str:
+        facing = self.get_facing()
         match facing:
             case Facing.LEFT:
                 return "left"
@@ -258,6 +184,12 @@ class GameEntity2D:
     def get_attacking(self) -> bool:
         attacking = self.process.read_u8(self.attack_ptr)
         return attacking & 0x10  # Bit5 denotes attacking
+
+    def get_rotation(self) -> float:
+        return self.process.read_double(self.rotation_ptr)
+
+    def get_inv_open(self) -> bool:
+        return self.process.read_u8(self.inv_open_ptr) == 1
 
     # only works for enemies, not the player
     def get_alive(self) -> bool:
