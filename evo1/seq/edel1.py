@@ -6,7 +6,7 @@ from evo1.move2d import SeqAttack, SeqGrabChest, SeqMove2D
 class Edel1(SeqList):
     def __init__(self):
         super().__init__(
-            name="First area",
+            name="Edel Vale",
             children=[
                 SeqMove2D("Move to chest", coords=[Vec2(14, 52)]),
                 SeqGrabChest("Move Left", direction=Facing.RIGHT),
