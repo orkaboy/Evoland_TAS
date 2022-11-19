@@ -1,7 +1,7 @@
 # Libraries and Core Files
 import logging
 from enum import Flag, IntEnum, auto
-from typing import NamedTuple, Tuple
+from typing import List, NamedTuple, Tuple
 
 import memory.core
 from memory.core import LocProcess
@@ -224,7 +224,7 @@ class ZeldaMemory:
         self.player = GameEntity2D(self.process, player_ptr)
 
     def _init_enemies(self):
-        self.enemies = []
+        self.enemies: List[GameEntity2D] = []
         enemy_arr_size_ptr = self.process.get_pointer(
             self.base_offset, offsets=self._ENEMY_ARR_SIZE_PTR
         )

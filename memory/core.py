@@ -37,7 +37,9 @@ class LocProcess(Process):
             ctypes.byref(bytes_read),
         ):
             return lp_buffer.value
-        raise ctypes.WinError(ctypes.get_last_error())
+        raise ReferenceError(
+            lp_base_address
+        )  # ctypes.WinError(ctypes.get_last_error())
 
     def read_float(self, lp_base_address: int):
         lp_buffer = ctypes.c_float()
