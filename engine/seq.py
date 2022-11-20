@@ -187,16 +187,13 @@ class SequencerEngine(object):
         self.timestamp = now
         return delta
 
-    # Execute and render TAS progress
-    def run(self) -> None:
-        # Handle input
-        self._handle_input()
-
+    def _update(self) -> None:
         # Execute current gamestate logic
         if not self.paused and not self.done:
             delta = self._get_deltatime()
             self.done = self.root.execute(delta=delta, blackboard=self.blackboard)
 
+    def _render(self) -> None:
         # Clear display windows
         self.main_win.erase()
 
@@ -210,6 +207,12 @@ class SequencerEngine(object):
         self.main_win.noutrefresh()
         self.stats_win.noutrefresh()
         curses.doupdate()
+
+    # Execute and render TAS progress
+    def run(self) -> None:
+        self._handle_input()
+        self._update()
+        self._render()
 
     def active(self) -> bool:
         # Return current state of sequence engine (False when the game finishes)
