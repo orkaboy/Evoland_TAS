@@ -118,13 +118,16 @@ class SeqList(SeqBase):
 
 
 class SeqAnnotator(SeqBase):
-    def __init__(self, name: str, wrapped: SeqBase, annotations: dict):
+    def __init__(self, name: str, wrapped: SeqBase, annotations: dict, func=None):
         self.wrapped = wrapped
         self.annotations = annotations
+        self.func = func
         super().__init__(name)
 
     def execute(self, delta: float, blackboard: dict) -> bool:
         blackboard |= self.annotations  # Apply the annotations to the blackboard
+        if self.func:
+            self.func()
         # Run wrapped sequence node
         return self.wrapped.execute(delta, blackboard)
 

@@ -115,7 +115,6 @@ class GameEntity2D:
     _ROTATION_PTR = [0x90]  # double (left = 0.0, up = 1.57, right = 3.14, down = -1.57)
     # This seems to be set on picking up stuff/opening inventory/opening menu, may be misnamed. Invincibility flag?
     _INV_OPEN_PTR = [0xA4]
-    _DEAD_PTR = [0xF0]  # int, -1 when dead
 
     def __init__(self, process: LocProcess, entity_ptr: int):
         self.process = process
@@ -145,9 +144,6 @@ class GameEntity2D:
         )
         self.inv_open_ptr = self.process.get_pointer(
             self.entity_ptr, offsets=self._INV_OPEN_PTR
-        )
-        self.dead_ptr = self.process.get_pointer(
-            self.entity_ptr, offsets=self._DEAD_PTR
         )
 
     def get_pos(self) -> Vec2:
@@ -191,10 +187,6 @@ class GameEntity2D:
     def get_inv_open(self) -> bool:
         return self.process.read_u8(self.inv_open_ptr) == 1
 
-    # only works for enemies, not the player
-    def get_alive(self) -> bool:
-        return self.process.read_u32(self.dead_ptr) == 0
-
 
 class ZeldaMemory:
 
@@ -211,7 +203,7 @@ class ZeldaMemory:
         mem_handle = memory.core.handle()
         self.process = mem_handle.process
         self.base_addr = mem_handle.base_addr
-        logger.debug(f"Zelda base address: {hex(self.base_addr)}")
+        # logger.debug(f"Zelda base address: {hex(self.base_addr)}")
         self.base_offset = self.process.get_pointer(
             self.base_addr + _LIBHL_OFFSET, offsets=self._ZELDA_PTR
         )

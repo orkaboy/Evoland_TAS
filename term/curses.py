@@ -9,7 +9,7 @@ def entry_point(config_data: dict, func):
 
 
 logger_height = 15
-stats_width = 25
+stats_width = 20
 
 
 def create_logger_window(screen):
@@ -52,8 +52,9 @@ def create_stats_window(screen):
 
 
 def write_stats_centered(stats_win, line: int, text: str):
+    _, maxx = stats_win.getmaxyx()
     text_len = len(text)
-    x_off = int(stats_width / 2 - text_len / 2)
+    x_off = int(maxx / 2 - text_len / 2)
     stats_win.addstr(line, x_off, text)
 
 

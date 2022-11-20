@@ -92,9 +92,7 @@ def clunky_combat2d(target: Vec2, blackboard: dict) -> None:
     with contextlib.suppress(
         ReferenceError
     ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
-        for i, enemy in enumerate(mem.enemies):
-            if not enemy.get_alive():
-                continue
+        for enemy in mem.enemies:
             enemy_pos = enemy.get_pos()
             dist_to_player = _dist(player_pos, enemy_pos)
             if dist_to_player < 1.5:  # TODO Arbitrary magic number, distance to enemy
@@ -166,10 +164,24 @@ class SeqMove2D(SeqBase):
         write_stats_centered(stats_win=stats_win, line=2, text="2D section")
         mem = get_zelda_memory()
         pos = mem.player.get_pos()
-        stats_win.addstr(4, 1, f"  Player X: {pos.x:.3f}")
-        stats_win.addstr(5, 1, f"  Player Y: {pos.y:.3f}")
+        stats_win.addstr(4, 1, f" Player X: {pos.x:.3f}")
+        stats_win.addstr(5, 1, f" Player Y: {pos.y:.3f}")
         facing = mem.player.get_facing_str()
-        stats_win.addstr(6, 1, f"    Facing: {facing}")
+        stats_win.addstr(6, 1, f"  Facing: {facing}")
+
+        # Draw the player at the center for reference
+        self._print_ch_in_map(stats_win=stats_win, pos=Vec2(0, 0), ch="@")
+
+    # Map starts at line 12 and fills the rest of the stats window
+    _map_start_y = 12
+
+    # (0,0) is at center of map. Y-axis increases going down the screen.
+    def _print_ch_in_map(self, stats_win, pos: Vec2, ch: str):
+        maxy, maxx = stats_win.getmaxyx()
+        centerx, centery = maxx / 2, self._map_start_y + (maxy - self._map_start_y) / 2
+        draw_x, draw_y = int(centerx + pos.x), int(centery + pos.y)
+        if draw_x in range(maxx) and draw_y in range(self._map_start_y, maxy - 1):
+            stats_win.addch(draw_y, draw_x, ch)
 
     def _print_target(self, stats_win, blackboard: dict) -> None:
         num_coords = len(self.coords)
@@ -181,14 +193,42 @@ class SeqMove2D(SeqBase):
         write_stats_centered(
             stats_win=stats_win, line=8, text=f"Moving to [{step}/{num_coords}]"
         )
-        stats_win.addstr(9, 1, f"  Target X: {target.x:.3f}")
-        stats_win.addstr(10, 1, f"  Target Y: {target.y:.3f}")
+        stats_win.addstr(9, 1, f" Target X: {target.x:.3f}")
+        stats_win.addstr(10, 1, f" Target Y: {target.y:.3f}")
+
+        # Draw target in relation to player
+        mem = get_zelda_memory()
+        player_pos = mem.player.get_pos()
+        target_draw_offset = Vec2(target.x - player_pos.x, target.y - player_pos.y)
+        self._print_ch_in_map(stats_win=stats_win, pos=target_draw_offset, ch="X")
+
+    def _print_env(self, stats_win, blackboard: dict) -> None:
+        maxy, maxx = stats_win.getmaxyx()
+        # Fill box with .
+        for y in range(self._map_start_y, maxy - 1):
+            stats_win.hline(y, 0, ".", maxx)
+
+    def _print_actors(self, stats_win, blackboard: dict) -> None:
+        mem = get_zelda_memory()
+        player_pos = mem.player.get_pos()
+
+        with contextlib.suppress(
+            ReferenceError
+        ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
+            for enemy in mem.enemies:
+                enemy_pos = enemy.get_pos()
+                relative_pos = Vec2(
+                    enemy_pos.x - player_pos.x, enemy_pos.y - player_pos.y
+                )
+                self._print_ch_in_map(stats_win=stats_win, pos=relative_pos, ch="!")
 
     def render(self, main_win, stats_win, blackboard: dict) -> None:
         # Update stats window
         stats_win.erase()
+        self._print_env(stats_win=stats_win, blackboard=blackboard)
         self._print_player_stats(stats_win=stats_win, blackboard=blackboard)
         self._print_target(stats_win=stats_win, blackboard=blackboard)
+        self._print_actors(stats_win=stats_win, blackboard=blackboard)
 
     def __repr__(self) -> str:
         num_coords = len(self.coords)

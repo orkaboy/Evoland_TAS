@@ -48,11 +48,11 @@ class Edel1(SeqList):
                 SeqAttack("Bush"),
                 SeqMove2D("Move to bush", coords=[Vec2(32, 55)]),
                 SeqGrabChest("Monsters", direction=Facing.RIGHT),
-                SeqFunc(load_zelda_memory),  # Need to reload memory to get the enemies
                 # TODO: Should add annotator here that can deal with enemies (seems ok tho)
                 SeqAnnotator(
                     "Simple enemy behavior",
                     annotations={"combat": clunky_combat2d},
+                    func=load_zelda_memory,  # Need to reload memory to get the correct enemy location
                     wrapped=SeqList(
                         name="Enemies",
                         children=[
