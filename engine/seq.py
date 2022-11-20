@@ -114,7 +114,7 @@ class SeqList(SeqBase):
             return f"{self.name}[{num_children}/{num_children}]"
         cur_child = self.children[self.step]
         cur_step = self.step + 1
-        return f"{self.name}[{cur_step}/{num_children}] > {cur_child}"
+        return f"{self.name}[{cur_step}/{num_children}] =>\n  {cur_child}"
 
 
 class SeqAnnotator(SeqBase):
@@ -132,7 +132,7 @@ class SeqAnnotator(SeqBase):
         return self.wrapped.render(main_win, stats_win, blackboard)
 
     def __repr__(self) -> str:
-        return self.wrapped.__repr__()
+        return f"@[{self.name}] {self.wrapped}"
 
 
 class SequencerEngine(object):
@@ -159,7 +159,7 @@ class SequencerEngine(object):
 
     def pause(self) -> None:
         self.paused = True
-        self.main_win.addstr(0, 3, "== PAUSED ==")
+        self.main_win.addstr(0, 0, "== PAUSED ==")
         logger.info("------------------------")
         logger.info("  TAS EXECUTION PAUSED  ")
         logger.info("------------------------")
@@ -189,10 +189,7 @@ class SequencerEngine(object):
 
     # Execute and render TAS progress
     def run(self) -> None:
-        # Clear display windows
-        # self.main_win.erase()
-        # self.stats_win.erase()
-
+        # Handle input
         self._handle_input()
 
         # Execute current gamestate logic
@@ -200,13 +197,14 @@ class SequencerEngine(object):
             delta = self._get_deltatime()
             self.done = self.root.execute(delta=delta, blackboard=self.blackboard)
 
+        # Clear display windows
+        self.main_win.erase()
+
         # Render the current gamestate
         self.root.render(
             main_win=self.main_win, stats_win=self.stats_win, blackboard=self.blackboard
         )
-        self.main_win.move(1, 1)
-        self.main_win.clrtoeol()
-        self.main_win.addstr(1, 1, f"Gamestate: {self.root}")
+        self.main_win.addstr(1, 0, f"Gamestate:\n  {self.root}")
 
         # Update display windows
         self.main_win.noutrefresh()

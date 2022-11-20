@@ -66,18 +66,22 @@ def _clunky_counter_with_sword(angle: float, enemy_angle: float) -> None:
     if abs(angle) < 0.7:  # TODO Arbitrary magic number
         ctrl = evo1.control.handle()
         ctrl.attack()
-    elif abs(angle) <= 2:  # TODO On our side
+    elif abs(angle) <= 2:  # TODO On our sides
         ctrl = evo1.control.handle()
         ctrl.attack()
-        ctrl.set_neutral()
+        ctrl.dpad.none()
         # Turn and attack
         if abs(enemy_angle) < 0.7:
+            # logger.debug("Attacking right")
             ctrl.dpad.right()
         elif abs(enemy_angle) > 2:
+            # logger.debug("Attacking left")
             ctrl.dpad.left()
         elif enemy_angle > 0:
+            # logger.debug("Attacking down")
             ctrl.dpad.down()
         else:
+            # logger.debug("Attacking up")
             ctrl.dpad.up()
 
 
@@ -87,7 +91,7 @@ def clunky_combat2d(target: Vec2, blackboard: dict) -> None:
     player_angle = _get_angle(target, player_pos)
     with contextlib.suppress(
         ReferenceError
-    ):  # Needed until I figure out which enemies are valid
+    ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
         for i, enemy in enumerate(mem.enemies):
             if not enemy.get_alive():
                 continue
@@ -122,7 +126,7 @@ class SeqMove2D(SeqBase):
         features: GameFeatures = blackboard.get("features", {})
         combat_handler = blackboard.get("combat")
         # TODO: Different behavior depending on if certain game features are acquired
-        ctrl.set_neutral()
+        ctrl.dpad.none()
         # Very dumb
         dx = target.x - player.x
         dy = target.y - player.y
@@ -192,4 +196,4 @@ class SeqMove2D(SeqBase):
             return f"{self.name}[{num_coords}/{num_coords}]"
         target = self.coords[self.step]
         step = self.step + 1
-        return f"{self.name}[{step}/{num_coords}] > {target}"
+        return f"{self.name}[{step}/{num_coords}]: {target}"
