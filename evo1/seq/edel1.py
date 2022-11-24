@@ -48,7 +48,7 @@ class Edel1(SeqList):
                 SeqAttack("Bush"),
                 SeqMove2D("Move to bush", coords=[Vec2(32, 55)]),
                 SeqGrabChest("Monsters", direction=Facing.RIGHT),
-                # TODO: Should add annotator here that can deal with enemies (seems ok tho)
+                # TODO: The annotator here adds a function that can deal with enemies (poorly, dies a lot)
                 SeqAnnotator(
                     "Simple enemy behavior",
                     annotations={"combat": clunky_combat2d},
@@ -109,6 +109,11 @@ class Edel1(SeqList):
                                 ],
                             ),
                             SeqGrabChest("Free move", direction=Facing.LEFT),
+                            # TODO: At this point we can move more freely, need to implement a better move2d (or improve current)
+                            # TODO: Need to navigate past the enemies and between the sub-tile rocks. Get coordinates. Implement Boid-type behavior to avoid enemies that approach?
+                            # TODO: Once past the rocks, we need to kill four knights. These enemies must be killed with 3 attacks, but cannot be harmed from the front.
+                            # TODO: Need to get hold of the enemies in question so we know when they are dead. Need to strategize for the best way to kill them without dying.
+                            # TODO: Progress to the overworld map.
                         ],
                     ),
                 ),
