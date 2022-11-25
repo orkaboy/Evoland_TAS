@@ -128,17 +128,21 @@ class SeqMove2D(SeqBase):
         # Very dumb
         dx = target.x - player.x
         dy = target.y - player.y
+        controller_precision = (
+            self.precision / 2
+        )  # Need to get closer so that _is_close() will trigger on diagonals
         # Left right
-        if dx > self.precision:
+        if dx > controller_precision:
             ctrl.dpad.right()
-        elif dx < -self.precision:
+        elif dx < -controller_precision:
             ctrl.dpad.left()
         # Up down
-        if dy > self.precision:
+        if dy > controller_precision:
             ctrl.dpad.down()
-        elif dy < -self.precision:
+        elif dy < -controller_precision:
             ctrl.dpad.up()
 
+        # TODO: Need to handle this better, can't override gamepad all the time to do combat
         if combat_handler:
             combat_handler(target, blackboard)
 
@@ -146,6 +150,7 @@ class SeqMove2D(SeqBase):
         num_coords = len(self.coords)
         # If we are already done with the entire sequence, terminate early
         if self.step >= num_coords:
+            logger.debug(f"Finished moved2D section: {self.name}")
             return True
         # Move towards target
         target = self.coords[self.step]
@@ -155,6 +160,9 @@ class SeqMove2D(SeqBase):
 
         # If arrived, go to next coordinate in the list
         if _is_close(cur_pos, target, self.precision):
+            logger.debug(
+                f"Checkpoint reached {self.step}. Player: {cur_pos} Target: {target}"
+            )
             self.step = self.step + 1
 
         return False

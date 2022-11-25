@@ -2,7 +2,7 @@
 import curses
 import logging
 import time
-from typing import List
+from typing import Any, Callable, List
 
 logger = logging.getLogger(__name__)
 
@@ -118,7 +118,11 @@ class SeqList(SeqBase):
 
 
 class SeqAnnotator(SeqBase):
-    def __init__(self, name: str, wrapped: SeqBase, annotations: dict, func=None):
+    def __init__(
+        self, name: str, wrapped: SeqBase, annotations: dict = None, func=None
+    ):
+        if annotations is None:
+            annotations = {}
         self.wrapped = wrapped
         self.annotations = annotations
         self.func = func
@@ -136,6 +140,53 @@ class SeqAnnotator(SeqBase):
 
     def __repr__(self) -> str:
         return f"@[{self.name}] {self.wrapped}"
+
+
+class SeqOptional(SeqBase):
+    def __init__(
+        self,
+        name: str,
+        cases: dict[Any, SeqBase],
+        selector: Callable | int,
+        fallback: SeqBase = SeqBase(),
+    ):
+        self.fallback = fallback
+        self.selector = selector
+        self.cases = cases
+        super().__init__(name)
+
+    def execute(self, delta: float, blackboard: dict) -> bool:
+        selector = self.selector
+        if callable(self.selector):
+            selector = selector(blackboard)
+
+        if selection := self.cases.get(selector):
+            return selection.execute(delta=delta, blackboard=blackboard)
+        if self.fallback:
+            return self.fallback.execute(delta=delta, blackboard=blackboard)
+        logging.getLogger(self.name).warning(
+            f"Missing case {selector} and no fallback, skipping!"
+        )
+        return True
+
+    def render(self, main_win, stats_win, blackboard: dict) -> None:
+        selector = self.selector
+        if callable(self.selector):
+            selector = selector(blackboard)
+        if selection := self.cases.get(selector):
+            selection.render(main_win, stats_win, blackboard)
+        elif self.fallback:
+            self.fallback.render(main_win, stats_win, blackboard)
+
+    def __repr__(self) -> str:
+        selector = self.selector
+        if callable(self.selector):
+            selector = selector()  # TODO: a way to grab the blackboard?
+        if selection := self.cases.get(selector):
+            return f"<{self.name}:{selector}> => {selection}"
+        if self.fallback:
+            return f"<{self.name}:fallback> => {self.fallback}"
+        return f"<{self.name}>"
 
 
 class SequencerEngine(object):

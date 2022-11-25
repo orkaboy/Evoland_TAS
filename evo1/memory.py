@@ -13,6 +13,9 @@ class Vec2(NamedTuple):
     x: float
     y: float
 
+    def __repr__(self) -> str:
+        return f"Vec2({self.x:0.3f}, {self.y:0.3f})"
+
 
 class Facing(IntEnum):
     LEFT = 0

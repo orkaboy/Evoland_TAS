@@ -77,3 +77,25 @@ class SeqMenuConfirm(SeqBase):
     def execute(self, delta: float, blackboard: dict) -> bool:
         _menu_ctrl.confirm()
         return True
+
+
+class SeqMenuDown(SeqBase):
+    def __init__(self, name: str = "Down"):
+        super().__init__(name)
+
+    def execute(self, delta: float, blackboard: dict) -> bool:
+        _menu_ctrl.dpad.tap_down()
+        return True
+
+
+class SeqLoadGame(SeqBase):
+    def __init__(self, name: str, saveslot: int):
+        self.saveslot = saveslot
+        super().__init__(name)
+
+    # Navigate to the saveslot in question by tapping down x times, then confirming
+    def execute(self, delta: float, blackboard: dict) -> bool:
+        for _ in range(1, self.saveslot):
+            _menu_ctrl.dpad.tap_down()
+        _menu_ctrl.confirm()
+        return True

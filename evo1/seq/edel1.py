@@ -1,4 +1,4 @@
-from engine.seq import SeqAnnotator, SeqFunc, SeqList
+from engine.seq import SeqAnnotator, SeqDelay, SeqFunc, SeqList
 from evo1.memory import Facing, Vec2, load_zelda_memory
 from evo1.move2d import SeqAttack, SeqGrabChest, SeqMove2D, clunky_combat2d
 
@@ -46,7 +46,7 @@ class Edel1(SeqList):
                     ],
                 ),
                 SeqAttack("Bush"),
-                SeqMove2D("Move to bush", coords=[Vec2(32, 55)]),
+                SeqMove2D("Move to chest", coords=[Vec2(32, 55)]),
                 SeqGrabChest("Monsters", direction=Facing.RIGHT),
                 # TODO: The annotator here adds a function that can deal with enemies (poorly, dies a lot)
                 SeqAnnotator(
@@ -69,6 +69,7 @@ class Edel1(SeqList):
                                 ],
                             ),
                             # Here's music chest to the right, TODO: optionally grab?
+                            SeqGrabChest("16-bit", direction=Facing.RIGHT),
                             SeqAttack("Bush"),
                             SeqMove2D(
                                 "Move to chest",
@@ -110,12 +111,59 @@ class Edel1(SeqList):
                             ),
                             SeqGrabChest("Free move", direction=Facing.LEFT),
                             # TODO: At this point we can move more freely, need to implement a better move2d (or improve current)
-                            # TODO: Need to navigate past the enemies and between the sub-tile rocks. Get coordinates. Implement Boid-type behavior to avoid enemies that approach?
-                            # TODO: Once past the rocks, we need to kill four knights. These enemies must be killed with 3 attacks, but cannot be harmed from the front.
-                            # TODO: Need to get hold of the enemies in question so we know when they are dead. Need to strategize for the best way to kill them without dying.
-                            # TODO: Progress to the overworld map.
                         ],
                     ),
                 ),
             ],
+        )
+
+
+class EdelExperimental(SeqAnnotator):
+    def __init__(self):
+        super().__init__(
+            name="Edel Vale experimental",
+            annotations={},
+            func=load_zelda_memory,  # Need to reload memory to get the correct enemy location
+            wrapped=SeqList(
+                name="Knights",
+                children=[
+                    # TODO: This appears to be needed on load for some reason, or the game crashes
+                    SeqDelay("Memory delay", time_in_s=1.0),
+                    # TODO: Need to navigate past the enemies and between the sub-tile rocks. Get coordinates. Implement Boid-type behavior to avoid enemies that approach?
+                    SeqMove2D(
+                        "Navigate to knights",
+                        coords=[
+                            # TODO: Move to rocks, dodging enemies
+                            # Navigating past the rocks
+                            Vec2(50, 36.5),
+                            Vec2(51, 36.5),
+                            Vec2(52, 36.5),
+                            Vec2(53, 36),
+                            Vec2(54.1, 33.5),  # Near left knight
+                        ],
+                    ),
+                    SeqMove2D(
+                        "Nudging the knights",
+                        precision=0.1,
+                        coords=[
+                            Vec2(55, 33),  # Nudge past left knight to activate
+                            Vec2(55.5, 33.1),  # Approach right knight
+                            Vec2(56, 34),  # Nudge past right knight to activate
+                            Vec2(55, 35),  # Retreat and prepare for combat!
+                        ],
+                    ),
+                    # TODO: We need to kill two knights. These enemies must be killed with 3 attacks, but cannot be harmed from the front.
+                    # TODO: Need to get hold of the enemies in question so we know when they are dead. Need to strategize for the best way to kill them without dying.
+                    SeqMove2D(
+                        "Grabbing inv",
+                        coords=[
+                            Vec2(54, 31),
+                            # TODO: Grab chest (Inv)
+                            Vec2(54, 28),
+                            # TODO: Transition here?
+                        ],
+                    ),
+                    # TODO: Progress to the overworld map.
+                ],
+            ),
         )
