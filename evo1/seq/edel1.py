@@ -184,7 +184,7 @@ class EdelExperimental(SeqAnnotator):
                             # TODO: Transition here?
                         ],
                     ),
-                    # TODO: Progress to the overworld map.
+                    # TODO: Progress to the overworld map. May need a dumb move to prevent retargeting when switching maps
                 ],
             ),
         )

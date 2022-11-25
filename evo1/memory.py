@@ -8,6 +8,7 @@ from memory.core import LocProcess
 
 logger = logging.getLogger(__name__)
 
+# TODO: Move these to a math library instead
 
 class Vec2(NamedTuple):
     x: float

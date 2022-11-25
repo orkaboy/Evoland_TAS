@@ -24,3 +24,5 @@
 
 * Gli amount
 * Overworld health
+
+* Kaeris health overworld DONE (needs testing)
