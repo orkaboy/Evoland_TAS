@@ -1,6 +1,6 @@
 from engine.seq import SeqAnnotator, SeqDelay, SeqFunc, SeqList
-from evo1.memory import Facing, Vec2, load_zelda_memory
-from evo1.move2d import SeqAttack, SeqGrabChest, SeqMove2D, clunky_combat2d
+from evo1.memory import Facing, Vec2, Box2, load_zelda_memory
+from evo1.move2d import SeqAttack, SeqGrabChest, SeqMove2D, SeqKnight2D, clunky_combat2d
 
 
 class Edel1(SeqList):
@@ -110,7 +110,23 @@ class Edel1(SeqList):
                                 ],
                             ),
                             SeqGrabChest("Free move", direction=Facing.LEFT),
-                            # TODO: At this point we can move more freely, need to implement a better move2d (or improve current)
+                            # TODO: At this point we can move more freely, could implement a better move2d (or improve current)
+                            SeqMove2D(
+                                "Navigate to knights",
+                                coords=[
+                                    # TODO: Implement Boid-type behavior to avoid enemies that approach?
+                                    # Move to rocks, dodging enemies
+                                    Vec2(33.5, 33),
+                                    Vec2(36, 35.7),
+                                    Vec2(48, 36),
+                                    # Navigating past the rocks
+                                    Vec2(50, 36.5),
+                                    Vec2(51, 36.5),
+                                    Vec2(52, 36.5),
+                                    Vec2(53, 36),
+                                    Vec2(54.1, 33.5),  # Near left knight
+                                ],
+                            ),
                         ],
                     ),
                 ),
@@ -129,19 +145,19 @@ class EdelExperimental(SeqAnnotator):
                 children=[
                     # TODO: This appears to be needed on load for some reason, or the game crashes
                     SeqDelay("Memory delay", time_in_s=1.0),
-                    # TODO: Need to navigate past the enemies and between the sub-tile rocks. Get coordinates. Implement Boid-type behavior to avoid enemies that approach?
+                    # TODO: DUMMY SEQUENCE, DO NOT USE UNLESS LOADING FROM SAVEPOINT
                     SeqMove2D(
                         "Navigate to knights",
                         coords=[
-                            # TODO: Move to rocks, dodging enemies
-                            # Navigating past the rocks
-                            Vec2(50, 36.5),
-                            Vec2(51, 36.5),
                             Vec2(52, 36.5),
                             Vec2(53, 36),
                             Vec2(54.1, 33.5),  # Near left knight
                         ],
                     ),
+
+
+
+                    # TODO: Keep testing from here
                     SeqMove2D(
                         "Nudging the knights",
                         precision=0.1,
@@ -154,6 +170,11 @@ class EdelExperimental(SeqAnnotator):
                     ),
                     # TODO: We need to kill two knights. These enemies must be killed with 3 attacks, but cannot be harmed from the front.
                     # TODO: Need to get hold of the enemies in question so we know when they are dead. Need to strategize for the best way to kill them without dying.
+                    SeqKnight2D(
+                        "Killing two knights",
+                        arena=Box2(pos=Vec2(53, 32), w=5, h=4), # Valid arena to fight inside (should be clear of obstacles)
+                        targets=[Vec2(54, 33), Vec2(56, 33)], # TODO: Better enemy identification
+                    ),
                     SeqMove2D(
                         "Grabbing inv",
                         coords=[

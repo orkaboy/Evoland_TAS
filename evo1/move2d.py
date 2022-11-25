@@ -1,11 +1,12 @@
 import contextlib
 import logging
 import math
+import copy
 from typing import List
 
 import evo1.control
 from engine.seq import SeqBase
-from evo1.memory import Facing, GameFeatures, Vec2, get_zelda_memory
+from evo1.memory import Facing, GameFeatures, Vec2, Box2, grow_box, GameEntity2D, ZeldaMemory, get_zelda_memory
 from term.curses import write_stats_centered
 
 logger = logging.getLogger(__name__)
@@ -57,7 +58,7 @@ class SeqAttack(SeqBase):
 
 
 def _get_angle(a: Vec2, b: Vec2) -> float:
-    direction = Vec2(a.x - b.x, a.y - b.y)
+    direction = a - b
     return math.atan2(direction.y, direction.x)
 
 
@@ -108,16 +109,68 @@ def _dist(a: Vec2, b: Vec2) -> float:
     return math.sqrt(dx * dx + dy * dy)
 
 
-def _is_close(player: Vec2, target: Vec2, precision: float) -> bool:
-    return _dist(player, target) <= precision
+def _is_close(a: Vec2, b: Vec2, precision: float) -> bool:
+    return _dist(a, b) <= precision
 
 
-class SeqMove2D(SeqBase):
+# Base class for 2D movement areas
+class SeqSection2D(SeqBase):
+    # Map starts at line 12 and fills the rest of the stats window
+    _map_start_y = 12
+
+    def _print_player_stats(self, stats_win, blackboard: dict) -> None:
+        write_stats_centered(stats_win=stats_win, line=1, text="Evoland 1 TAS")
+        write_stats_centered(stats_win=stats_win, line=2, text="2D section")
+        mem = get_zelda_memory()
+        pos = mem.player.get_pos()
+        stats_win.addstr(4, 1, f" Player X: {pos.x:.3f}")
+        stats_win.addstr(5, 1, f" Player Y: {pos.y:.3f}")
+        facing = mem.player.get_facing_str()
+        stats_win.addstr(6, 1, f"  Facing: {facing}")
+        # Draw the player at the center for reference
+        self._print_ch_in_map(stats_win=stats_win, pos=Vec2(0, 0), ch="@")
+
+    # (0,0) is at center of map. Y-axis increases going down the screen.
+    def _print_ch_in_map(self, stats_win, pos: Vec2, ch: str):
+        maxy, maxx = stats_win.getmaxyx()
+        centerx, centery = maxx / 2, self._map_start_y + (maxy - self._map_start_y) / 2
+        draw_x, draw_y = int(centerx + pos.x), int(centery + pos.y)
+        if draw_x in range(maxx) and draw_y in range(self._map_start_y, maxy - 1):
+            stats_win.addch(draw_y, draw_x, ch)
+
+    def _print_env(self, stats_win, blackboard: dict) -> None:
+        maxy, maxx = stats_win.getmaxyx()
+        # Fill box with .
+        for y in range(self._map_start_y, maxy - 1):
+            stats_win.hline(y, 0, ".", maxx)
+
+    def _print_actors(self, stats_win, blackboard: dict) -> None:
+        mem = get_zelda_memory()
+        center = mem.player.get_pos()
+
+        with contextlib.suppress(
+            ReferenceError
+        ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
+            for enemy in mem.enemies:
+                enemy_pos = enemy.get_pos()
+                enemy_dir_ch = enemy.get_facing_ch()
+                self._print_ch_in_map(stats_win=stats_win, pos=enemy_pos-center, ch=enemy_dir_ch)
+
+    def render(self, main_win, stats_win, blackboard: dict) -> None:
+        stats_win.erase()
+        self._print_env(stats_win=stats_win, blackboard=blackboard)
+        self._print_player_stats(stats_win=stats_win, blackboard=blackboard)
+
+
+class SeqMove2D(SeqSection2D):
     def __init__(self, name: str, coords: List[Vec2], precision: float = 0.2):
         self.step = 0
         self.coords = coords
         self.precision = precision
         super().__init__(name)
+
+    def reset(self) -> None:
+        self.step = 0
 
     def _move_to(self, player: Vec2, target: Vec2, blackboard: dict) -> None:
         ctrl = evo1.control.handle()
@@ -126,20 +179,19 @@ class SeqMove2D(SeqBase):
         # TODO: Different behavior depending on if certain game features are acquired
         ctrl.dpad.none()
         # Very dumb
-        dx = target.x - player.x
-        dy = target.y - player.y
+        diff = target - player
         controller_precision = (
             self.precision / 2
         )  # Need to get closer so that _is_close() will trigger on diagonals
         # Left right
-        if dx > controller_precision:
+        if diff.x > controller_precision:
             ctrl.dpad.right()
-        elif dx < -controller_precision:
+        elif diff.x < -controller_precision:
             ctrl.dpad.left()
         # Up down
-        if dy > controller_precision:
+        if diff.y > controller_precision:
             ctrl.dpad.down()
-        elif dy < -controller_precision:
+        elif diff.y < -controller_precision:
             ctrl.dpad.up()
 
         # TODO: Need to handle this better, can't override gamepad all the time to do combat
@@ -167,30 +219,6 @@ class SeqMove2D(SeqBase):
 
         return False
 
-    def _print_player_stats(self, stats_win, blackboard: dict) -> None:
-        write_stats_centered(stats_win=stats_win, line=1, text="Evoland 1 TAS")
-        write_stats_centered(stats_win=stats_win, line=2, text="2D section")
-        mem = get_zelda_memory()
-        pos = mem.player.get_pos()
-        stats_win.addstr(4, 1, f" Player X: {pos.x:.3f}")
-        stats_win.addstr(5, 1, f" Player Y: {pos.y:.3f}")
-        facing = mem.player.get_facing_str()
-        stats_win.addstr(6, 1, f"  Facing: {facing}")
-
-        # Draw the player at the center for reference
-        self._print_ch_in_map(stats_win=stats_win, pos=Vec2(0, 0), ch="@")
-
-    # Map starts at line 12 and fills the rest of the stats window
-    _map_start_y = 12
-
-    # (0,0) is at center of map. Y-axis increases going down the screen.
-    def _print_ch_in_map(self, stats_win, pos: Vec2, ch: str):
-        maxy, maxx = stats_win.getmaxyx()
-        centerx, centery = maxx / 2, self._map_start_y + (maxy - self._map_start_y) / 2
-        draw_x, draw_y = int(centerx + pos.x), int(centery + pos.y)
-        if draw_x in range(maxx) and draw_y in range(self._map_start_y, maxy - 1):
-            stats_win.addch(draw_y, draw_x, ch)
-
     def _print_target(self, stats_win, blackboard: dict) -> None:
         num_coords = len(self.coords)
         if self.step >= num_coords:
@@ -206,35 +234,12 @@ class SeqMove2D(SeqBase):
 
         # Draw target in relation to player
         mem = get_zelda_memory()
-        player_pos = mem.player.get_pos()
-        target_draw_offset = Vec2(target.x - player_pos.x, target.y - player_pos.y)
-        self._print_ch_in_map(stats_win=stats_win, pos=target_draw_offset, ch="X")
-
-    def _print_env(self, stats_win, blackboard: dict) -> None:
-        maxy, maxx = stats_win.getmaxyx()
-        # Fill box with .
-        for y in range(self._map_start_y, maxy - 1):
-            stats_win.hline(y, 0, ".", maxx)
-
-    def _print_actors(self, stats_win, blackboard: dict) -> None:
-        mem = get_zelda_memory()
-        player_pos = mem.player.get_pos()
-
-        with contextlib.suppress(
-            ReferenceError
-        ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
-            for enemy in mem.enemies:
-                enemy_pos = enemy.get_pos()
-                relative_pos = Vec2(
-                    enemy_pos.x - player_pos.x, enemy_pos.y - player_pos.y
-                )
-                self._print_ch_in_map(stats_win=stats_win, pos=relative_pos, ch="!")
+        center = mem.player.get_pos()
+        self._print_ch_in_map(stats_win=stats_win, pos=target-center, ch="X")
 
     def render(self, main_win, stats_win, blackboard: dict) -> None:
         # Update stats window
-        stats_win.erase()
-        self._print_env(stats_win=stats_win, blackboard=blackboard)
-        self._print_player_stats(stats_win=stats_win, blackboard=blackboard)
+        super().render(main_win=main_win, stats_win=stats_win, blackboard=blackboard)
         self._print_target(stats_win=stats_win, blackboard=blackboard)
         self._print_actors(stats_win=stats_win, blackboard=blackboard)
 
@@ -245,3 +250,127 @@ class SeqMove2D(SeqBase):
         target = self.coords[self.step]
         step = self.step + 1
         return f"{self.name}[{step}/{num_coords}]: {target}"
+
+
+def _get_tracker(last_pos: Vec2, movement: float) -> Box2:
+    return Box2(pos=Vec2(last_pos.x - movement, last_pos.y - movement), w=2*movement, h=2*movement)
+
+class SeqKnight2D(SeqSection2D):
+
+    class _TrackingEntity:
+        def __init__(self, entity: GameEntity2D):
+            self.update(entity=entity)
+            self.trajectory = Vec2(0, 0)
+            self.hits = 3 # TODO: read from mem
+
+        def update(self, entity: GameEntity2D) -> None:
+            self.pos = entity.get_pos()
+            self.facing = entity.get_facing()
+            self.timeout = entity.get_timer()
+
+
+    class _Plan:
+        def __init__(self, mem: ZeldaMemory, targets: List[Vec2]):
+            self.targets: List[SeqKnight2D._TrackingEntity] = []
+            targets_copy = targets.copy()
+            with contextlib.suppress(
+                    ReferenceError
+                ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
+                for enemy in mem.enemies:
+                    enemy_pos = enemy.get_pos()
+                    search_box = _get_tracker(last_pos=enemy_pos, movement=0.2)
+                    for target in targets_copy:
+                        # Check if target is found. If so, initialize a tracking entity
+                        if search_box.contains(target):
+                            self.targets.append(SeqKnight2D._TrackingEntity(enemy))
+                            targets_copy.remove(target)
+                            break
+                    # Check if we have tracked all targets
+                    if not targets_copy:
+                        break
+            # TODO Track decisions
+            if len(targets) != len(self.targets):
+                logger.error(f"Couldn't track all entities! Found {len(self.targets)}/{len(targets)} enemies")
+
+        def done(self) -> bool:
+            return len(self.targets) == 0
+
+        def enemies_left(self) -> int:
+            return len(self.targets)
+
+    # TODO: Change List[Vec2] to some kind of ID or monster structure instead to make tracking easier
+    def __init__(self, name: str, arena: Box2, targets: List[Vec2]):
+        self.plan = None
+        self.arena = arena
+        self.targets = targets
+        self.num_targets = len(targets)
+        super().__init__(name)
+
+    def reset(self):
+        self.plan = None
+
+    def execute(self, delta: float, blackboard: dict) -> bool:
+        mem = get_zelda_memory()
+        player_pos = mem.player.get_pos()
+
+        if self.plan is None:
+            self.plan = SeqKnight2D._Plan(mem=mem, targets=self.targets)
+
+        # TODO: Should reuse the stuff from move2d or refactor out
+        with contextlib.suppress(
+            ReferenceError
+        ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
+            found: List[int] = []
+            for enemy in mem.enemies:
+                enemy_pos = enemy.get_pos()
+                for i, target in enumerate(self.plan.targets):
+                    search_box = _get_tracker(target.pos, 0.2)
+                    # We've alread found this tracked entity, skip
+                    if i in found:
+                        continue
+                    if search_box.contains(enemy_pos):
+                        self.plan.targets[i].update(enemy)
+                        found.append(i)
+                        break
+
+        # Check if we have lost tracking. TODO: Not the best code, can only handle one lost per frame
+        # if to_remove := [i for i, _ in enumerate(self.plan.targets) if i in found]:
+        #     self.plan.targets.pop(to_remove[0])
+
+        # We are done if all enemies are dead
+        if self.plan.done():
+            logger.info(f"Finished knight battle section: {self.name}")
+            return True
+        return False
+
+    def render(self, main_win, stats_win, blackboard: dict) -> None:
+        # Update stats window
+        super().render(main_win=main_win, stats_win=stats_win, blackboard=blackboard)
+        self._print_arena(stats_win=stats_win, blackboard=blackboard)
+        self._print_actors(stats_win=stats_win, blackboard=blackboard)
+
+    def _print_arena(self, stats_win, blackboard: dict) -> None:
+        # Draw target in relation to player
+        mem = get_zelda_memory()
+        center = mem.player.get_pos()
+
+        arena_borders = grow_box(self.arena, 1)
+        # Print corners
+        self._print_ch_in_map(stats_win=stats_win, pos=arena_borders.tl()-center, ch="+")
+        self._print_ch_in_map(stats_win=stats_win, pos=arena_borders.tr()-center, ch="+")
+        self._print_ch_in_map(stats_win=stats_win, pos=arena_borders.bl()-center, ch="+")
+        self._print_ch_in_map(stats_win=stats_win, pos=arena_borders.br()-center, ch="+")
+        # Print horizontal sections
+        for x in range(arena_borders.pos.x+1, arena_borders.pos.x+arena_borders.w):
+            self._print_ch_in_map(stats_win=stats_win, pos=Vec2(x, arena_borders.pos.y)-center, ch="-")
+            self._print_ch_in_map(stats_win=stats_win, pos=Vec2(x, arena_borders.bl().y)-center, ch="-")
+        # Print vertical sections
+        for y in range(arena_borders.pos.y+1, arena_borders.pos.y+arena_borders.h):
+            self._print_ch_in_map(stats_win=stats_win, pos=Vec2(arena_borders.pos.x, y)-center, ch="|")
+            self._print_ch_in_map(stats_win=stats_win, pos=Vec2(arena_borders.tr().x, y)-center, ch="|")
+
+
+    def __repr__(self) -> str:
+        dead_targets = self.num_targets - self.plan.enemies_left() if self.plan else 0
+        return f"{self.name}[{dead_targets}/{self.num_targets}] in arena: {self.arena}"
+
