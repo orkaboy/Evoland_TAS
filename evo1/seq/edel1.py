@@ -13,7 +13,7 @@ class Edel1(SeqList):
                 SeqGrabChest("Move Left", direction=Facing.RIGHT),
                 SeqMove2D("Move to chest", coords=[Vec2(11, 52)]),
                 SeqGrabChest("Move Vertical", direction=Facing.LEFT),
-                SeqMove2D("Move to chest", coords=[Vec2(12, 51)]),
+                SeqMove2D("Move to chest", coords=[Vec2(12, 52), Vec2(12, 51)]),
                 SeqGrabChest("Basic Scroll", direction=Facing.UP),
                 SeqMove2D(
                     "Move to chest",
