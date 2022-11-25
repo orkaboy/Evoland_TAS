@@ -4,6 +4,7 @@
 
 * Run `pip install -r requirements.txt`
 * The TAS will use sane defaults, but if required, it's possible to specify run parameters by copying the contents of `config.yaml.example` to `config.yaml` and edit its contents.
+* The TAS is intended to be run with Evoland Legendary edition (available on Steam, it combines both Evoland1 and Evoland2 in one game)
 
 ## Perform run
 
