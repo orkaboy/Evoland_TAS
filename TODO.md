@@ -7,5 +7,3 @@
     - Add combat that can kill the two knights
 * Do more memory hunting
 * Fix Curses gui color log if possible
-
-* Push to github
