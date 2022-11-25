@@ -41,11 +41,16 @@ class Evoland1Memory:
 
     # Zelda player health for roaming battle (hearts)
     _PLAYER_HP_ZELDA_PTR = [0x7FC, 0x8, 0x30, 0x7C, 0x0]
+    # TODO: Verify these are useful/correct (got from mem searching)
+    _PLAYER_MAX_HP_ZELDA_PTR = [0x7FC, 0x8, 0x30, 0x80, 0x0] # TODO: Verify
+    _GLI_PTR2 = [0x7FC, 0x8, 0x30, 0x84, 0x0]  # TODO: Verify, Money
+    _PLAYER_HP_OVERWORLD_PTR2 = [0x7FC, 0x8, 0x30, 0x3C, 0x0]
+    _KAERIS_HP_OVERWORLD_PTR = [0x7FC, 0x8, 0x30, 0x48]
 
     # Only valid in atb battle
-    _PLAYER_APB_CUR_HP_PTR = [0x860, 0x0, 0x244, 0x2C, 0x8, 0x10, 0xF4]
+    _PLAYER_ATB_CUR_HP_PTR = [0x860, 0x0, 0x244, 0x2C, 0x8, 0x10, 0xF4]
     # Only valid when menu is open
-    _PLAYER_APB_MENU_CURSOR_PTR = [0x860, 0x0, 0x244, 0x48, 0x8C]
+    _PLAYER_ATB_MENU_CURSOR_PTR = [0x860, 0x0, 0x244, 0x48, 0x8C]
 
     def __init__(self):
         mem_handle = memory.core.handle()
@@ -79,14 +84,14 @@ class Evoland1Memory:
     # Only valid in battle!
     def get_atb_player_hp(self) -> int:
         atb_player_hp_ptr = self.process.get_pointer(
-            self.base_addr + _LIBHL_OFFSET, offsets=self._PLAYER_APB_CUR_HP_PTR
+            self.base_addr + _LIBHL_OFFSET, offsets=self._PLAYER_ATB_CUR_HP_PTR
         )
         return self.process.read_u32(atb_player_hp_ptr)
 
     def get_atb_menu_cursor(self) -> int:
         atb_menu_cursor_ptr = self.process.get_pointer(
             self.base_addr + _LIBHL_OFFSET,
-            offsets=self._PLAYER_APB_MENU_CURSOR_PTR,
+            offsets=self._PLAYER_ATB_MENU_CURSOR_PTR,
         )
         return self.process.read_u32(atb_menu_cursor_ptr)
 
