@@ -1,6 +1,7 @@
 # TODO list
 
-* Clean up main menu navigation
-* Fix loading checkpoint (no idea why it stops in the middle of the SeqMove2D list without triggering the next step)
+* Clean up main menu navigation code?
+* Finish entire Edel1 segment
+* Fix Curses gui color log if possible
 
 * Push to github

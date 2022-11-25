@@ -1,5 +1,5 @@
 # Logging
-color_log               : False  # Colors the console output. May not work on some systems
+color_log               : False  # Colors the console output. May not work on some systems. Currently doesn't work with Curses gui
 verbosity               : DEBUG  # Verbosity of log messages in the console.
                                  # These are the valid levels: DEBUG, INFO, WARNING, ERROR, CRITICAL
                                  # Full log will always be available in a file.
