@@ -6,7 +6,6 @@ from engine.seq import SeqFunc, SeqList, SeqLog, SeqOptional, SequencerEngine
 from evo1.checkpoints import Checkpoints
 from evo1.memory import load_memory
 from evo1.seq import Edel1, Evoland1StartGame, OverworldToMeadow, MeadowFight
-from evo1.seq.edel1 import EdelExperimental
 
 
 def perform_TAS(main_win, stats_win, config_data: dict):

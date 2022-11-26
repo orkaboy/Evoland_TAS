@@ -1,17 +1,18 @@
 import contextlib
 import logging
 import math
-import copy
 from typing import List
 
 import evo1.control
 from engine.seq import SeqBase
-from evo1.memory import Facing, facing_str, facing_ch, GameFeatures, Vec2, Box2, is_close, dist, grow_box, GameEntity2D, ZeldaMemory, get_zelda_memory
+from evo1.memory import GameFeatures, GameEntity2D, ZeldaMemory, get_zelda_memory
 from term.curses import write_stats_centered
+from engine.mathlib import Facing, facing_ch, facing_str, Vec2, Box2, is_close, dist, grow_box
 
 logger = logging.getLogger(__name__)
 
 
+# TODO: Improve on class to be able to handle free move
 class SeqGrabChest(SeqBase):
     def __init__(self, name: str, direction: Facing):
         self.dir = direction
@@ -244,6 +245,7 @@ class SeqMove2D(SeqSection2D):
         self._navigate_to_checkpoint(blackboard=blackboard)
 
         # TODO: Better way of handling combat. Inheritance instead?
+        # TODO: Really need to fix this, since there are some sections that we DON'T want the TAS to attack stuff (waking knights)
         if combat_handler := blackboard.get("combat"):
             target = self.coords[self.step] if self.step < len(self.coords) else self.coords[-1]
             combat_handler(target, blackboard)

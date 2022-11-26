@@ -1,9 +1,10 @@
 import logging
 import time
 
+from engine.mathlib import Vec2, is_close
 import evo1.control
 from evo1.move2d import SeqMove2D, move_to
-from evo1.memory import get_memory, get_zelda_memory, Vec2, is_close
+from evo1.memory import get_memory, get_zelda_memory
 
 from typing import List
 

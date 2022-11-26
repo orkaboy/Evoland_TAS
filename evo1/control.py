@@ -5,7 +5,6 @@ from enum import IntEnum
 from control.controller import Buttons as VgButtons
 from control.controller import VgTranslator
 from control.controller import handle as ctrl_handle
-from evo1.memory import Vec2
 from memory.core import wait_frames
 
 logger = logging.getLogger(__name__)

@@ -1,5 +1,6 @@
 from engine.seq import SeqAnnotator, SeqDelay, SeqFunc, SeqList
-from evo1.memory import Facing, Vec2, Box2, load_zelda_memory
+from engine.mathlib import Facing, Vec2, Box2
+from evo1.memory import load_zelda_memory
 from evo1.move2d import SeqAttack, SeqGrabChest, SeqMove2D, SeqKnight2D, SeqZoneTransition, clunky_combat2d
 from evo1.atb import SeqATBmove2D, FarmingGoal
 
@@ -234,7 +235,15 @@ class MeadowFight(SeqAnnotator):
         )
 
 
-# TODO REMOVE when knight fight is done
+
+
+
+
+
+
+
+
+# TODO REMOVE when knight fight is implemented fully
 class EdelExperimental(SeqAnnotator):
     def __init__(self):
         super().__init__(
