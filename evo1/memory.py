@@ -1,5 +1,6 @@
 # Libraries and Core Files
 import logging
+import math
 from enum import Flag, IntEnum, auto
 from typing import List, NamedTuple, Tuple
 
@@ -21,6 +22,16 @@ class Vec2(NamedTuple):
 
     def __repr__(self) -> str:
         return f"Vec2({self.x:0.3f}, {self.y:0.3f})"
+
+
+def dist(a: Vec2, b: Vec2) -> float:
+    dx = b.x - a.x
+    dy = b.y - a.y
+    return math.sqrt(dx * dx + dy * dy)
+
+
+def is_close(a: Vec2, b: Vec2, precision: float) -> bool:
+    return dist(a, b) <= precision
 
 class Box2(NamedTuple):
     pos: Vec2
@@ -93,16 +104,12 @@ _LIBHL_OFFSET = 0x0004914C
 # TODO: Refactor (currently not used)
 class Evoland1Memory:
 
-    # Overworld player health for ATB battle. Only updates outside battle!
-    _PLAYER_HP_OVERWORLD_PTR = [0xA6C, 0x0, 0x90, 0x3C, 0x0]
-    _GLI_PTR = [0xA6C, 0x0, 0x90, 0x18, 0x10]  # Money
-
     # Zelda player health for roaming battle (hearts)
     _PLAYER_HP_ZELDA_PTR = [0x7FC, 0x8, 0x30, 0x7C, 0x0]
     # TODO: Verify these are useful/correct (got from mem searching)
+    _GLI_PTR = [0x7FC, 0x8, 0x30, 0x84, 0x0]  # TODO: Verify, Money
     _PLAYER_MAX_HP_ZELDA_PTR = [0x7FC, 0x8, 0x30, 0x80, 0x0] # TODO: Verify
-    _GLI_PTR2 = [0x7FC, 0x8, 0x30, 0x84, 0x0]  # TODO: Verify, Money
-    _PLAYER_HP_OVERWORLD_PTR2 = [0x7FC, 0x8, 0x30, 0x3C, 0x0]
+    _PLAYER_HP_OVERWORLD_PTR = [0x7FC, 0x8, 0x30, 0x3C, 0x0]
     _KAERIS_HP_OVERWORLD_PTR = [0x7FC, 0x8, 0x30, 0x48]
 
     # Only valid in atb battle
@@ -138,6 +145,19 @@ class Evoland1Memory:
 
     def get_gli(self) -> int:
         return self.process.read_u32(self.gli_ptr)
+
+    def get_lvl(self) -> int:
+        # TODO: Implement level
+        return 1
+
+    def in_combat(self) -> bool:
+        # TODO: This is a dumb idea, but should work?
+        # TODO: It doesn't. The memory address remains in memory after the first battle ends.
+        try:
+            _ = self.get_atb_player_hp()
+            return True
+        except ReferenceError:
+            return False
 
     # Only valid in battle!
     def get_atb_player_hp(self) -> int:

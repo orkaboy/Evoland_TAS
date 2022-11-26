@@ -1,6 +1,7 @@
 from engine.seq import SeqAnnotator, SeqDelay, SeqFunc, SeqList
 from evo1.memory import Facing, Vec2, Box2, load_zelda_memory
 from evo1.move2d import SeqAttack, SeqGrabChest, SeqMove2D, SeqKnight2D, SeqZoneTransition, clunky_combat2d
+from evo1.atb import SeqATBmove2D, FarmingGoal
 
 
 class Edel1(SeqList):
@@ -165,9 +166,9 @@ class OverworldToMeadow(SeqList):
             name="Overworld",
             children=[
                 SeqFunc(load_zelda_memory),
-                SeqMove2D(
-                    # TODO: Need a battle handler for random battles, mashing confirm is fine for now
-                    # TODO: Movement is awkward, would look better with joystick move instead of dpad
+                # TODO: Need a battle handler for random battles, mashing confirm is fine for now
+                # TODO: Movement is awkward, would look better with joystick move instead of dpad
+                SeqATBmove2D(
                     "Navigating overworld",
                     coords=[
                         Vec2(79.7, 54.8),
@@ -178,6 +179,7 @@ class OverworldToMeadow(SeqList):
                         Vec2(87, 43),
                         # TODO Need to farm gli before progressing
                     ],
+                    goal=FarmingGoal(farm_coords=[Vec2(87, 44), Vec2(87, 43)], precision=0.2, gli_goal=200),
                 ),
                 SeqZoneTransition("Meadow", direction=Facing.UP, time_in_s=1.0),
                 # TODO REMOVE

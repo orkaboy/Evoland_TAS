@@ -5,7 +5,6 @@
     - Fix combat to more consistently survive the pre-free move section
     - Add combat that can kill the two knights
         + SeqKnight2D added
-        + Fix the tracking of the knights
         + Set up plan
         + Set up movement functions for "juking" enemies
         + Restrict movement to inside arena

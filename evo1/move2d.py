@@ -6,7 +6,7 @@ from typing import List
 
 import evo1.control
 from engine.seq import SeqBase
-from evo1.memory import Facing, facing_str, facing_ch, GameFeatures, Vec2, Box2, grow_box, GameEntity2D, ZeldaMemory, get_zelda_memory
+from evo1.memory import Facing, facing_str, facing_ch, GameFeatures, Vec2, Box2, is_close, dist, grow_box, GameEntity2D, ZeldaMemory, get_zelda_memory
 from term.curses import write_stats_centered
 
 logger = logging.getLogger(__name__)
@@ -128,7 +128,7 @@ def clunky_combat2d(target: Vec2, blackboard: dict) -> None:
     ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
         for enemy in mem.enemies:
             enemy_pos = enemy.get_pos()
-            dist_to_player = _dist(player_pos, enemy_pos)
+            dist_to_player = dist(player_pos, enemy_pos)
             if dist_to_player < 1.5:  # TODO Arbitrary magic number, distance to enemy
                 enemy_angle = _get_angle(enemy_pos, player_pos)
                 angle = enemy_angle - player_angle
@@ -136,14 +136,28 @@ def clunky_combat2d(target: Vec2, blackboard: dict) -> None:
                 _clunky_counter_with_sword(angle=angle, enemy_angle=enemy_angle)
 
 
-def _dist(a: Vec2, b: Vec2) -> float:
-    dx = b.x - a.x
-    dy = b.y - a.y
-    return math.sqrt(dx * dx + dy * dy)
 
+def move_to(player: Vec2, target: Vec2, precision: float, blackboard: dict) -> None:
+    # TODO: Different behavior depending on if certain game features are acquired
+    features: GameFeatures = blackboard.get("features", {})
+    ctrl = evo1.control.handle()
+    ctrl.dpad.none()
+    # Very dumb
+    diff = target - player
+    controller_precision = (
+        precision / 2
+    )  # Need to get closer so that is_close() will trigger on diagonals
+    # Left right
+    if diff.x > controller_precision:
+        ctrl.dpad.right()
+    elif diff.x < -controller_precision:
+        ctrl.dpad.left()
+    # Up down
+    if diff.y > controller_precision:
+        ctrl.dpad.down()
+    elif diff.y < -controller_precision:
+        ctrl.dpad.up()
 
-def _is_close(a: Vec2, b: Vec2, precision: float) -> bool:
-    return _dist(a, b) <= precision
 
 
 # Base class for 2D movement areas
@@ -204,52 +218,41 @@ class SeqMove2D(SeqSection2D):
     def reset(self) -> None:
         self.step = 0
 
-    def _move_to(self, player: Vec2, target: Vec2, blackboard: dict) -> None:
-        ctrl = evo1.control.handle()
-        features: GameFeatures = blackboard.get("features", {})
-        combat_handler = blackboard.get("combat")
-        # TODO: Different behavior depending on if certain game features are acquired
-        ctrl.dpad.none()
-        # Very dumb
-        diff = target - player
-        controller_precision = (
-            self.precision / 2
-        )  # Need to get closer so that _is_close() will trigger on diagonals
-        # Left right
-        if diff.x > controller_precision:
-            ctrl.dpad.right()
-        elif diff.x < -controller_precision:
-            ctrl.dpad.left()
-        # Up down
-        if diff.y > controller_precision:
-            ctrl.dpad.down()
-        elif diff.y < -controller_precision:
-            ctrl.dpad.up()
-
-        # TODO: Need to handle this better, can't override gamepad all the time to do combat
-        if combat_handler:
-            combat_handler(target, blackboard)
-
-    def execute(self, delta: float, blackboard: dict) -> bool:
+    def _nav_done(self) -> bool:
         num_coords = len(self.coords)
         # If we are already done with the entire sequence, terminate early
-        if self.step >= num_coords:
-            logger.debug(f"Finished moved2D section: {self.name}")
-            return True
+        return self.step >= num_coords
+
+    def _navigate_to_checkpoint(self, blackboard: dict) -> None:
         # Move towards target
+        if self.step >= len(self.coords):
+            return
         target = self.coords[self.step]
         mem = get_zelda_memory()
         cur_pos = mem.player.get_pos()
-        self._move_to(cur_pos, target, blackboard=blackboard)
+
+        move_to(player=cur_pos, target=target, precision=self.precision, blackboard=blackboard)
 
         # If arrived, go to next coordinate in the list
-        if _is_close(cur_pos, target, self.precision):
+        if is_close(cur_pos, target, self.precision):
             logger.debug(
                 f"Checkpoint reached {self.step}. Player: {cur_pos} Target: {target}"
             )
             self.step = self.step + 1
 
-        return False
+    def execute(self, delta: float, blackboard: dict) -> bool:
+        self._navigate_to_checkpoint(blackboard=blackboard)
+
+        # TODO: Better way of handling combat. Inheritance instead?
+        if combat_handler := blackboard.get("combat"):
+            target = self.coords[self.step] if self.step < len(self.coords) else self.coords[-1]
+            combat_handler(target, blackboard)
+
+        done = self._nav_done()
+
+        if done:
+            logger.debug(f"Finished moved2D section: {self.name}")
+        return done
 
     def _print_target(self, stats_win, blackboard: dict) -> None:
         num_coords = len(self.coords)
@@ -293,6 +296,7 @@ class SeqKnight2D(SeqSection2D):
         def __init__(self, mem: ZeldaMemory, targets: List[Vec2], track_size: float):
             self.targets: List[GameEntity2D] = []
             targets_copy = targets.copy()
+            # Map start positions to array of GameEntity2D to track
             with contextlib.suppress(
                     ReferenceError
                 ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
@@ -345,7 +349,6 @@ class SeqKnight2D(SeqSection2D):
         ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
             for target in self.plan.targets:
                 pass
-                # TODO: need to deal with enemies dying
 
         # Remove dead enemies from tracking
         self.plan.remove_dead()
