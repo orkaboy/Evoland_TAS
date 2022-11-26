@@ -106,9 +106,9 @@ class Evoland1Memory:
 
     # Zelda player health for roaming battle (hearts)
     _PLAYER_HP_ZELDA_PTR = [0x7FC, 0x8, 0x30, 0x7C, 0x0]
-    # TODO: Verify these are useful/correct (got from mem searching)
-    _GLI_PTR = [0x7FC, 0x8, 0x30, 0x84, 0x0]  # TODO: Verify, Money
     _PLAYER_MAX_HP_ZELDA_PTR = [0x7FC, 0x8, 0x30, 0x80, 0x0] # TODO: Verify
+    # TODO: Verify these are useful/correct (got from mem searching)
+    _GLI_PTR = [0x7FC, 0x8, 0x30, 0x84, 0x0] # Money
     _PLAYER_HP_OVERWORLD_PTR = [0x7FC, 0x8, 0x30, 0x3C, 0x0]
     _KAERIS_HP_OVERWORLD_PTR = [0x7FC, 0x8, 0x30, 0x48]
 
@@ -149,15 +149,6 @@ class Evoland1Memory:
     def get_lvl(self) -> int:
         # TODO: Implement level
         return 1
-
-    def in_combat(self) -> bool:
-        # TODO: This is a dumb idea, but should work?
-        # TODO: It doesn't. The memory address remains in memory after the first battle ends.
-        try:
-            _ = self.get_atb_player_hp()
-            return True
-        except ReferenceError:
-            return False
 
     # Only valid in battle!
     def get_atb_player_hp(self) -> int:
@@ -201,6 +192,7 @@ class GameEntity2D:
     _ROTATION_PTR = [0x90]  # double (left = 0.0, up = 1.57, right = 3.14, down = -1.57)
     _HP_PTR = [0x100]  # int, for enemies such as knights
     # This seems to be set on picking up stuff/opening inventory/opening menu, may be misnamed. Invincibility flag?
+    # This is also marked when in ATB combat. GUI open?
     _INV_OPEN_PTR = [0xA4]
 
     def __init__(self, process: LocProcess, entity_ptr: int):

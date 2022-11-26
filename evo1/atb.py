@@ -71,8 +71,9 @@ class SeqATBmove2D(SeqMove2D):
         time.sleep(0.2)
 
     def execute(self, delta: float, blackboard: dict) -> bool:
-        mem = get_memory()
-        if mem.in_combat():
+        mem = get_zelda_memory()
+        # For some reason, this flag is set when in ATB combat
+        if mem.player.get_inv_open():
             self._handle_combat()
             return False
         else:
@@ -91,9 +92,9 @@ class SeqATBmove2D(SeqMove2D):
 
     def __repr__(self) -> str:
         num_coords = len(self.coords)
+        farm = f"\n    {self.goal}" if self.goal else ""
         if self.step >= num_coords:
-            return f"{self.name}[{num_coords}/{num_coords}]"
+            return f"{self.name}[{num_coords}/{num_coords}]: {farm}"
         target = self.coords[self.step]
         step = self.step + 1
-        farm = f"\n    {self.goal}" if self.goal else ""
         return f"{self.name}[{step}/{num_coords}]: {target}{farm}"
