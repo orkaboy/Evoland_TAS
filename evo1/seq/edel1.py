@@ -1,6 +1,6 @@
 from engine.seq import SeqAnnotator, SeqDelay, SeqFunc, SeqList
 from evo1.memory import Facing, Vec2, Box2, load_zelda_memory
-from evo1.move2d import SeqAttack, SeqGrabChest, SeqMove2D, SeqKnight2D, clunky_combat2d
+from evo1.move2d import SeqAttack, SeqGrabChest, SeqMove2D, SeqKnight2D, SeqZoneTransition, clunky_combat2d
 
 
 class Edel1(SeqList):
@@ -68,14 +68,13 @@ class Edel1(SeqList):
                                     Vec2(39, 52),
                                 ],
                             ),
-                            # Here's music chest to the right, TODO: optionally grab?
-                            SeqGrabChest("16-bit", direction=Facing.RIGHT),
+                            SeqGrabChest("Music", direction=Facing.RIGHT), # TODO: optionally grab?
                             SeqAttack("Bush"),
                             SeqMove2D(
                                 "Move to chest",
                                 coords=[
                                     Vec2(39, 47),
-                                    # Optional, chest to the north, save (move to Vec2(39, 45), then open chest N)
+                                    # TODO Optional, chest to the north, save (move to Vec2(39, 45), then open chest N)
                                     Vec2(41, 47),
                                     Vec2(41, 48),
                                     Vec2(44, 48),
@@ -127,6 +126,32 @@ class Edel1(SeqList):
                                     Vec2(54.1, 33.5),  # Near left knight
                                 ],
                             ),
+                            # TODO: Save point?
+                            SeqMove2D(
+                                "Nudging the knights",
+                                precision=0.1,
+                                coords=[
+                                    Vec2(55, 33),  # Nudge past left knight to activate
+                                    Vec2(55.5, 33.1),  # Approach right knight
+                                    Vec2(56, 34),  # Nudge past right knight to activate
+                                    Vec2(55, 35),  # Retreat and prepare for combat!
+                                ],
+                            ),
+                            # We need to kill two knights. These enemies must be killed with 3 attacks, but cannot be harmed from the front.
+                            SeqKnight2D(
+                                "Killing two knights", # TODO: Everything is fully tracked, but the enemies have to be killed manually for now. TAS resumes when all enemies are dead
+                                arena=Box2(pos=Vec2(53, 32), w=5, h=4), # Valid arena to fight inside (should be clear of obstacles)
+                                targets=[Vec2(54, 33), Vec2(56, 33)], # Positions of enemies (known from start)
+                            ),
+                            SeqMove2D(
+                                "Grabbing inv",
+                                coords=[
+                                    Vec2(54, 31),
+                                    # TODO: Grab chest (Inv)
+                                    Vec2(54, 29),
+                                ],
+                            ),
+                            SeqZoneTransition("Overworld", direction=Facing.UP, time_in_s=1.0),
                         ],
                     ),
                 ),
@@ -134,6 +159,80 @@ class Edel1(SeqList):
         )
 
 
+class OverworldToMeadow(SeqList):
+    def __init__(self):
+        super().__init__(
+            name="Overworld",
+            children=[
+                SeqFunc(load_zelda_memory),
+                SeqMove2D(
+                    # TODO: Need a battle handler for random battles, mashing confirm is fine for now
+                    # TODO: Movement is awkward, would look better with joystick move instead of dpad
+                    "Navigating overworld",
+                    coords=[
+                        Vec2(79.7, 54.8),
+                        # Nudge chest (encounters) at (79, 54)
+                        # TODO: Adjust, a bit akward
+                        Vec2(79.5, 53),
+                        Vec2(85, 47),
+                        Vec2(87, 43),
+                        # TODO Need to farm gli before progressing
+                    ],
+                ),
+                SeqZoneTransition("Meadow", direction=Facing.UP, time_in_s=1.0),
+                # TODO REMOVE
+                MeadowFight()
+            ],
+        )
+
+
+class MeadowFight(SeqAnnotator):
+    def __init__(self):
+        super().__init__(
+            name="Load",
+            annotations={},
+            func=load_zelda_memory,  # Need to reload memory to get the correct enemy location
+            wrapped=SeqList(
+                name="Meadow",
+                children=[
+                    # TODO: This appears to be needed on load for some reason, or the game crashes
+                    # TODO: REMOVE WHEN DONE TESTING
+                    SeqDelay("Memory delay", time_in_s=1.0),
+                    SeqMove2D(
+                        name="Wake up knights",
+                        precision=0.1,
+                        coords=[
+                            Vec2(14, 14), # Go past the chest
+                            Vec2(14.1, 11.5),
+                            Vec2(15, 11), # Wake up first knight
+                            Vec2(16.5, 10.9),
+                            Vec2(17, 10), # Wake up second knight
+                            Vec2(16.9, 8.6),
+                            Vec2(16, 8), # Wake up third knight
+                            Vec2(14.5, 8.1),
+                            Vec2(14, 9), # Wake up the fourth knight
+                        ],
+                    ),
+                    SeqKnight2D(
+                        "Killing four knights",
+                        arena=Box2(pos=Vec2(12, 6), w=7, h=8), # Valid arena to fight inside (should be clear of obstacles)
+                        targets=[Vec2(14, 11), Vec2(17, 11), Vec2(17, 7), Vec2(14, 7)], # Positions of enemies (known from start, but they move)
+                        track_size=1.2,
+                    ),
+                    SeqMove2D(
+                        name="Move to chest",
+                        coords=[
+                            Vec2(18, 11),
+                            Vec2(19, 11),
+                            # Chest to the right
+                        ],
+                    ),
+                ]
+            )
+        )
+
+
+# TODO REMOVE when knight fight is done
 class EdelExperimental(SeqAnnotator):
     def __init__(self):
         super().__init__(
@@ -173,18 +272,17 @@ class EdelExperimental(SeqAnnotator):
                     SeqKnight2D(
                         "Killing two knights",
                         arena=Box2(pos=Vec2(53, 32), w=5, h=4), # Valid arena to fight inside (should be clear of obstacles)
-                        targets=[Vec2(54, 33), Vec2(56, 33)], # TODO: Better enemy identification
+                        targets=[Vec2(54, 33), Vec2(56, 33)], # Positions of enemies (known from start)
                     ),
                     SeqMove2D(
                         "Grabbing inv",
                         coords=[
                             Vec2(54, 31),
                             # TODO: Grab chest (Inv)
-                            Vec2(54, 28),
-                            # TODO: Transition here?
+                            Vec2(54, 29),
                         ],
                     ),
-                    # TODO: Progress to the overworld map. May need a dumb move to prevent retargeting when switching maps
+                    SeqZoneTransition("Overworld", direction=Facing.UP, time_in_s=1.0),
                 ],
             ),
         )

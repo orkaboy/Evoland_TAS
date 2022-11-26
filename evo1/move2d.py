@@ -6,7 +6,7 @@ from typing import List
 
 import evo1.control
 from engine.seq import SeqBase
-from evo1.memory import Facing, GameFeatures, Vec2, Box2, grow_box, GameEntity2D, ZeldaMemory, get_zelda_memory
+from evo1.memory import Facing, facing_str, facing_ch, GameFeatures, Vec2, Box2, grow_box, GameEntity2D, ZeldaMemory, get_zelda_memory
 from term.curses import write_stats_centered
 
 logger = logging.getLogger(__name__)
@@ -42,6 +42,39 @@ class SeqGrabChest(SeqBase):
     def __repr__(self) -> str:
         return f"Chest({self.name})... awaiting control"
 
+
+class SeqZoneTransition(SeqBase):
+    def __init__(self, name: str, direction: Facing, time_in_s: float):
+        self.direction = direction
+        self.timeout = time_in_s
+        self.timer = 0
+        super().__init__(name)
+
+    def reset(self) -> None:
+        self.timer = 0
+
+    def execute(self, delta: float, blackboard: dict) -> bool:
+        ctrl = evo1.control.handle()
+        ctrl.dpad.none()
+        match self.direction:
+            case Facing.LEFT:
+                ctrl.dpad.left()
+            case Facing.RIGHT:
+                ctrl.dpad.right()
+            case Facing.UP:
+                ctrl.dpad.up()
+            case Facing.DOWN:
+                ctrl.dpad.down()
+
+        self.timer = self.timer + delta
+        if self.timer >= self.timeout:
+            self.timer = self.timeout
+            ctrl.dpad.none()
+            return True
+        return False
+
+    def __repr__(self) -> str:
+        return f"Transition to {self.name}, walking {facing_str(self.direction)} for {self.timer:.2f}/{self.timeout:.2f}"
 
 class SeqAttack(SeqBase):
     def __init__(self, name: str):
@@ -125,8 +158,7 @@ class SeqSection2D(SeqBase):
         pos = mem.player.get_pos()
         stats_win.addstr(4, 1, f" Player X: {pos.x:.3f}")
         stats_win.addstr(5, 1, f" Player Y: {pos.y:.3f}")
-        facing = mem.player.get_facing_str()
-        stats_win.addstr(6, 1, f"  Facing: {facing}")
+        stats_win.addstr(6, 1, f"  Facing: {facing_str(mem.player.get_facing())}")
         # Draw the player at the center for reference
         self._print_ch_in_map(stats_win=stats_win, pos=Vec2(0, 0), ch="@")
 
@@ -153,7 +185,7 @@ class SeqSection2D(SeqBase):
         ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
             for enemy in mem.enemies:
                 enemy_pos = enemy.get_pos()
-                enemy_dir_ch = enemy.get_facing_ch()
+                enemy_dir_ch = facing_ch(enemy.get_facing())
                 self._print_ch_in_map(stats_win=stats_win, pos=enemy_pos-center, ch=enemy_dir_ch)
 
     def render(self, main_win, stats_win, blackboard: dict) -> None:
@@ -257,37 +289,20 @@ def _get_tracker(last_pos: Vec2, movement: float) -> Box2:
 
 class SeqKnight2D(SeqSection2D):
 
-    class _TrackingEntity:
-        def __init__(self, entity: GameEntity2D):
-            self.update(entity=entity)
-            self.trajectory = Vec2(0, 0)
-            self.hits = 3 # TODO: read from mem
-
-        def update(self, entity: GameEntity2D) -> None:
-            self.pos = entity.get_pos()
-            self.facing = entity.get_facing()
-            self.timeout = entity.get_timer()
-
-
     class _Plan:
-        def __init__(self, mem: ZeldaMemory, targets: List[Vec2]):
-            self.targets: List[SeqKnight2D._TrackingEntity] = []
+        def __init__(self, mem: ZeldaMemory, targets: List[Vec2], track_size: float):
+            self.targets: List[GameEntity2D] = []
             targets_copy = targets.copy()
             with contextlib.suppress(
                     ReferenceError
                 ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
                 for enemy in mem.enemies:
                     enemy_pos = enemy.get_pos()
-                    search_box = _get_tracker(last_pos=enemy_pos, movement=0.2)
+                    search_box = _get_tracker(last_pos=enemy_pos, movement=track_size)
                     for target in targets_copy:
-                        # Check if target is found. If so, initialize a tracking entity
+                        # Check if target is found. If so, initialize the tracking entity
                         if search_box.contains(target):
-                            self.targets.append(SeqKnight2D._TrackingEntity(enemy))
-                            targets_copy.remove(target)
-                            break
-                    # Check if we have tracked all targets
-                    if not targets_copy:
-                        break
+                            self.targets.append(enemy)
             # TODO Track decisions
             if len(targets) != len(self.targets):
                 logger.error(f"Couldn't track all entities! Found {len(self.targets)}/{len(targets)} enemies")
@@ -295,14 +310,18 @@ class SeqKnight2D(SeqSection2D):
         def done(self) -> bool:
             return len(self.targets) == 0
 
+        def remove_dead(self) -> None:
+            self.targets = [enemy for enemy in self.targets if enemy.get_hp() > 0]
+
         def enemies_left(self) -> int:
             return len(self.targets)
 
     # TODO: Change List[Vec2] to some kind of ID or monster structure instead to make tracking easier
-    def __init__(self, name: str, arena: Box2, targets: List[Vec2]):
+    def __init__(self, name: str, arena: Box2, targets: List[Vec2], track_size: float = 0.2):
         self.plan = None
         self.arena = arena
-        self.targets = targets
+        self.target_coords = targets
+        self.track_size = track_size
         self.num_targets = len(targets)
         super().__init__(name)
 
@@ -314,28 +333,22 @@ class SeqKnight2D(SeqSection2D):
         player_pos = mem.player.get_pos()
 
         if self.plan is None:
-            self.plan = SeqKnight2D._Plan(mem=mem, targets=self.targets)
+            self.plan = SeqKnight2D._Plan(mem=mem, targets=self.target_coords, track_size=self.track_size)
 
-        # TODO: Should reuse the stuff from move2d or refactor out
+        # TODO: Move
+        ctrl = evo1.control.handle()
+        ctrl.dpad.none()
+
+        # TODO: Should reuse the stuff from move2d or refactor out?
         with contextlib.suppress(
             ReferenceError
         ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
-            found: List[int] = []
-            for enemy in mem.enemies:
-                enemy_pos = enemy.get_pos()
-                for i, target in enumerate(self.plan.targets):
-                    search_box = _get_tracker(target.pos, 0.2)
-                    # We've alread found this tracked entity, skip
-                    if i in found:
-                        continue
-                    if search_box.contains(enemy_pos):
-                        self.plan.targets[i].update(enemy)
-                        found.append(i)
-                        break
+            for target in self.plan.targets:
+                pass
+                # TODO: need to deal with enemies dying
 
-        # Check if we have lost tracking. TODO: Not the best code, can only handle one lost per frame
-        # if to_remove := [i for i, _ in enumerate(self.plan.targets) if i in found]:
-        #     self.plan.targets.pop(to_remove[0])
+        # Remove dead enemies from tracking
+        self.plan.remove_dead()
 
         # We are done if all enemies are dead
         if self.plan.done():
@@ -350,7 +363,8 @@ class SeqKnight2D(SeqSection2D):
         self._print_actors(stats_win=stats_win, blackboard=blackboard)
 
     def _print_arena(self, stats_win, blackboard: dict) -> None:
-        # Draw target in relation to player
+        # Draw a box representing the arena on the map. The representation is one tile
+        # bigger so no entities inside the actual arena are overwritten.
         mem = get_zelda_memory()
         center = mem.player.get_pos()
 
@@ -372,5 +386,6 @@ class SeqKnight2D(SeqSection2D):
 
     def __repr__(self) -> str:
         dead_targets = self.num_targets - self.plan.enemies_left() if self.plan else 0
-        return f"{self.name}[{dead_targets}/{self.num_targets}] in arena: {self.arena}"
+        tracking = f" Tracking: {self.plan.targets}" if self.plan else ""
+        return f"{self.name}[{dead_targets}/{self.num_targets}] in arena: {self.arena}.{tracking}"
 

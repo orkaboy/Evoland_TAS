@@ -59,6 +59,28 @@ class Facing(IntEnum):
     UP = 2
     DOWN = 3
 
+def facing_str(facing: Facing) -> str:
+    match facing:
+        case Facing.LEFT:
+            return "left"
+        case Facing.RIGHT:
+            return "right"
+        case Facing.UP:
+            return "up"
+        case Facing.DOWN:
+            return "down"
+
+def facing_ch(facing: Facing) -> str:
+    match facing:
+        case Facing.LEFT:
+            return "<"
+        case Facing.RIGHT:
+            return ">"
+        case Facing.UP:
+            return "^"
+        case Facing.DOWN:
+            return "v"
+
 
 # Representation of game features picked up from chests
 class GameFeatures(Flag):
@@ -157,6 +179,7 @@ class GameEntity2D:
     _FACING_PTR = [0x58]  # int
     _ATTACK_PTR = [0x5C]  # byte, bit 5
     _ROTATION_PTR = [0x90]  # double (left = 0.0, up = 1.57, right = 3.14, down = -1.57)
+    _HP_PTR = [0x100]  # int, for enemies such as knights
     # This seems to be set on picking up stuff/opening inventory/opening menu, may be misnamed. Invincibility flag?
     _INV_OPEN_PTR = [0xA4]
 
@@ -186,6 +209,9 @@ class GameEntity2D:
         self.rotation_ptr = self.process.get_pointer(
             self.entity_ptr, offsets=self._ROTATION_PTR
         )
+        self.hp_ptr = self.process.get_pointer(
+            self.entity_ptr, offsets=self._HP_PTR
+        )
         self.inv_open_ptr = self.process.get_pointer(
             self.entity_ptr, offsets=self._INV_OPEN_PTR
         )
@@ -209,30 +235,6 @@ class GameEntity2D:
     def get_facing(self) -> Facing:
         return self.process.read_u32(self.facing_ptr)
 
-    def get_facing_str(self) -> str:
-        facing = self.get_facing()
-        match facing:
-            case Facing.LEFT:
-                return "left"
-            case Facing.RIGHT:
-                return "right"
-            case Facing.UP:
-                return "up"
-            case Facing.DOWN:
-                return "down"
-
-    def get_facing_ch(self) -> str:
-        facing = self.get_facing()
-        match facing:
-            case Facing.LEFT:
-                return "<"
-            case Facing.RIGHT:
-                return ">"
-            case Facing.UP:
-                return "^"
-            case Facing.DOWN:
-                return "v"
-
     def get_attacking(self) -> bool:
         attacking = self.process.read_u8(self.attack_ptr)
         return attacking & 0x10  # Bit5 denotes attacking
@@ -240,8 +242,14 @@ class GameEntity2D:
     def get_rotation(self) -> float:
         return self.process.read_double(self.rotation_ptr)
 
+    def get_hp(self) -> int:
+        return self.process.read_u32(self.hp_ptr)
+
     def get_inv_open(self) -> bool:
         return self.process.read_u8(self.inv_open_ptr) == 1
+
+    def __repr__(self) -> str:
+        return f"Ent({self.get_pos()}, hp: {self.get_hp()})"
 
 
 class ZeldaMemory:
