@@ -196,6 +196,9 @@ class GameEntity2D:
     _ATTACK_PTR = [0x5C]  # byte, bit 5
     _ROTATION_PTR = [0x90]  # double (left = 0.0, up = 1.57, right = 3.14, down = -1.57)
     _HP_PTR = [0x100]  # int, for enemies such as knights
+    # TODO Verify these
+    #_ATTACK_TIMER_PTR = [0xC8]  # double unclear purpose, resets when swinging sword
+    _ENCOUNTER_TIMER_PTR = [0xD0]  # double. Steps to encounter
     # This seems to be set on picking up stuff/opening inventory/opening menu, may be misnamed. Invincibility flag?
     # This is also marked when in ATB combat. GUI open?
     _INV_OPEN_PTR = [0xA4]
