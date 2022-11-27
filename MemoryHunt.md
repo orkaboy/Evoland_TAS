@@ -10,14 +10,15 @@
 
 * Current map
 * Player level
-* Is-in-battle (can do an ugly hack to start with)
 
 * Main menu save slots
 
 # Found
 
 * Player struct (x,y,direction) in world movement [ptr]
-* Inv open(?)
+* In control
+    - Inv open(?)
+    - Is-in-battle (an ugly hack to start with)
 * Attacking
 
 * Enemy array in zelda-mode

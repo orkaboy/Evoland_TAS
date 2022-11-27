@@ -10,6 +10,7 @@
 
 * Run `py main.py`
 * Navigate the interface using the keyboard. Currently only the Evoland 1 TAS does anything.
+* Ensure you are on the "Press any key to start" screen before executing the TAS. Don't have any physical controllers connected.
 * By default, a new run will be started (this requires that there is one empty save slot in Evoland)
 * It is possible to resume in the middle of a run using checkpoints. Set the `checkpoint` value in `config.yaml` (refer to `evo1/checkpoints.py` for valid strings) and set `saveslot` to the valid 1-indexed Evoland 1 save that represents this state.
 
