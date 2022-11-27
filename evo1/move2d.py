@@ -1,15 +1,36 @@
 import contextlib
 import logging
-import math
 from typing import List
 
 import evo1.control
 from engine.seq import SeqBase
 from evo1.memory import GameFeatures, GameEntity2D, ZeldaMemory, get_zelda_memory
 from term.curses import write_stats_centered
-from engine.mathlib import Facing, facing_ch, facing_str, Vec2, Box2, is_close, dist, grow_box
+from engine.mathlib import Facing, facing_ch, facing_str, Vec2, Box2, is_close, dist, grow_box, get_angle
 
 logger = logging.getLogger(__name__)
+
+
+def move_to(player: Vec2, target: Vec2, precision: float, blackboard: dict) -> None:
+    # TODO: Different behavior depending on if certain game features are acquired
+    features: GameFeatures = blackboard.get("features", {})
+    ctrl = evo1.control.handle()
+    ctrl.dpad.none()
+    # Very dumb
+    diff = target - player
+    controller_precision = (
+        precision / 2
+    )  # Need to get closer so that is_close() will trigger on diagonals
+    # Left right
+    if diff.x > controller_precision:
+        ctrl.dpad.right()
+    elif diff.x < -controller_precision:
+        ctrl.dpad.left()
+    # Up down
+    if diff.y > controller_precision:
+        ctrl.dpad.down()
+    elif diff.y < -controller_precision:
+        ctrl.dpad.up()
 
 
 # TODO: Improve on class to be able to handle free move
@@ -89,76 +110,6 @@ class SeqAttack(SeqBase):
 
     def __repr__(self) -> str:
         return f"Attack({self.name})"
-
-
-def _get_angle(a: Vec2, b: Vec2) -> float:
-    direction = a - b
-    return math.atan2(direction.y, direction.x)
-
-
-def _clunky_counter_with_sword(angle: float, enemy_angle: float) -> None:
-    # If in front, attack!
-    if abs(angle) < 0.7:  # TODO Arbitrary magic number
-        ctrl = evo1.control.handle()
-        ctrl.attack()
-    elif abs(angle) <= 2:  # TODO On our sides
-        ctrl = evo1.control.handle()
-        ctrl.attack()
-        ctrl.dpad.none()
-        # Turn and attack
-        if abs(enemy_angle) < 0.7:
-            # logger.debug("Attacking right")
-            ctrl.dpad.right()
-        elif abs(enemy_angle) > 2:
-            # logger.debug("Attacking left")
-            ctrl.dpad.left()
-        elif enemy_angle > 0:
-            # logger.debug("Attacking down")
-            ctrl.dpad.down()
-        else:
-            # logger.debug("Attacking up")
-            ctrl.dpad.up()
-
-
-def clunky_combat2d(target: Vec2, blackboard: dict) -> None:
-    mem = get_zelda_memory()
-    player_pos = mem.player.get_pos()
-    player_angle = _get_angle(target, player_pos)
-    with contextlib.suppress(
-        ReferenceError
-    ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
-        for enemy in mem.enemies:
-            enemy_pos = enemy.get_pos()
-            dist_to_player = dist(player_pos, enemy_pos)
-            if dist_to_player < 1.5:  # TODO Arbitrary magic number, distance to enemy
-                enemy_angle = _get_angle(enemy_pos, player_pos)
-                angle = enemy_angle - player_angle
-                # logger.debug(f"Enemy {i} dist: {dist_to_player}, angle_to_e: {enemy_angle}. angle: {angle}")
-                _clunky_counter_with_sword(angle=angle, enemy_angle=enemy_angle)
-
-
-
-def move_to(player: Vec2, target: Vec2, precision: float, blackboard: dict) -> None:
-    # TODO: Different behavior depending on if certain game features are acquired
-    features: GameFeatures = blackboard.get("features", {})
-    ctrl = evo1.control.handle()
-    ctrl.dpad.none()
-    # Very dumb
-    diff = target - player
-    controller_precision = (
-        precision / 2
-    )  # Need to get closer so that is_close() will trigger on diagonals
-    # Left right
-    if diff.x > controller_precision:
-        ctrl.dpad.right()
-    elif diff.x < -controller_precision:
-        ctrl.dpad.left()
-    # Up down
-    if diff.y > controller_precision:
-        ctrl.dpad.down()
-    elif diff.y < -controller_precision:
-        ctrl.dpad.up()
-
 
 
 # Base class for 2D movement areas
@@ -244,12 +195,6 @@ class SeqMove2D(SeqSection2D):
     def execute(self, delta: float, blackboard: dict) -> bool:
         self._navigate_to_checkpoint(blackboard=blackboard)
 
-        # TODO: Better way of handling combat. Inheritance instead?
-        # TODO: Really need to fix this, since there are some sections that we DON'T want the TAS to attack stuff (waking knights)
-        if combat_handler := blackboard.get("combat"):
-            target = self.coords[self.step] if self.step < len(self.coords) else self.coords[-1]
-            combat_handler(target, blackboard)
-
         done = self._nav_done()
 
         if done:
@@ -287,6 +232,60 @@ class SeqMove2D(SeqSection2D):
         target = self.coords[self.step]
         step = self.step + 1
         return f"{self.name}[{step}/{num_coords}]: {target}"
+
+
+class SeqMove2DClunkyCombat(SeqMove2D):
+    def execute(self, delta: float, blackboard: dict) -> bool:
+        self._navigate_to_checkpoint(blackboard=blackboard)
+
+        target = self.coords[self.step] if self.step < len(self.coords) else self.coords[-1]
+        self._clunky_combat2d(target=target, blackboard=blackboard)
+
+        done = self._nav_done()
+
+        if done:
+            logger.debug(f"Finished moved2D section: {self.name}")
+        return done
+
+    # TODO: Handle some edge cases, like when the enemy is at a diagonal, moving into the target space
+    def _clunky_combat2d(self, target: Vec2, blackboard: dict) -> None:
+        mem = get_zelda_memory()
+        player_pos = mem.player.get_pos()
+        player_angle = get_angle(target, player_pos)
+        with contextlib.suppress(
+            ReferenceError
+        ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
+            for enemy in mem.enemies:
+                enemy_pos = enemy.get_pos()
+                dist_to_player = dist(player_pos, enemy_pos)
+                if dist_to_player < 1.5:  # TODO Arbitrary magic number, distance to enemy
+                    enemy_angle = get_angle(enemy_pos, player_pos)
+                    angle = enemy_angle - player_angle
+                    # logger.debug(f"Enemy {i} dist: {dist_to_player}, angle_to_e: {enemy_angle}. angle: {angle}")
+                    self._clunky_counter_with_sword(angle=angle, enemy_angle=enemy_angle)
+
+    def _clunky_counter_with_sword(self, angle: float, enemy_angle: float) -> None:
+        # If in front, attack!
+        if abs(angle) < 0.7:  # TODO Arbitrary magic number, angle difference between where we are heading and where the enemy is
+            ctrl = evo1.control.handle()
+            ctrl.attack()
+        elif abs(angle) <= 2:  # TODO On our sides
+            ctrl = evo1.control.handle()
+            ctrl.attack()
+            ctrl.dpad.none()
+            # Turn and attack
+            if abs(enemy_angle) < 0.7:
+                # logger.debug("Attacking right")
+                ctrl.dpad.right()
+            elif abs(enemy_angle) > 2:
+                # logger.debug("Attacking left")
+                ctrl.dpad.left()
+            elif enemy_angle > 0:
+                # logger.debug("Attacking down")
+                ctrl.dpad.down()
+            else:
+                # logger.debug("Attacking up")
+                ctrl.dpad.up()
 
 
 def _get_tracker(last_pos: Vec2, movement: float) -> Box2:

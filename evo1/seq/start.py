@@ -46,7 +46,15 @@ class Evoland1StartGame(SeqList):
                 SeqLog(name="SYSTEM", text="Starting timer!"),
                 SeqFunc(reset_logging_time_reference),
                 SeqMenuConfirm(),
-                SeqDelay(name="Starting game", time_in_s=3.0),
+                # Loading the game needs a slightly longer delay than starting a new game
+                SeqOptional(
+                    name="Conditional delay",
+                    cases={
+                        0: SeqDelay(name="Starting game", time_in_s=3.0),
+                    },
+                    selector=saveslot,
+                    fallback=SeqDelay(name="Starting game", time_in_s=4.0),
+                ),
                 SeqLog(name="SYSTEM", text="In game!"),
             ],
         )

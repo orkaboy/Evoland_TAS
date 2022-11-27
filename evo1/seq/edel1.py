@@ -1,7 +1,7 @@
 from engine.seq import SeqAnnotator, SeqDelay, SeqFunc, SeqList
 from engine.mathlib import Facing, Vec2, Box2
 from evo1.memory import load_zelda_memory
-from evo1.move2d import SeqAttack, SeqGrabChest, SeqMove2D, SeqKnight2D, SeqZoneTransition, clunky_combat2d
+from evo1.move2d import SeqAttack, SeqGrabChest, SeqMove2D, SeqMove2DClunkyCombat, SeqKnight2D, SeqZoneTransition
 from evo1.atb import SeqATBmove2D, FarmingGoal
 
 
@@ -52,13 +52,13 @@ class Edel1(SeqList):
                 SeqGrabChest("Monsters", direction=Facing.RIGHT),
                 # TODO: The annotator here adds a function that can deal with enemies (poorly, dies a lot)
                 SeqAnnotator(
-                    "Simple enemy behavior",
-                    annotations={"combat": clunky_combat2d},
+                    "Enemies",
+                    annotations={},
                     func=load_zelda_memory,  # Need to reload memory to get the correct enemy location
                     wrapped=SeqList(
                         name="Enemies",
                         children=[
-                            SeqMove2D(
+                            SeqMove2DClunkyCombat(
                                 "Dodge enemies",
                                 coords=[
                                     Vec2(35, 55),
@@ -72,7 +72,7 @@ class Edel1(SeqList):
                             ),
                             SeqGrabChest("Music", direction=Facing.RIGHT), # TODO: optionally grab?
                             SeqAttack("Bush"),
-                            SeqMove2D(
+                            SeqMove2DClunkyCombat(
                                 "Move to chest",
                                 coords=[
                                     Vec2(39, 47),
@@ -85,7 +85,7 @@ class Edel1(SeqList):
                             ),
                             SeqGrabChest("16-bit", direction=Facing.DOWN),
                             # TODO: Some enemies here, will probably fail
-                            SeqMove2D(
+                            SeqMove2DClunkyCombat(
                                 "Dodge enemies",
                                 coords=[
                                     Vec2(44, 52),
@@ -96,7 +96,7 @@ class Edel1(SeqList):
                                     Vec2(58, 54),
                                 ],
                             ),
-                            SeqMove2D(
+                            SeqMove2DClunkyCombat(
                                 "Dodge enemies",
                                 coords=[
                                     Vec2(60, 54),
@@ -112,23 +112,29 @@ class Edel1(SeqList):
                             ),
                             SeqGrabChest("Free move", direction=Facing.LEFT),
                             # TODO: At this point we can move more freely, could implement a better move2d (or improve current)
-                            SeqMove2D(
-                                "Navigate to knights",
+                            SeqMove2DClunkyCombat(
+                                "Navigate to rocks",
                                 coords=[
                                     # TODO: Implement Boid-type behavior to avoid enemies that approach?
                                     # Move to rocks, dodging enemies
                                     Vec2(33.5, 33),
                                     Vec2(36, 35.7),
                                     Vec2(48, 36),
-                                    # Navigating past the rocks
                                     Vec2(50, 36.5),
+                                ],
+                            ),
+                            # Don't use attack behavior on this part
+                            SeqMove2D(
+                                "Navigate to knights",
+                                coords=[
+                                    # Navigating past the rocks
                                     Vec2(51, 36.5),
                                     Vec2(52, 36.5),
                                     Vec2(53, 36),
                                     Vec2(54.1, 33.5),  # Near left knight
                                 ],
                             ),
-                            # TODO: Save point?
+                            # TODO: Optional save point?
                             SeqMove2D(
                                 "Nudging the knights",
                                 precision=0.1,
@@ -167,8 +173,8 @@ class OverworldToMeadow(SeqList):
             name="Overworld",
             children=[
                 SeqFunc(load_zelda_memory),
-                # TODO: Need a battle handler for random battles, mashing confirm is fine for now
                 # TODO: Movement is awkward, would look better with joystick move instead of dpad
+                # Battle handler for random battles, mashing confirm is fine for now
                 SeqATBmove2D(
                     "Navigating overworld",
                     coords=[
@@ -178,61 +184,14 @@ class OverworldToMeadow(SeqList):
                         Vec2(79.5, 53),
                         Vec2(85, 47),
                         Vec2(87, 43),
-                        # TODO Need to farm gli before progressing
                     ],
+                    # Need to farm gli before progressing. We need 250 to buy gear, and we can get 50 in the village
                     goal=FarmingGoal(farm_coords=[Vec2(87, 44), Vec2(87, 43)], precision=0.2, gli_goal=200),
                 ),
                 SeqZoneTransition("Meadow", direction=Facing.UP, time_in_s=1.0),
-                # TODO REMOVE
-                MeadowFight()
             ],
         )
 
-
-class MeadowFight(SeqAnnotator):
-    def __init__(self):
-        super().__init__(
-            name="Load",
-            annotations={},
-            func=load_zelda_memory,  # Need to reload memory to get the correct enemy location
-            wrapped=SeqList(
-                name="Meadow",
-                children=[
-                    # TODO: This appears to be needed on load for some reason, or the game crashes
-                    # TODO: REMOVE WHEN DONE TESTING
-                    SeqDelay("Memory delay", time_in_s=1.0),
-                    SeqMove2D(
-                        name="Wake up knights",
-                        precision=0.1,
-                        coords=[
-                            Vec2(14, 14), # Go past the chest
-                            Vec2(14.1, 11.5),
-                            Vec2(15, 11), # Wake up first knight
-                            Vec2(16.5, 10.9),
-                            Vec2(17, 10), # Wake up second knight
-                            Vec2(16.9, 8.6),
-                            Vec2(16, 8), # Wake up third knight
-                            Vec2(14.5, 8.1),
-                            Vec2(14, 9), # Wake up the fourth knight
-                        ],
-                    ),
-                    SeqKnight2D(
-                        "Killing four knights",
-                        arena=Box2(pos=Vec2(12, 6), w=7, h=8), # Valid arena to fight inside (should be clear of obstacles)
-                        targets=[Vec2(14, 11), Vec2(17, 11), Vec2(17, 7), Vec2(14, 7)], # Positions of enemies (known from start, but they move)
-                        track_size=1.2,
-                    ),
-                    SeqMove2D(
-                        name="Move to chest",
-                        coords=[
-                            Vec2(18, 11),
-                            Vec2(19, 11),
-                            # Chest to the right
-                        ],
-                    ),
-                ]
-            )
-        )
 
 
 

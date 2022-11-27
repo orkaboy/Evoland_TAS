@@ -5,7 +5,7 @@ import memory.core as core
 from engine.seq import SeqFunc, SeqList, SeqLog, SeqOptional, SequencerEngine
 from evo1.checkpoints import Checkpoints
 from evo1.memory import load_memory
-from evo1.seq import Edel1, Evoland1StartGame, OverworldToMeadow, MeadowFight
+from evo1.seq import Edel1, Evoland1StartGame, OverworldToMeadow, MeadowFight, PapurikaVillage
 
 
 def perform_TAS(main_win, stats_win, config_data: dict):
@@ -28,9 +28,7 @@ def perform_TAS(main_win, stats_win, config_data: dict):
                             Edel1(),
                             OverworldToMeadow(),
                             MeadowFight(),
-                            # TODO: Navigate overworld section. Grab the Battle chest and gather some gli on the way.
-                            # TODO: Enter the village green once we have enough cash.
-                            # TODO: Kill knights in the village area.
+                            PapurikaVillage(), # TODO: Finish/Verify
                             # TODO: Grab the seed to grow up. Grab the item shop (+ cash inside) and buy gear (sword + armor)
                             # TODO: Leave the village to the east->north into the overworld
                             # TODO: Grab the forced combat chest and rescue/name Kaeris

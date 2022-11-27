@@ -24,6 +24,12 @@ def dist(a: Vec2, b: Vec2) -> float:
 def is_close(a: Vec2, b: Vec2, precision: float) -> bool:
     return dist(a, b) <= precision
 
+
+def get_angle(a: Vec2, b: Vec2) -> float:
+    direction = a - b
+    return math.atan2(direction.y, direction.x)
+
+
 class Box2(NamedTuple):
     pos: Vec2
     w: float
