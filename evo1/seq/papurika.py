@@ -1,7 +1,8 @@
-from engine.seq import SeqList, SeqAnnotator
+from engine.seq import SeqList, SeqAnnotator, SeqOptional
 from engine.mathlib import Facing, Vec2, Box2
 from evo1.move2d import SeqGrabChest, SeqMove2D, SeqZoneTransition, SeqKnight2D
-from evo1.memory import load_zelda_memory
+from evo1.interact import SeqShopBuy, SeqInteract, SeqWaitForControl
+from evo1.memory import load_zelda_memory, get_memory
 
 
 class MeadowFight(SeqAnnotator):
@@ -46,6 +47,13 @@ class MeadowFight(SeqAnnotator):
             )
         )
 
+
+def need_to_steal_cash() -> int:
+    mem = get_memory()
+    gli = mem.get_gli()
+    return 1 if gli < 250 else 0
+
+
 class PapurikaVillage(SeqList):
     def __init__(self):
         super().__init__(
@@ -59,21 +67,24 @@ class PapurikaVillage(SeqList):
                         Vec2(39, 15),
                     ],
                 ),
-                # TODO: Confirm, confirm (down the well)
+                SeqInteract("Down the well"),
+                SeqInteract("Here we go!"),
                 SeqMove2D(
                     "Move to seed",
                     coords=[
                         Vec2(4, 6),
                     ],
                 ),
-                # TODO: Confirm, confirm (grab seed), wait for control
+                SeqInteract("Grab seed"),
+                SeqInteract("Yes, really grab the seed!"),
+                SeqWaitForControl("Growth seed"),
                 SeqMove2D(
                     "Move to surface",
                     coords=[
                         Vec2(7.5, 2.6),
                     ],
                 ),
-                # TODO: Confirm (get out of well)
+                SeqInteract("Leave well"),
                 SeqMove2D(
                     "Move to chest",
                     coords=[
@@ -83,7 +94,8 @@ class PapurikaVillage(SeqList):
                         Vec2(8, 28),
                     ],
                 ),
-                # TODO: Grab chest(home invasion) @(7.5, 28)
+                # Grab chest(home invasion) @(7.5, 28)
+                SeqGrabChest("Home invasion", direction=Facing.LEFT),
                 SeqMove2D(
                     "Move to shop",
                     coords=[
@@ -95,15 +107,30 @@ class PapurikaVillage(SeqList):
                 # Transition north (into shop)
                 SeqZoneTransition("Enter shop", Facing.UP, time_in_s=0.5),
                 SeqMove2D(
-                    "Looting",
+                    "Moving to chest",
                     coords=[
                         Vec2(37, 42),
                         Vec2(39, 40.2),
-                        Vec2(40, 40.3), # TODO: Optional!
                     ],
                 ),
-                # TODO: Optional grab coin if we have less than 250
-                # TODO: Conf x2
+                SeqOptional(
+                    "Checking wallet",
+                    cases={
+                        # Check if we have enough cash
+                        1: SeqList(
+                            "Pillaging",
+                            children=[
+                                SeqMove2D(
+                                    "Moving to barrel",
+                                    coords=[Vec2(40, 40.3)],
+                                ),
+                                SeqInteract("Grabbing 50 gli"),
+                                SeqInteract("Confirming"),
+                            ],
+                        ),
+                    },
+                    selector=need_to_steal_cash,
+                ),
                 SeqMove2D(
                     "Shopping",
                     coords=[
@@ -112,8 +139,8 @@ class PapurikaVillage(SeqList):
                         Vec2(34.5, 40.6),
                     ],
                 ),
-                # TODO: Conf (talk to shop keep)
-                # TODO: [Menu]. conf(buy), down (to sword), conf x4 (sword, yes, talk to shop keep, buy), down (to armor), conf x2 (armor, yes)
+                SeqShopBuy("Sword", slot=1),
+                SeqShopBuy("Armor", slot=1),
                 SeqMove2D(
                     "Leave shop",
                     coords=[
