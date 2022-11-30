@@ -6,12 +6,12 @@ from engine.seq import SeqFunc, SeqList, SeqLog, SeqOptional, SequencerEngine
 from evo1.checkpoints import Checkpoints
 from evo1.memory import load_memory
 from evo1.seq import Edel1, Evoland1StartGame, OverworldToMeadow, MeadowFight, PapurikaVillage
+from term.curses import WindowLayout
 
+def perform_TAS(window: WindowLayout):
 
-def perform_TAS(main_win, stats_win, config_data: dict):
-
-    saveslot = config_data.get("saveslot", 0)
-    checkpoint = config_data.get("checkpoint", "")
+    saveslot = window.config_data.get("saveslot", 0)
+    checkpoint = window.config_data.get("checkpoint", "")
 
     root = SeqList(
         name="Evoland1",
@@ -75,14 +75,12 @@ def perform_TAS(main_win, stats_win, config_data: dict):
     )
 
     engine = SequencerEngine(
-        main_win=main_win,
-        stats_win=stats_win,
-        config_data=config_data,
+        window=window,
         root=root,
     )
 
-    main_win.clear()
-    stats_win.clear()
+    window.main.clear()
+    window.stats.clear()
     curses.doupdate()
 
     while engine.active():

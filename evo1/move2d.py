@@ -6,7 +6,7 @@ import evo1.control
 from engine.seq import SeqBase
 from engine.navmap import NavMap
 from evo1.memory import GameFeatures, GameEntity2D, ZeldaMemory, get_zelda_memory
-from term.curses import write_stats_centered
+from term.curses import WindowLayout
 from engine.mathlib import Facing, facing_ch, facing_str, Vec2, Box2, is_close, dist, grow_box, get_angle
 
 logger = logging.getLogger(__name__)
@@ -120,46 +120,48 @@ class SeqSection2D(SeqBase):
         self.tilemap = tilemap
         super().__init__(name)
 
-    # Map starts at line 12 and fills the rest of the stats window
-    _map_start_y = 12
+    # Map starts at line 2 and fills the rest of the map window
+    _map_start_y = 2
 
-    def _print_player_stats(self, stats_win, blackboard: dict) -> None:
-        write_stats_centered(stats_win=stats_win, line=1, text="Evoland 1 TAS")
-        write_stats_centered(stats_win=stats_win, line=2, text="2D section")
+    def _print_player_stats(self, window: WindowLayout, blackboard: dict) -> None:
+        window.write_stats_centered(line=1, text="Evoland 1 TAS")
+        window.write_stats_centered(line=2, text="2D section")
         mem = get_zelda_memory()
         pos = mem.player.get_pos()
-        stats_win.addstr(4, 1, f" Player X: {pos.x:.3f}")
-        stats_win.addstr(5, 1, f" Player Y: {pos.y:.3f}")
-        stats_win.addstr(6, 1, f"  Facing: {facing_str(mem.player.get_facing())}")
+        window.stats.addstr(4, 1, f" Player X: {pos.x:.3f}")
+        window.stats.addstr(5, 1, f" Player Y: {pos.y:.3f}")
+        window.stats.addstr(6, 1, f"  Facing: {facing_str(mem.player.get_facing())}")
         # Draw the player at the center for reference
-        self._print_ch_in_map(stats_win=stats_win, pos=Vec2(0, 0), ch="@")
+        self._print_ch_in_map(map_win=window.map, pos=Vec2(0, 0), ch="@")
 
     # (0,0) is at center of map. Y-axis increases going down the screen.
-    def _print_ch_in_map(self, stats_win, pos: Vec2, ch: str):
-        maxy, maxx = stats_win.getmaxyx()
+    def _print_ch_in_map(self, map_win, pos: Vec2, ch: str):
+        maxy, maxx = map_win.getmaxyx()
         centerx, centery = maxx / 2, self._map_start_y + (maxy - self._map_start_y) / 2
         draw_x, draw_y = int(centerx + pos.x), int(centery + pos.y)
-        if draw_x in range(maxx) and draw_y in range(self._map_start_y, maxy - 1):
-            stats_win.addch(draw_y, draw_x, ch)
+        with contextlib.suppress(Exception):
+            if draw_x in range(maxx) and draw_y in range(self._map_start_y, maxy):
+                map_win.addch(draw_y, draw_x, ch)
 
-    def _print_env(self, stats_win, blackboard: dict) -> None:
-        maxy, maxx = stats_win.getmaxyx()
+    def _print_env(self, map_win, blackboard: dict) -> None:
+        maxy, maxx = map_win.getmaxyx()
         # Fill box with .
-        for y in range(self._map_start_y, maxy - 1):
-            stats_win.hline(y, 0, ".", maxx)
+        for y in range(self._map_start_y, maxy):
+            map_win.hline(y, 0, "#", maxx)
 
-    def _print_map(self, stats_win, blackboard: dict) -> None:
+    def _print_map(self, window: WindowLayout, blackboard: dict) -> None:
         mem = get_zelda_memory()
         center = mem.player.get_pos()
         # Render map
+        window.write_map_centered(0, self.tilemap.name)
         for i, line in enumerate(self.tilemap.tiles):
             y_pos = i + self.tilemap.origin.y
             for j, tile in enumerate(line):
                 x_pos = j + self.tilemap.origin.x
                 draw_pos = Vec2(x_pos, y_pos) - center
-                self._print_ch_in_map(stats_win, pos=draw_pos, ch=tile)
+                self._print_ch_in_map(window.map, pos=draw_pos, ch=tile)
 
-    def _print_actors(self, stats_win, blackboard: dict) -> None:
+    def _print_actors(self, map_win, blackboard: dict) -> None:
         mem = get_zelda_memory()
         center = mem.player.get_pos()
 
@@ -169,15 +171,15 @@ class SeqSection2D(SeqBase):
             for enemy in mem.enemies:
                 enemy_pos = enemy.get_pos()
                 enemy_dir_ch = facing_ch(enemy.get_facing())
-                self._print_ch_in_map(stats_win=stats_win, pos=enemy_pos-center, ch=enemy_dir_ch)
+                self._print_ch_in_map(map_win=map_win, pos=enemy_pos-center, ch=enemy_dir_ch)
 
-    def render(self, main_win, stats_win, blackboard: dict) -> None:
-        stats_win.erase()
+    def render(self, window: WindowLayout, blackboard: dict) -> None:
+        window.stats.erase()
+        window.map.erase()
+        self._print_env(map_win=window.map, blackboard=blackboard)
         if self.tilemap:
-            self._print_map(stats_win=stats_win, blackboard=blackboard)
-        else:
-            self._print_env(stats_win=stats_win, blackboard=blackboard)
-        self._print_player_stats(stats_win=stats_win, blackboard=blackboard)
+            self._print_map(window=window, blackboard=blackboard)
+        self._print_player_stats(window=window, blackboard=blackboard)
 
 
 class SeqMove2D(SeqSection2D):
@@ -221,29 +223,29 @@ class SeqMove2D(SeqSection2D):
             logger.debug(f"Finished moved2D section: {self.name}")
         return done
 
-    def _print_target(self, stats_win, blackboard: dict) -> None:
+    def _print_target(self, window: WindowLayout, blackboard: dict) -> None:
         num_coords = len(self.coords)
         if self.step >= num_coords:
             return
 
         target = self.coords[self.step]
         step = self.step + 1
-        write_stats_centered(
-            stats_win=stats_win, line=8, text=f"Moving to [{step}/{num_coords}]"
+        window.write_stats_centered(
+            line=8, text=f"Moving to [{step}/{num_coords}]"
         )
-        stats_win.addstr(9, 1, f" Target X: {target.x:.3f}")
-        stats_win.addstr(10, 1, f" Target Y: {target.y:.3f}")
+        window.stats.addstr(9, 1, f" Target X: {target.x:.3f}")
+        window.stats.addstr(10, 1, f" Target Y: {target.y:.3f}")
 
         # Draw target in relation to player
         mem = get_zelda_memory()
         center = mem.player.get_pos()
-        self._print_ch_in_map(stats_win=stats_win, pos=target-center, ch="X")
+        self._print_ch_in_map(map_win=window.map, pos=target-center, ch="X")
 
-    def render(self, main_win, stats_win, blackboard: dict) -> None:
+    def render(self, window: WindowLayout, blackboard: dict) -> None:
         # Update stats window
-        super().render(main_win=main_win, stats_win=stats_win, blackboard=blackboard)
-        self._print_target(stats_win=stats_win, blackboard=blackboard)
-        self._print_actors(stats_win=stats_win, blackboard=blackboard)
+        super().render(window=window, blackboard=blackboard)
+        self._print_target(window=window, blackboard=blackboard)
+        self._print_actors(map_win=window.map, blackboard=blackboard)
 
     def __repr__(self) -> str:
         num_coords = len(self.coords)
@@ -380,13 +382,13 @@ class SeqKnight2D(SeqSection2D):
             return True
         return False
 
-    def render(self, main_win, stats_win, blackboard: dict) -> None:
+    def render(self, window: WindowLayout, blackboard: dict) -> None:
         # Update stats window
-        super().render(main_win=main_win, stats_win=stats_win, blackboard=blackboard)
-        self._print_arena(stats_win=stats_win, blackboard=blackboard)
-        self._print_actors(stats_win=stats_win, blackboard=blackboard)
+        super().render(window=window, blackboard=blackboard)
+        self._print_arena(map_win=window.map, blackboard=blackboard)
+        self._print_actors(map_win=window.map, blackboard=blackboard)
 
-    def _print_arena(self, stats_win, blackboard: dict) -> None:
+    def _print_arena(self, map_win, blackboard: dict) -> None:
         # Draw a box representing the arena on the map. The representation is one tile
         # bigger so no entities inside the actual arena are overwritten.
         mem = get_zelda_memory()
@@ -394,18 +396,18 @@ class SeqKnight2D(SeqSection2D):
 
         arena_borders = grow_box(self.arena, 1)
         # Print corners
-        self._print_ch_in_map(stats_win=stats_win, pos=arena_borders.tl()-center, ch="+")
-        self._print_ch_in_map(stats_win=stats_win, pos=arena_borders.tr()-center, ch="+")
-        self._print_ch_in_map(stats_win=stats_win, pos=arena_borders.bl()-center, ch="+")
-        self._print_ch_in_map(stats_win=stats_win, pos=arena_borders.br()-center, ch="+")
+        self._print_ch_in_map(map_win=map_win, pos=arena_borders.tl()-center, ch="+")
+        self._print_ch_in_map(map_win=map_win, pos=arena_borders.tr()-center, ch="+")
+        self._print_ch_in_map(map_win=map_win, pos=arena_borders.bl()-center, ch="+")
+        self._print_ch_in_map(map_win=map_win, pos=arena_borders.br()-center, ch="+")
         # Print horizontal sections
         for x in range(arena_borders.pos.x+1, arena_borders.pos.x+arena_borders.w):
-            self._print_ch_in_map(stats_win=stats_win, pos=Vec2(x, arena_borders.pos.y)-center, ch="-")
-            self._print_ch_in_map(stats_win=stats_win, pos=Vec2(x, arena_borders.bl().y)-center, ch="-")
+            self._print_ch_in_map(map_win=map_win, pos=Vec2(x, arena_borders.pos.y)-center, ch="-")
+            self._print_ch_in_map(map_win=map_win, pos=Vec2(x, arena_borders.bl().y)-center, ch="-")
         # Print vertical sections
         for y in range(arena_borders.pos.y+1, arena_borders.pos.y+arena_borders.h):
-            self._print_ch_in_map(stats_win=stats_win, pos=Vec2(arena_borders.pos.x, y)-center, ch="|")
-            self._print_ch_in_map(stats_win=stats_win, pos=Vec2(arena_borders.tr().x, y)-center, ch="|")
+            self._print_ch_in_map(map_win=map_win, pos=Vec2(arena_borders.pos.x, y)-center, ch="|")
+            self._print_ch_in_map(map_win=map_win, pos=Vec2(arena_borders.tr().x, y)-center, ch="|")
 
 
     def __repr__(self) -> str:

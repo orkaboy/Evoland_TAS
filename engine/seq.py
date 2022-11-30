@@ -1,8 +1,8 @@
 # Libraries and Core Files
-import curses
 import logging
 import time
 from typing import Any, Callable, List
+from term.curses import WindowLayout
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ class SeqBase(object):
     def execute(self, delta: float, blackboard: dict) -> bool:
         return True
 
-    def render(self, main_win, stats_win, blackboard: dict) -> None:
+    def render(self, window: WindowLayout, blackboard: dict) -> None:
         pass
 
     # Should be overloaded
@@ -101,12 +101,12 @@ class SeqList(SeqBase):
             self.step = self.step + 1
         return False
 
-    def render(self, main_win, stats_win, blackboard: dict) -> None:
+    def render(self, window: WindowLayout, blackboard: dict) -> None:
         num_children = len(self.children)
         if self.step >= num_children:
             return
         cur_child = self.children[self.step]
-        cur_child.render(main_win=main_win, stats_win=stats_win, blackboard=blackboard)
+        cur_child.render(window=window, blackboard=blackboard)
 
     def __repr__(self) -> str:
         num_children = len(self.children)
@@ -135,8 +135,8 @@ class SeqAnnotator(SeqBase):
         # Run wrapped sequence node
         return self.wrapped.execute(delta, blackboard)
 
-    def render(self, main_win, stats_win, blackboard: dict) -> None:
-        return self.wrapped.render(main_win, stats_win, blackboard)
+    def render(self, window: WindowLayout, blackboard: dict) -> None:
+        return self.wrapped.render(window, blackboard)
 
     def __repr__(self) -> str:
         return f"@[{self.name}] {self.wrapped}"
@@ -169,14 +169,14 @@ class SeqOptional(SeqBase):
         )
         return True
 
-    def render(self, main_win, stats_win, blackboard: dict) -> None:
+    def render(self, window: WindowLayout, blackboard: dict) -> None:
         selector = self.selector
         if callable(self.selector):
             selector = selector(blackboard)
         if selection := self.cases.get(selector):
-            selection.render(main_win, stats_win, blackboard)
+            selection.render(window, blackboard)
         elif self.fallback:
-            self.fallback.render(main_win, stats_win, blackboard)
+            self.fallback.render(window, blackboard)
 
     def __repr__(self) -> str:
         selector = self.selector
@@ -195,15 +195,14 @@ class SequencerEngine(object):
     Each event sequence can be nested using SeqList.
     """
 
-    def __init__(self, main_win, stats_win, root: SeqBase, config_data: dict):
-        self.main_win = main_win
-        self.stats_win = stats_win
+    def __init__(self, window: WindowLayout, root: SeqBase):
+        self.window = window
         self.root = root
         self.done = False
-        self.config = config_data
+        self.config = window.config_data
         self.paused = False
         self.timestamp = time.time()
-        self.blackboard = {"config": config_data}
+        self.blackboard = {"config": window.config_data}
 
     def reset(self) -> None:
         self.paused = False
@@ -213,7 +212,7 @@ class SequencerEngine(object):
 
     def pause(self) -> None:
         self.paused = True
-        self.main_win.addstr(0, 0, "== PAUSED ==")
+        self.window.main.addstr(0, 0, "== PAUSED ==")
         logger.info("------------------------")
         logger.info("  TAS EXECUTION PAUSED  ")
         logger.info("------------------------")
@@ -226,7 +225,7 @@ class SequencerEngine(object):
         logger.info("------------------------")
 
     def _handle_input(self) -> None:
-        c = self.main_win.getch()
+        c = self.window.main.getch()
         # Keybinds: Pause TAS
         if c == ord("p"):
             paused = not self.paused
@@ -249,18 +248,15 @@ class SequencerEngine(object):
 
     def _render(self) -> None:
         # Clear display windows
-        self.main_win.erase()
+        self.window.main.erase()
 
         # Render the current gamestate
         self.root.render(
-            main_win=self.main_win, stats_win=self.stats_win, blackboard=self.blackboard
+            window=self.window, blackboard=self.blackboard
         )
-        self.main_win.addstr(1, 0, f"Gamestate:\n  {self.root}")
+        self.window.main.addstr(1, 0, f"Gamestate:\n  {self.root}")
 
-        # Update display windows
-        self.main_win.noutrefresh()
-        self.stats_win.noutrefresh()
-        curses.doupdate()
+        self.window.update()
 
     # Execute and render TAS progress
     def run(self) -> None:

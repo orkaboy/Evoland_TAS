@@ -161,16 +161,16 @@ def _add_log_level(level_name: str, level_num: int, method_name: Optional[str] =
 
 
 class CursesHandler(logging.Handler):
-    def __init__(self, screen):
+    def __init__(self, logger_win):
         logging.Handler.__init__(self)
-        self.screen = screen
+        self.logger_win = logger_win
 
     def emit(self, record):
         try:
             msg = self.format(record)
-            screen = self.screen
-            screen.addstr(f"\n{msg}")
-            screen.refresh()
+            logger_win = self.logger_win
+            logger_win.addstr(f"\n{msg}")
+            logger_win.refresh()
         except (KeyboardInterrupt, SystemExit):
             raise
         except Exception:

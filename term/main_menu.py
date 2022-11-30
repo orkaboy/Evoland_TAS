@@ -3,10 +3,10 @@ import curses
 import evo1.TAS as evo1
 import evo2.TAS as evo2
 from app import TAS_VERSION_STRING
-from term.curses import write_stats_centered
+from term.curses import WindowLayout
 
 
-def main_menu(main_win, stats_win, config_data: dict):
+def main_menu(window: WindowLayout):
     while True:
         # Declare menu options
         options = [
@@ -23,33 +23,33 @@ def main_menu(main_win, stats_win, config_data: dict):
         ]
 
         # Update side window
-        stats_win.clear()
-        write_stats_centered(stats_win=stats_win, line=1, text="+ Evoland TAS +")
-        write_stats_centered(stats_win=stats_win, line=2, text=TAS_VERSION_STRING)
-        write_stats_centered(stats_win=stats_win, line=4, text="author:")
-        write_stats_centered(stats_win=stats_win, line=5, text="orkaboy")
-        stats_win.noutrefresh()
+        window.stats.clear()
+        window.write_stats_centered(line=1, text="+ Evoland TAS +")
+        window.write_stats_centered(line=2, text=TAS_VERSION_STRING)
+        window.write_stats_centered(line=4, text="author:")
+        window.write_stats_centered(line=5, text="orkaboy")
+        window.stats.noutrefresh()
 
         # Update main window
-        main_win.clear()
+        window.main.clear()
         line = 1
         for opt in options:
             key = opt.get("key", "x")
             text = opt.get("name", "ERROR")
-            main_win.addstr(line, 1, f"({key}) {text}")
+            window.main.addstr(line, 1, f"({key}) {text}")
             line = line + 1
         line = line + 1
-        main_win.addstr(line, 1, "(q) Quit")
-        main_win.noutrefresh()
+        window.main.addstr(line, 1, "(q) Quit")
+        window.main.noutrefresh()
 
         # Update screen
         curses.doupdate()
-        main_win.nodelay(0)
+        window.main.nodelay(0)
 
         do_refresh = True
         # Get user input
         while do_refresh:
-            c = main_win.getch()
+            c = window.main.getch()
             if c == ord("q"):
                 return  # Quit
 
@@ -58,10 +58,8 @@ def main_menu(main_win, stats_win, config_data: dict):
                 key = opt.get("key", "x")
                 func = opt.get("func", None)
                 if c == ord(key) and func != None:
-                    main_win.nodelay(1)
+                    window.main.nodelay(1)
                     # Call subfunction
-                    func(
-                        main_win=main_win, stats_win=stats_win, config_data=config_data
-                    )
+                    func(window=window)
                     # Break loop to refresh screen
                     do_refresh = False
