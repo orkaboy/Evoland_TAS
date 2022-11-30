@@ -64,7 +64,7 @@ class PapurikaVillage(SeqList):
                     coords=[
                         Vec2(42, 25),
                         Vec2(39, 18),
-                        Vec2(39, 15),
+                        Vec2(39, 16),
                     ],
                 ),
                 SeqInteract("Down the well"),
