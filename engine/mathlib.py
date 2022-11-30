@@ -6,8 +6,12 @@ class Vec2(NamedTuple):
     x: float
     y: float
 
+    def __eq__(self, other: object) -> bool:
+        return self.x == other.x and self.y == other.y
+
     def __add__(self, other):
         return Vec2(self.x + other.x, self.y + other.y)
+
     def __sub__(self, other):
         return Vec2(self.x - other.x, self.y - other.y)
 
