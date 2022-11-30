@@ -1,5 +1,6 @@
 # TODO list
 
+* Fix window setup (make a dedicated map window)
 * Clean up main menu navigation code?
 * Finish entire Edel1 segment
     - Fix combat to more consistently survive the pre-free move section

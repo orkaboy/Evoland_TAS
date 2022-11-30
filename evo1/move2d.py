@@ -4,6 +4,7 @@ from typing import List
 
 import evo1.control
 from engine.seq import SeqBase
+from engine.navmap import NavMap
 from evo1.memory import GameFeatures, GameEntity2D, ZeldaMemory, get_zelda_memory
 from term.curses import write_stats_centered
 from engine.mathlib import Facing, facing_ch, facing_str, Vec2, Box2, is_close, dist, grow_box, get_angle
@@ -114,6 +115,11 @@ class SeqAttack(SeqBase):
 
 # Base class for 2D movement areas
 class SeqSection2D(SeqBase):
+
+    def __init__(self, name: str, tilemap: NavMap = None):
+        self.tilemap = tilemap
+        super().__init__(name)
+
     # Map starts at line 12 and fills the rest of the stats window
     _map_start_y = 12
 
@@ -142,6 +148,17 @@ class SeqSection2D(SeqBase):
         for y in range(self._map_start_y, maxy - 1):
             stats_win.hline(y, 0, ".", maxx)
 
+    def _print_map(self, stats_win, blackboard: dict) -> None:
+        mem = get_zelda_memory()
+        center = mem.player.get_pos()
+        # Render map
+        for i, line in enumerate(self.tilemap.tiles):
+            y_pos = i + self.tilemap.origin.y
+            for j, tile in enumerate(line):
+                x_pos = j + self.tilemap.origin.x
+                draw_pos = Vec2(x_pos, y_pos) - center
+                self._print_ch_in_map(stats_win, pos=draw_pos, ch=tile)
+
     def _print_actors(self, stats_win, blackboard: dict) -> None:
         mem = get_zelda_memory()
         center = mem.player.get_pos()
@@ -156,16 +173,19 @@ class SeqSection2D(SeqBase):
 
     def render(self, main_win, stats_win, blackboard: dict) -> None:
         stats_win.erase()
-        self._print_env(stats_win=stats_win, blackboard=blackboard)
+        if self.tilemap:
+            self._print_map(stats_win=stats_win, blackboard=blackboard)
+        else:
+            self._print_env(stats_win=stats_win, blackboard=blackboard)
         self._print_player_stats(stats_win=stats_win, blackboard=blackboard)
 
 
 class SeqMove2D(SeqSection2D):
-    def __init__(self, name: str, coords: List[Vec2], precision: float = 0.2):
+    def __init__(self, name: str, coords: List[Vec2], precision: float = 0.2, tilemap: NavMap = None):
         self.step = 0
         self.coords = coords
         self.precision = precision
-        super().__init__(name)
+        super().__init__(name, tilemap=tilemap)
 
     def reset(self) -> None:
         self.step = 0
@@ -322,13 +342,13 @@ class SeqKnight2D(SeqSection2D):
             return len(self.targets)
 
     # TODO: Change List[Vec2] to some kind of ID or monster structure instead to make tracking easier
-    def __init__(self, name: str, arena: Box2, targets: List[Vec2], track_size: float = 0.2):
+    def __init__(self, name: str, arena: Box2, targets: List[Vec2], track_size: float = 0.2, tilemap: NavMap = None):
         self.plan = None
         self.arena = arena
         self.target_coords = targets
         self.track_size = track_size
         self.num_targets = len(targets)
-        super().__init__(name)
+        super().__init__(name, tilemap=tilemap)
 
     def reset(self):
         self.plan = None

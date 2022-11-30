@@ -1,9 +1,12 @@
 from engine.seq import SeqAnnotator, SeqDelay, SeqFunc, SeqList
 from engine.mathlib import Facing, Vec2, Box2
+from engine.navmap import NavMap
 from evo1.memory import load_zelda_memory
 from evo1.move2d import SeqAttack, SeqGrabChest, SeqMove2D, SeqMove2DClunkyCombat, SeqKnight2D, SeqZoneTransition
 from evo1.atb import SeqATBmove2D, FarmingGoal
 
+
+_edel_vale_map = NavMap("evo1/maps/edel_vale.yaml")
 
 class Edel1(SeqList):
     def __init__(self):
@@ -11,11 +14,11 @@ class Edel1(SeqList):
             name="Edel Vale",
             children=[
                 SeqFunc(load_zelda_memory),
-                SeqMove2D("Move to chest", coords=[Vec2(14, 52)]),
+                SeqMove2D("Move to chest", coords=[Vec2(14, 52)], tilemap=_edel_vale_map),
                 SeqGrabChest("Move Left", direction=Facing.RIGHT),
-                SeqMove2D("Move to chest", coords=[Vec2(11, 52)]),
+                SeqMove2D("Move to chest", coords=[Vec2(11, 52)], tilemap=_edel_vale_map),
                 SeqGrabChest("Move Vertical", direction=Facing.LEFT),
-                SeqMove2D("Move to chest", coords=[Vec2(12, 52), Vec2(12, 51)]),
+                SeqMove2D("Move to chest", coords=[Vec2(12, 52), Vec2(12, 51)], tilemap=_edel_vale_map),
                 SeqGrabChest("Basic Scroll", direction=Facing.UP),
                 SeqMove2D(
                     "Move to chest",
@@ -25,6 +28,7 @@ class Edel1(SeqList):
                         Vec2(21, 52),
                         Vec2(20, 52),
                     ],
+                    tilemap=_edel_vale_map
                 ),
                 SeqGrabChest("Smooth Scroll", direction=Facing.LEFT),
                 SeqMove2D(
@@ -37,6 +41,7 @@ class Edel1(SeqList):
                         Vec2(30, 58),
                         Vec2(30, 60),
                     ],
+                    tilemap=_edel_vale_map
                 ),
                 SeqGrabChest("Sword", direction=Facing.DOWN),
                 SeqMove2D(
@@ -46,9 +51,10 @@ class Edel1(SeqList):
                         Vec2(31, 57),
                         Vec2(31, 55),
                     ],
+                    tilemap=_edel_vale_map
                 ),
                 SeqAttack("Bush"),
-                SeqMove2D("Move to chest", coords=[Vec2(32, 55)]),
+                SeqMove2D("Move to chest", coords=[Vec2(32, 55)], tilemap=_edel_vale_map),
                 SeqGrabChest("Monsters", direction=Facing.RIGHT),
                 # TODO: The annotator here adds a function that can deal with enemies (poorly, dies a lot)
                 SeqAnnotator(
@@ -69,6 +75,7 @@ class Edel1(SeqList):
                                     Vec2(37, 52),
                                     Vec2(39, 52),
                                 ],
+                                tilemap=_edel_vale_map
                             ),
                             SeqGrabChest("Music", direction=Facing.RIGHT), # TODO: optionally grab?
                             SeqAttack("Bush"),
@@ -82,6 +89,7 @@ class Edel1(SeqList):
                                     Vec2(44, 48),
                                     Vec2(44, 49),
                                 ],
+                                tilemap=_edel_vale_map
                             ),
                             SeqGrabChest("16-bit", direction=Facing.DOWN),
                             # TODO: Some enemies here, will probably fail
@@ -95,6 +103,7 @@ class Edel1(SeqList):
                                     Vec2(55, 54),
                                     Vec2(58, 54),
                                 ],
+                                tilemap=_edel_vale_map
                             ),
                             SeqMove2DClunkyCombat(
                                 "Dodge enemies",
@@ -109,6 +118,7 @@ class Edel1(SeqList):
                                     Vec2(36, 33),
                                     Vec2(34, 33),
                                 ],
+                                tilemap=_edel_vale_map
                             ),
                             SeqGrabChest("Free move", direction=Facing.LEFT),
                             # TODO: At this point we can move more freely, could implement a better move2d (or improve current)
@@ -122,6 +132,7 @@ class Edel1(SeqList):
                                     Vec2(48, 36),
                                     Vec2(50, 36.5),
                                 ],
+                                tilemap=_edel_vale_map
                             ),
                             # Don't use attack behavior on this part
                             SeqMove2D(
@@ -133,6 +144,7 @@ class Edel1(SeqList):
                                     Vec2(53, 36),
                                     Vec2(54.1, 33.5),  # Near left knight
                                 ],
+                                tilemap=_edel_vale_map
                             ),
                             # TODO: Optional save point?
                             SeqMove2D(
@@ -144,12 +156,14 @@ class Edel1(SeqList):
                                     Vec2(56, 34),  # Nudge past right knight to activate
                                     Vec2(55, 35),  # Retreat and prepare for combat!
                                 ],
+                                tilemap=_edel_vale_map
                             ),
                             # We need to kill two knights. These enemies must be killed with 3 attacks, but cannot be harmed from the front.
                             SeqKnight2D(
                                 "Killing two knights", # TODO: Everything is fully tracked, but the enemies have to be killed manually for now. TAS resumes when all enemies are dead
                                 arena=Box2(pos=Vec2(53, 32), w=5, h=4), # Valid arena to fight inside (should be clear of obstacles)
                                 targets=[Vec2(54, 33), Vec2(56, 33)], # Positions of enemies (known from start)
+                                tilemap=_edel_vale_map,
                             ),
                             SeqMove2D(
                                 "Grabbing inv",
@@ -158,6 +172,7 @@ class Edel1(SeqList):
                                     # TODO: Grab chest (Inv)
                                     Vec2(54, 29),
                                 ],
+                                tilemap=_edel_vale_map
                             ),
                             SeqZoneTransition("Overworld", direction=Facing.UP, time_in_s=1.0),
                         ],

@@ -20,13 +20,13 @@ class NavMap:
         self.origin = Vec2(origin_vec[0], origin_vec[1])
         # Map consists of a list of traversible nodes. Nodes are connected NWSE
         self.map = []
-        for i, line in enumerate(map_data.get("map", [])):
+        self.tiles = map_data.get("tiles", [])
+        for i, line in enumerate(self.tiles):
             y_pos = i + self.origin.y
             for j, tile in enumerate(line):
                 if tile == '.':
                     x_pos = j + self.origin.x
                     self.map.append(Vec2(x_pos, y_pos))
-
 
     def _open(self, filename: str) -> dict:
         # Open the map file and parse the yaml contents
