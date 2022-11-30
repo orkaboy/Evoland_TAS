@@ -1,4 +1,4 @@
-from engine.seq import SeqList, SeqAnnotator, SeqOptional
+from engine.seq import SeqList, SeqAnnotator, SeqOptional, SeqLog
 from engine.mathlib import Facing, Vec2, Box2
 from evo1.move2d import SeqGrabChest, SeqMove2D, SeqZoneTransition, SeqKnight2D
 from evo1.interact import SeqShopBuy, SeqInteract, SeqWaitForControl
@@ -117,6 +117,7 @@ class PapurikaVillage(SeqList):
                     "Checking wallet",
                     cases={
                         # Check if we have enough cash
+                        0: SeqLog("Wallet", "We don't need to break any laws today"),
                         1: SeqList(
                             "Pillaging",
                             children=[
