@@ -84,7 +84,7 @@ class PapurikaVillage(SeqList):
                         Vec2(34, 25),
                         Vec2(29, 30),
                         Vec2(12, 30),
-                        Vec2(8, 28),
+                        Vec2(7.8, 28),
                     ],
                 ),
                 # Grab chest(home invasion) @(7.5, 28)
