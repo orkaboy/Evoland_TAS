@@ -93,7 +93,7 @@ class PapurikaVillage(SeqList):
                     "Move to shop",
                     coords=[
                         Vec2(20, 30),
-                        Vec2(23.7, 29.5),
+                        Vec2(24, 30),
                         Vec2(25, 25),
                     ],
                 ),

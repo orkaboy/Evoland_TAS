@@ -129,7 +129,7 @@ class SeqOptional(SeqBase):
     def execute(self, delta: float, blackboard: dict) -> bool:
         selector = self.selector
         if callable(self.selector):
-            selector = selector(blackboard)
+            selector = selector()
 
         if selection := self.cases.get(selector):
             return selection.execute(delta=delta, blackboard=blackboard)
@@ -143,7 +143,7 @@ class SeqOptional(SeqBase):
     def render(self, window: WindowLayout, blackboard: dict) -> None:
         selector = self.selector
         if callable(self.selector):
-            selector = selector(blackboard)
+            selector = selector()
         if selection := self.cases.get(selector):
             selection.render(window, blackboard)
         elif self.fallback:
