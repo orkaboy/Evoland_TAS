@@ -1,12 +1,20 @@
 # Libraries and Core Files
+import contextlib
 import curses
 
 import memory.core as core
-from engine.seq import SeqFunc, SeqList, SeqLog, SeqOptional, SequencerEngine
+from engine.seq import SeqList, SeqLog, SeqOptional, SequencerEngine
 from evo1.checkpoints import Checkpoints
-from evo1.memory import load_memory
+from evo1.memory import load_memory, load_zelda_memory
 from evo1.seq import Edel1, Evoland1StartGame, OverworldToMeadow, MeadowFight, PapurikaVillage
 from term.curses import WindowLayout
+
+
+def setup_memory() -> None:
+    with contextlib.suppress(ReferenceError):
+        load_memory()
+        load_zelda_memory()
+
 
 def perform_TAS(window: WindowLayout):
 
@@ -15,9 +23,9 @@ def perform_TAS(window: WindowLayout):
 
     root = SeqList(
         name="Evoland1",
+        func=setup_memory,
         children=[
             Evoland1StartGame(saveslot),
-            SeqFunc(load_memory),  # Update all pointers
             # TODO: This could be set up in a nicer way
             SeqOptional(
                 name="New/Load",

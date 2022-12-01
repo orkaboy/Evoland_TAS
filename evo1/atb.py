@@ -69,8 +69,7 @@ class SeqATBmove2D(SeqMove2D):
     def _handle_combat(self) -> None:
         ctrl = evo1.control.handle()
         ctrl.dpad.none()
-        ctrl.confirm()
-        time.sleep(0.2)
+        ctrl.confirm(tapping=True)
 
     def execute(self, delta: float, blackboard: dict) -> bool:
         mem = get_zelda_memory()

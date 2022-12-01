@@ -78,28 +78,36 @@ class Evoland1Controller:
             self.none()
             wait_frames(self.delay)
 
-    def confirm(self):
+    def confirm(self, tapping=False):
         self.set_button(x_key=Buttons.CONFIRM, value=1)
         wait_frames(self.delay)
         self.set_button(x_key=Buttons.CONFIRM, value=0)
+        if tapping:
+            wait_frames(self.delay)
 
-    def cancel(self):
+    def cancel(self, tapping=False):
         self.set_button(x_key=Buttons.CANCEL, value=1)
         wait_frames(self.delay)
         self.set_button(x_key=Buttons.CANCEL, value=0)
+        if tapping:
+            wait_frames(self.delay)
 
-    def attack(self):
+    def attack(self, tapping=False):
         self.set_button(x_key=Buttons.ATTACK, value=1)
         wait_frames(self.delay)
         self.set_button(x_key=Buttons.ATTACK, value=0)
+        if tapping:
+            wait_frames(self.delay)
 
-    def menu(self):
+    def menu(self, tapping=False):
         self.set_button(x_key=Buttons.MENU, value=1)
         wait_frames(self.delay)
         self.set_button(x_key=Buttons.MENU, value=0)
+        if tapping:
+            wait_frames(self.delay)
 
 
-_controller = Evoland1Controller(delay=5)
+_controller = Evoland1Controller(delay=4)
 
 
 def handle():

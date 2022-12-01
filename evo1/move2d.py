@@ -105,7 +105,7 @@ class SeqAttack(SeqBase):
 
     def execute(self, delta: float, blackboard: dict) -> bool:
         ctrl = evo1.control.handle()
-        ctrl.attack()
+        ctrl.attack(tapping=False)
         # TODO: Await control?
         return True
 
@@ -290,10 +290,10 @@ class SeqMove2DClunkyCombat(SeqMove2D):
         # If in front, attack!
         if abs(angle) < 0.7:  # TODO Arbitrary magic number, angle difference between where we are heading and where the enemy is
             ctrl = evo1.control.handle()
-            ctrl.attack()
-        elif abs(angle) <= 2:  # TODO On our sides
+            ctrl.attack(tapping=False)
+        elif abs(angle) <= 1.5:  # TODO On our sides
             ctrl = evo1.control.handle()
-            ctrl.attack()
+            ctrl.attack(tapping=False)
             ctrl.dpad.none()
             # Turn and attack
             if abs(enemy_angle) < 0.7:

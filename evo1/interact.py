@@ -2,24 +2,31 @@ import logging
 
 import evo1.control
 from engine.seq import SeqBase
-from evo1.memory import get_zelda_memory, load_zelda_memory
+from evo1.memory import get_zelda_memory
 
 logger = logging.getLogger(__name__)
 
 
 class SeqInteract(SeqBase):
-    def __init__(self, name: str):
+    def __init__(self, name: str, timeout_in_s: float = 0.0):
+        self.timeout_in_s = timeout_in_s
+        self.timer = 0.0
         super().__init__(name)
 
+    def reset(self) -> None:
+        self.timer = 0.0
+
     def execute(self, delta: float, blackboard: dict) -> bool:
+        self.timer += delta
         ctrl = evo1.control.handle()
-        ctrl.confirm()
-        return True
+        ctrl.confirm(tapping=True)
+        # Wait out any cutscene/pickup animation
+        mem = get_zelda_memory()
+        return not mem.player.get_inv_open() and self.timer >= self.timeout_in_s
 
 
 class SeqWaitForControl(SeqBase):
     def execute(self, delta: float, blackboard: dict) -> bool:
-        load_zelda_memory()
         mem = get_zelda_memory()
         return not mem.player.get_inv_open()
 
@@ -43,15 +50,15 @@ class SeqShopBuy(SeqBase):
         ctrl.dpad.none()
 
         match self.step:
-            case 0: ctrl.confirm() # Approach
-            case 1: ctrl.confirm() # Buy
+            case 0: ctrl.confirm(tapping=True) # Approach
+            case 1: ctrl.confirm(tapping=True) # Buy
             case 2: # Move to slot
                 if self.cur_slot < self.slot:
                     ctrl.dpad.tap_down()
                     self.cur_slot = self.cur_slot + 1
                     return False
-            case 3: ctrl.confirm() # Select item to buy
-            case 4: ctrl.confirm() # Confirm buying item
+            case 3: ctrl.confirm(tapping=True) # Select item to buy
+            case 4: ctrl.confirm(tapping=True) # Confirm buying item
             case 5:
                 logger.info(f"Done buying {self.name}")
                 return True

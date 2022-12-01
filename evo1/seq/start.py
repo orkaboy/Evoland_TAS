@@ -1,5 +1,5 @@
 from control.menu_control import SeqLoadGame, SeqMenuConfirm, SeqMenuDown
-from engine.seq import SeqDebug, SeqDelay, SeqFunc, SeqList, SeqLog, SeqOptional
+from engine.seq import SeqBase, SeqDebug, SeqDelay, SeqList, SeqLog, SeqOptional
 from term.log_init import reset_logging_time_reference
 
 
@@ -44,7 +44,7 @@ class Evoland1StartGame(SeqList):
                     ),
                 ),
                 SeqLog(name="SYSTEM", text="Starting timer!"),
-                SeqFunc(reset_logging_time_reference),
+                SeqBase(func=reset_logging_time_reference),
                 SeqMenuConfirm(),
                 # Loading the game needs a slightly longer delay than starting a new game
                 SeqOptional(

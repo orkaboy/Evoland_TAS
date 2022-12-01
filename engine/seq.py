@@ -8,14 +8,21 @@ logger = logging.getLogger(__name__)
 
 
 class SeqBase(object):
-    def __init__(self, name: str = ""):
+    def __init__(self, name: str = "", annotations: dict = None, func=None):
         self.name = name
+        if annotations is None:
+            annotations = {}
+        self.annotations = annotations
+        self.func = func
 
     def reset(self) -> None:
         pass
 
     # Return true if the sequence is done with, or False if we should remain in this state
     def execute(self, delta: float, blackboard: dict) -> bool:
+        blackboard |= self.annotations  # Apply the annotations to the blackboard
+        if self.func:
+            self.func()
         return True
 
     def render(self, window: WindowLayout, blackboard: dict) -> None:
@@ -24,18 +31,6 @@ class SeqBase(object):
     # Should be overloaded
     def __repr__(self) -> str:
         return self.name
-
-
-class SeqFunc(SeqBase):
-    def __init__(self, func, *args, **kwargs):
-        self.func = func
-        self.args = args
-        self.kwargs = kwargs
-        super().__init__(name="Func wrapper")
-
-    def execute(self, delta: float, blackboard: dict) -> bool:
-        self.func(*self.args, **self.kwargs)
-        return True
 
 
 class SeqLog(SeqBase):
@@ -80,10 +75,10 @@ class SeqDelay(SeqBase):
 
 
 class SeqList(SeqBase):
-    def __init__(self, name: str, children: List[SeqBase]):
+    def __init__(self, name: str, children: List[SeqBase], annotations: dict = None, func=None):
         self.step = 0
         self.children = children
-        super().__init__(name)
+        super().__init__(name, annotations=annotations, func=func)
 
     def reset(self) -> None:
         self.step = 0
@@ -91,6 +86,7 @@ class SeqList(SeqBase):
 
     # Return true if the sequence is done with, or False if we should remain in this state
     def execute(self, delta: float, blackboard: dict) -> bool:
+        super().execute(delta, blackboard)
         num_children = len(self.children)
         if self.step >= num_children:
             return True
@@ -115,31 +111,6 @@ class SeqList(SeqBase):
         cur_child = self.children[self.step]
         cur_step = self.step + 1
         return f"{self.name}[{cur_step}/{num_children}] =>\n  {cur_child}"
-
-
-class SeqAnnotator(SeqBase):
-    def __init__(
-        self, name: str, wrapped: SeqBase, annotations: dict = None, func=None
-    ):
-        if annotations is None:
-            annotations = {}
-        self.wrapped = wrapped
-        self.annotations = annotations
-        self.func = func
-        super().__init__(name)
-
-    def execute(self, delta: float, blackboard: dict) -> bool:
-        blackboard |= self.annotations  # Apply the annotations to the blackboard
-        if self.func:
-            self.func()
-        # Run wrapped sequence node
-        return self.wrapped.execute(delta, blackboard)
-
-    def render(self, window: WindowLayout, blackboard: dict) -> None:
-        return self.wrapped.render(window, blackboard)
-
-    def __repr__(self) -> str:
-        return f"@[{self.name}] {self.wrapped}"
 
 
 class SeqOptional(SeqBase):

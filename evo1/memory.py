@@ -43,7 +43,6 @@ class Evoland1Memory:
         mem_handle = memory.core.handle()
         self.process = mem_handle.process
         self.base_addr = mem_handle.base_addr
-        logger.debug(f"Base address: {hex(self.base_addr)}")
         self.setup_pointers()
 
     def setup_pointers(self):
@@ -53,10 +52,6 @@ class Evoland1Memory:
         self.gli_ptr = self.process.get_pointer(
             self.base_addr + _LIBHL_OFFSET, offsets=self._GLI_PTR
         )
-        logger.debug(
-            f"Address to player_hp_overworld: {hex(self.player_hp_overworld_ptr)}"
-        )
-        logger.debug(f"Address to gli: {hex(self.gli_ptr)}")
 
     # Only valid in zelda map
     def get_player_hearts(self) -> float:
