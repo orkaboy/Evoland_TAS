@@ -43,22 +43,14 @@ class Edel1(SeqList):
                 SeqMove2DClunkyCombat(
                     "Dodge enemies",
                     coords=_edel_vale_astar.calculate(start=Vec2(32, 55), goal=Vec2(39, 52)),
-#                                coords=[
-#                                    Vec2(35, 55),
-#                                    Vec2(35, 54),
-#                                    Vec2(36, 54),
-#                                    Vec2(36, 53),
-#                                    Vec2(37, 53),
-#                                    Vec2(37, 52),
-#                                    Vec2(39, 52),
-#                                ],
                     tilemap=_edel_vale_map
                 ),
                 SeqGrabChest("Music", direction=Facing.RIGHT), # TODO: optionally grab?
                 SeqAttack("Bush"),
+                SeqMove2D("Move past bush", coords=[Vec2(39, 50)], tilemap=_edel_vale_map),
                 SeqMove2DClunkyCombat(
                     "Move to chest",
-                    coords=_edel_vale_astar.calculate(start=Vec2(39, 52), goal=Vec2(44, 49)),
+                    coords=_edel_vale_astar.calculate(start=Vec2(39, 50), goal=Vec2(44, 49)),
 #                                coords=[
 #                                    Vec2(39, 47),
 #                                    # TODO Optional, chest to the north, save (move to Vec2(39, 45), then open chest N)
@@ -73,31 +65,7 @@ class Edel1(SeqList):
                 # TODO: Some enemies here, will probably fail
                 SeqMove2DClunkyCombat(
                     "Dodge enemies",
-                    coords=_edel_vale_astar.calculate(start=Vec2(44, 49), goal=Vec2(58, 54)),
-#                                coords=[
-#                                    Vec2(44, 52),
-#                                    Vec2(50, 52),
-#                                    Vec2(50, 53),
-#                                    Vec2(55, 53),
-#                                    Vec2(55, 54),
-#                                    Vec2(58, 54),
-#                                ],
-                    tilemap=_edel_vale_map
-                ),
-                SeqMove2DClunkyCombat(
-                    "Dodge enemies",
-                    coords=_edel_vale_astar.calculate(start=Vec2(58, 54), goal=Vec2(34, 33)),
-#                                coords=[
-#                                    Vec2(60, 54),
-#                                    Vec2(60, 44),
-#                                    Vec2(51, 44),
-#                                    Vec2(51, 45),
-#                                    Vec2(48, 45),
-#                                    Vec2(48, 36),
-#                                    Vec2(36, 36),
-#                                    Vec2(36, 33),
-#                                    Vec2(34, 33),
-#                                ],
+                    coords=_edel_vale_astar.calculate(start=Vec2(44, 49), goal=Vec2(34, 33)),
                     tilemap=_edel_vale_map
                 ),
                 SeqGrabChest("Free move", direction=Facing.LEFT),

@@ -1,5 +1,6 @@
 from engine.mathlib import Vec2, dist
 from typing import List
+import os
 from enum import Enum
 import logging
 from PIL import Image
@@ -24,8 +25,11 @@ class NavMap:
         # Map consists of a list of traversible nodes. Nodes are connected NWSE
         self.map = [] # Map, as a set of Vec2 nodes
         match self.type:
-            case "ascii": self._load_ascii(map_data=map_data)
-            case "bitmap": self._load_bitmap(map_data=map_data)
+            case "ascii":
+                self._load_ascii(map_data=map_data)
+            case "bitmap":
+                png_filename = f"{os.path.splitext(filename)[0]}.png"
+                self._load_bitmap(filename=png_filename, map_data=map_data)
             # TODO: Tiled?
 
     def _load_ascii(self, map_data: dict):
@@ -58,6 +62,7 @@ class NavMap:
         STATUE = 0x376d01
         WIND_TRAP = 0xa8c3ff
         # Passable terrain
+        PASSABLE = 0x010101
         GRASS = 0x64fd4d
         PATH = 0x91fe81
         SAND = 0xe8fd4d
@@ -79,6 +84,10 @@ class NavMap:
         KNIGHT = 0xff0001
         SKELETON = 0xc88283
         RED_MAGE = 0xad18c4
+
+        @classmethod
+        def _missing_(cls, value):
+            return cls.PASSABLE
 
     TileToAscii = {
         BitmapTile.EMPTY: ' ',
@@ -124,12 +133,12 @@ class NavMap:
                 return trees_passable
         return True
 
-    def _load_bitmap(self, map_data: dict):
-        bitmap_filename = map_data.get("bitmap", "MISSING_BITMAP.bmp")
+    def _load_bitmap(self, filename: str, map_data: dict):
+        self.tiles = []
         trees_passable = map_data.get("trees_passable", False)
-        bitmap = Image.open(bitmap_filename)
+        bitmap = Image.open(filename)
         W, H = bitmap.size[0], bitmap.size[1]
-        logger.debug(f"Map bitmap {bitmap_filename} dims: {W} x {H}")
+        logger.debug(f"Map bitmap {filename} dims: {W} x {H}")
         for y in range(H):
             self.tiles.append("") # Append new empty line
             for x in range(W):
@@ -206,7 +215,7 @@ class AStar:
                     self._update_node(node, neighbor, open_list)
                 else:
                     open_list.append(neighbor)
-        return [] # No path could be found between start and goal
+        raise ValueError # No path could be found between start and goal
 
     def _update_node(self, cur_node: Node, neighbor: Node, node_list: List[Node]) -> None:
         n_idx = node_list.index(neighbor)
