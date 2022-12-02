@@ -1,7 +1,8 @@
 from engine.seq import SeqDelay, SeqList
 from engine.mathlib import Facing, Vec2, Box2
 from engine.navmap import NavMap, AStar
-from evo1.move2d import SeqAttack, SeqGrabChest, SeqMove2D, SeqMove2DClunkyCombat, SeqKnight2D, SeqZoneTransition
+from evo1.move2d import SeqAttack, SeqGrabChest, SeqMove2D, SeqMove2DClunkyCombat, SeqZoneTransition
+from evo1.knights import SeqKnight2D
 
 
 _edel_vale_map = NavMap("evo1/maps/edel_vale.yaml")

@@ -1,8 +1,9 @@
 from engine.seq import SeqList, SeqOptional, SeqLog
 from engine.mathlib import Facing, Vec2, Box2
 from engine.navmap import NavMap
-from evo1.move2d import SeqGrabChest, SeqMove2D, SeqZoneTransition, SeqKnight2D
-from evo1.interact import SeqShopBuy, SeqInteract, SeqWaitForControl
+from evo1.knights import SeqKnight2D
+from evo1.move2d import SeqGrabChest, SeqMove2D, SeqZoneTransition
+from evo1.interact import SeqShopBuy, SeqInteract
 from evo1.memory import get_memory
 
 _meadow_map = NavMap("evo1/maps/meadow.yaml")
