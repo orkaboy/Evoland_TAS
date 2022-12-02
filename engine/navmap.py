@@ -1,6 +1,8 @@
 from engine.mathlib import Vec2, dist
 from typing import List
+from enum import Enum
 import logging
+from PIL import Image
 import yaml
 
 try:
@@ -16,17 +18,132 @@ class NavMap:
     def __init__(self, filename: str) -> None:
         map_data = self._open(filename=filename)
         self.name = map_data.get("name", "UNKNOWN")
+        self.type = map_data.get("type", "ascii")
         origin_vec = map_data.get("origin", [0, 0])
         self.origin = Vec2(origin_vec[0], origin_vec[1])
         # Map consists of a list of traversible nodes. Nodes are connected NWSE
-        self.map = []
-        self.tiles = map_data.get("tiles", [])
+        self.map = [] # Map, as a set of Vec2 nodes
+        match self.type:
+            case "ascii": self._load_ascii(map_data=map_data)
+            case "bitmap": self._load_bitmap(map_data=map_data)
+            # TODO: Tiled?
+
+    def _load_ascii(self, map_data: dict):
+        self.tiles = map_data.get("tiles", []) # ascii representation of map, as array of strings
         for i, line in enumerate(self.tiles):
             y_pos = i + self.origin.y
             for j, tile in enumerate(line):
                 if tile == '.':
                     x_pos = j + self.origin.x
                     self.map.append(Vec2(x_pos, y_pos))
+
+    class BitmapTile(Enum):
+        # Impassable terrain
+        EMPTY = 0x000000
+        EMPTY_DUNGEON = 0x0f0f0f
+        TREE = 0x0f6d01 # Passable on overworld map
+        DEAD_TREE = 0x3d2e01
+        WATER = 0x65b4fb
+        ROCKS = 0x9e9e9e
+        DARK_ROCKS = 0xc08879
+        CACTI = 0x6fda02
+        BUSH = 0x1eda02
+        POT = 0x4dfdfc
+        WALLS = 0x5f5f5f
+        WATER_DUNGEON = 0x4d7afd
+        LAVA = 0xda5302
+        LAVA_TRAP = 0xfeb286
+        PITFALL = 0x3f3d17
+        PITFALL2 = 0x1f1f1f
+        STATUE = 0x376d01
+        WIND_TRAP = 0xa8c3ff
+        # Passable terrain
+        GRASS = 0x64fd4d
+        PATH = 0x91fe81
+        SAND = 0xe8fd4d
+        BRIDGE = 0xa26502
+        SAVE_POINT = 0x2d7faf
+        DIMENSION_STONE = 0x802828
+        FLOOR = 0xe3e0b3
+        FLOOR2 = 0xd2cd84
+        WATER_BRIDGE = 0xb8cafe
+        SPIKES = 0xbae5fe
+        HIDDEN_PASSAGE = 0x8294c8
+        PUZZLE_TILE = 0xf7f6e9
+        # Actors
+        SPAWN = 0xffffff
+        CHEST = 0xffff00
+        # Enemies
+        OCTOROC = 0xff0000
+        BAT = 0xec5eca
+        KNIGHT = 0xff0001
+        SKELETON = 0xc88283
+        RED_MAGE = 0xad18c4
+
+    TileToAscii = {
+        BitmapTile.EMPTY: ' ',
+        BitmapTile.EMPTY_DUNGEON: ' ',
+        BitmapTile.TREE: '#',
+        BitmapTile.DEAD_TREE: '[',
+        BitmapTile.WATER: '~',
+        BitmapTile.WATER_DUNGEON: '~',
+        BitmapTile.ROCKS: 'o',
+        BitmapTile.DARK_ROCKS: 'O',
+        BitmapTile.CACTI: 'Y',
+        BitmapTile.BUSH: 'w',
+        BitmapTile.POT: 'u',
+        BitmapTile.WALLS: '#',
+        BitmapTile.LAVA: '%',
+        BitmapTile.LAVA_TRAP: '%',
+        BitmapTile.PITFALL: ' ',
+        BitmapTile.PITFALL2: ' ',
+        BitmapTile.STATUE: '&',
+        BitmapTile.WIND_TRAP: 'W',
+        # Passable
+        BitmapTile.BRIDGE: '=',
+        BitmapTile.WATER_BRIDGE: '=',
+        BitmapTile.SAVE_POINT: 'S',
+        BitmapTile.DIMENSION_STONE: 'D',
+        BitmapTile.SPIKES: '^',
+        BitmapTile.HIDDEN_PASSAGE: '*',
+        BitmapTile.PUZZLE_TILE: 'P',
+        # Default: '.'
+    }
+
+    def _get_rgb_hex(self, pixel: List[int]) -> int:
+        red = int(pixel[0]) & 0xFF
+        green = int(pixel[1]) & 0xFF
+        blue = int(pixel[2]) & 0xFF
+        return (red << 16) | (green << 8) | blue
+
+    def _is_passable(self, tile: BitmapTile, trees_passable: bool) -> bool:
+        match tile:
+            case self.BitmapTile.EMPTY | self.BitmapTile.EMPTY_DUNGEON | self.BitmapTile.DEAD_TREE | self.BitmapTile.WALLS | self.BitmapTile.WATER | self.BitmapTile.WATER_DUNGEON | self.BitmapTile.ROCKS | self.BitmapTile.CACTI | self.BitmapTile.BUSH | self.BitmapTile.POT | self.BitmapTile.LAVA | self.BitmapTile.LAVA_TRAP | self.BitmapTile.PITFALL | self.BitmapTile.PITFALL2 | self.BitmapTile.STATUE | self.BitmapTile.WIND_TRAP:
+                return False
+            case self.BitmapTile.TREE:
+                return trees_passable
+        return True
+
+    def _load_bitmap(self, map_data: dict):
+        bitmap_filename = map_data.get("bitmap", "MISSING_BITMAP.bmp")
+        trees_passable = map_data.get("trees_passable", False)
+        bitmap = Image.open(bitmap_filename)
+        W, H = bitmap.size[0], bitmap.size[1]
+        logger.debug(f"Map bitmap {bitmap_filename} dims: {W} x {H}")
+        for y in range(H):
+            self.tiles.append("") # Append new empty line
+            for x in range(W):
+                coord = x, y
+                rgb = self._get_rgb_hex(bitmap.getpixel(coord))
+                tile = self.BitmapTile(rgb)
+                # Fill out ascii tile
+                self.tiles[y] += self.TileToAscii.get(tile, '.')
+                # Add passable nodes to AStar map
+                if self._is_passable(tile, trees_passable):
+                    self.map.append(Vec2(x, y))
+
+        # self.map.append()
+
 
     def _open(self, filename: str) -> dict:
         # Open the map file and parse the yaml contents
