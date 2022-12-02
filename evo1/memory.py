@@ -161,7 +161,10 @@ class GameEntity2D:
     # TODO: EKind Enum instead of str
     def get_kind(self) -> EKind:
         kind_val = self.process.read_u32(self.ent_kind_ptr)
-        return GameEntity2D.EKind(kind_val)
+        try:
+            return GameEntity2D.EKind(kind_val)
+        except ValueError:
+            return GameEntity2D.EKind.SPECIAL
 
     def get_pos(self) -> Vec2:
         return Vec2(

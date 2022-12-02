@@ -8,7 +8,6 @@
 * Finish entire Edel1 segment
     - Fix combat to more consistently survive the pre-free move section
         + Predict where enemies will be/what areas are threatened
-        + Prevent attacking chests
         + Incorporate the waittimer to path more efficiently
     - Add combat that can kill the two knights
         + SeqKnight2D added (stub DONE, can track but not kill)
@@ -23,8 +22,5 @@
 * Fix Curses gui color log if possible
     - Better yet, experiment more with Textual/Rich
 * Write a sequence capture script that reads the memory and saves it, but doesn't control the game. Could possibly be used to "record" maps.
-    - Ask in Discord if the maps/tiles can be extracted
 
 * Test out stuff with the evo classic codebase (EKind etc.)
-* Create function to decode evo1 bitmap maps to AStar
-* Create maps from Tiled maps

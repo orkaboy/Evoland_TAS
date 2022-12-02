@@ -54,7 +54,9 @@ def need_to_steal_cash() -> int:
     return 1 if gli < 250 else 0
 
 
-# TODO: _village_map = NavMap("evo1/maps/village.yaml")
+_village_map = NavMap("evo1/maps/village.yaml")
+_village_well_map = NavMap("evo1/maps/village_well.yaml")
+_village_interior_map = NavMap("evo1/maps/village_interior.yaml")
 
 class PapurikaVillage(SeqList):
     def __init__(self):
@@ -68,6 +70,7 @@ class PapurikaVillage(SeqList):
                         Vec2(39, 18),
                         Vec2(39, 16),
                     ],
+                    tilemap=_village_map
                 ),
                 SeqInteract("Down the well"),
                 SeqMove2D(
@@ -75,6 +78,7 @@ class PapurikaVillage(SeqList):
                     coords=[
                         Vec2(4, 6),
                     ],
+                    tilemap=_village_well_map
                 ),
                 SeqInteract("Grab growth seed"),
                 SeqMove2D(
@@ -83,6 +87,7 @@ class PapurikaVillage(SeqList):
                         Vec2(7.5, 2.8),
                         Vec2(7.5, 2.6), # Align to look north
                     ],
+                    tilemap=_village_well_map
                 ),
                 SeqInteract("Leave well"),
                 SeqMove2D(
@@ -93,6 +98,7 @@ class PapurikaVillage(SeqList):
                         Vec2(12, 30),
                         Vec2(7.8, 28),
                     ],
+                    tilemap=_village_map
                 ),
                 # Grab chest(home invasion) @(7.5, 28)
                 SeqGrabChest("Home invasion", direction=Facing.LEFT),
@@ -103,6 +109,7 @@ class PapurikaVillage(SeqList):
                         Vec2(24, 30),
                         Vec2(25, 25),
                     ],
+                    tilemap=_village_map
                 ),
                 # Transition north (into shop)
                 SeqZoneTransition("Enter shop", Facing.UP, time_in_s=0.5),
@@ -112,6 +119,7 @@ class PapurikaVillage(SeqList):
                         Vec2(37, 42),
                         Vec2(39, 40.2),
                     ],
+                    tilemap=_village_interior_map
                 ),
                 SeqOptional(
                     "Checking wallet",
@@ -124,6 +132,7 @@ class PapurikaVillage(SeqList):
                                 SeqMove2D(
                                     "Moving to barrel",
                                     coords=[Vec2(40, 40.3)],
+                                    tilemap=_village_interior_map
                                 ),
                                 SeqInteract("Grabbing 50 gli"),
                                 SeqInteract("Confirming"),
@@ -139,6 +148,7 @@ class PapurikaVillage(SeqList):
                         Vec2(34.6, 41),
                         Vec2(34.3, 40.6),
                     ],
+                    tilemap=_village_interior_map
                 ),
                 SeqShopBuy("Sword", slot=1),
                 SeqShopBuy("Armor", slot=1),
@@ -148,6 +158,7 @@ class PapurikaVillage(SeqList):
                         Vec2(30, 42),
                         Vec2(29, 42),
                     ],
+                    tilemap=_village_interior_map
                 ),
                 # Transition south (exit shop)
                 SeqZoneTransition("Leave shop", Facing.DOWN, time_in_s=0.5),
@@ -162,6 +173,7 @@ class PapurikaVillage(SeqList):
                         Vec2(65, 15),
                         Vec2(65, 8),
                     ],
+                    tilemap=_village_map
                 ),
                 # Transition north (exit town to overworld)
                 SeqZoneTransition("To overworld", Facing.UP, time_in_s=0.5),

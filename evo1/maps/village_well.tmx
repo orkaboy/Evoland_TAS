@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.9" tiledversion="1.9.2" orientation="orthogonal" renderorder="right-down" width="20" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="13" nextobjectid="6">
+ <tileset firstgid="1" name="village" tilewidth="16" tileheight="16" tilecount="464" columns="29">
+  <image source="../tiles/waterwell_tilemap.png" width="464" height="256"/>
+ </tileset>
+ <layer id="1" name="sol" width="20" height="20">
+  <data encoding="base64" compression="zlib">
+   eJzVk1EOgCAIhr0K5jnMy2SdI+ve8YAbc4g1fbCHf/9wAV8MrDFmQdlBvqLCQB/F1eJzHXyeHJS+vvIOAp/70D+SdoXPVbhyHvcDlVCXMj+ocGyUd1Oc69S4glCfc12M66RY+p7/H+8Ti1qpcG2uIPAllvv3+3CT8pX30OKzRazdsbS3vTwtvtZ9Zl7/cn58B2fYvwfNnlbN
+  </data>
+ </layer>
+ <layer id="2" name="objs" width="20" height="20">
+  <data encoding="base64" compression="zlib">
+   eJxjYBgFIwWwMQ60C0bBKMAOzg+0A0YBWQAAiGIA1w==
+  </data>
+ </layer>
+ <layer id="3" name="overCond" width="20" height="20">
+  <data encoding="base64" compression="zlib">
+   eJxjYBgFo2AUjIJRMApIBwAGQAAB
+  </data>
+ </layer>
+ <layer id="4" name="walls" width="20" height="20">
+  <data encoding="base64" compression="zlib">
+   eJytk01qAkEQhRs0egx3XiLjJnoIEQb1ECIjSSAbTxAUXYg/R9CtegG9k6+hilQe3ZkeYsNHNa31Sbf1cufcG+iBAsyo8r6g81fQAbngXUMwBguwpMr7BZ33wcA4u+AdfIIjOFHl/ZHOJ2BqnN63cv9b3+LMxFdlbYVdwFnm0z6te3AWLuCLvv+Xb276tF7lsxp4ARvQTvB51yHyOy2pOh+2P5PapjuluHRmR+TLZW/v5PvqoCH38rVJLp3Zj4AvN2e2L4S6dGbXEV8K1uVn9kbvwT59E86w5tS6ePH/ZN+EM6w5TXVxjjnDmtNYLkPvxjm+R3qr+Lbud75SVuiuPIOxfKa6rNPO8cb9zDPXsjl9Fg9/YHKy
+  </data>
+ </layer>
+ <layer id="5" name="water" width="20" height="20" opacity="0.4">
+  <data encoding="base64" compression="zlib">
+   eJxjYBgFQxUEMjIwdEBxJxD7MBKvNxdJH4wOAuLPDAicSaR5ILPy0PQiY1IAtcyC+amLSu5ioEDfKBiZADlvkpo/cQFy8ictAQCSgCRw
+  </data>
+ </layer>
+ <objectgroup id="6" name="items">
+  <object id="1" name="trigger" class="seed" x="56" y="105"/>
+  <object id="2" name="trigger" class="rope" x="138" y="40"/>
+  <object id="3" name="door" class="0" x="139" y="40"/>
+  <object id="4" name="card" class="36" x="72" y="242"/>
+  <object id="5" name="seed" x="58" y="109"/>
+ </objectgroup>
+ <layer id="7" name="over" width="20" height="20">
+  <data encoding="base64" compression="zlib">
+   eJxjYBjcwHkQm2czTM1jBmJWIGYHYg4KzZMHYgUkPrJ+kHmqQKxGplnowAZKo5sJ0sfCAPETGxSzEzAL2TyYmSxE6iPGPGoAappHKGwpNYuSdI3Nn4PFPFzhRkq6JmQWspmwNEyIpiSdkgIA1tII0w==
+  </data>
+ </layer>
+ <layer id="8" name="collide" width="20" height="20" visible="0" opacity="0.32">
+  <data encoding="base64" compression="zlib">
+   eJzNlEEOACEIA/X/n/NJezIxppQBL9vEi9oWBBnj/1jzfd1amR+Jh9ylULFWOIqrcndcxXd62X7k5XhUq5tT5qW0o7hJn9FYHWh9CJxfVS/TimpL3o9qdRD1cBfuT1TqfPLIfmVOufPOHN34ANTqbwk=
+  </data>
+ </layer>
+ <layer id="9" name="rope" width="20" height="20">
+  <data encoding="base64" compression="zlib">
+   eJxjYMAP3hKQJxVwMVLXPHUqm+cCNI+DymaOglEwCkbBcAQAYsABbw==
+  </data>
+ </layer>
+ <layer id="10" name="lights" width="20" height="20">
+  <data encoding="base64" compression="zlib">
+   eJxjYMANLgHxZSC+gkcNKeA9EH8A4o9UMo+HkYGBF4j5GKljnibQHC0g1qaSeaNgFIyCUTCcAQAKdwX1
+  </data>
+ </layer>
+ <layer id="11" name="seed" width="20" height="20">
+  <data encoding="base64" compression="zlib">
+   eJxjYBgFo2AUjIJRMApIBwAGQAAB
+  </data>
+ </layer>
+ <layer id="12" name="lamp" width="20" height="20">
+  <data encoding="base64" compression="zlib">
+   eJxjYBgFo2AUjIJRMApIBwAGQAAB
+  </data>
+ </layer>
+</map>

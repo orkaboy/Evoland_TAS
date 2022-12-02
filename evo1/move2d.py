@@ -1,6 +1,7 @@
 import contextlib
 import logging
 from typing import List
+import math
 
 import evo1.control
 from engine.seq import SeqBase
@@ -275,6 +276,17 @@ class SeqMove2DClunkyCombat(SeqMove2D):
         if done:
             logger.debug(f"Finished moved2D section: {self.name}")
         return done
+
+    # ============
+    # = Algoritm =
+    # ============
+    # * Check where we are going in the next few steps (TODO: need to know player speed)
+    # * Check where nearby enemies are, and which squares are threatened. Enemies has a threat of 1 in the current square they are in, 0.5 in adjacent (transferred over when moving)
+    # * Adjacent threat is adjusted by timer
+    # * Avoid moving into threatened squares
+    # * Keep track on our weapon cooldown
+    # * Keep track of our attack potential (stab hitbox is smaller than our hurtbox)
+    # * The goal is not to kill the enemy, but to get past them!
 
     # TODO: Handle some edge cases, like when the enemy is at a diagonal, moving into the target space
     def _clunky_combat2d(self, target: Vec2, blackboard: dict) -> None:

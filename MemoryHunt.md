@@ -1,13 +1,12 @@
 # TODO
 
-* ASK IN THE EVOLAND DISCORD
+* Current map
 
 * Enemy health in combat (should be pretty easy?)
 * Kaeris health in combat
 * Menu cursor stuff in combat (other than main ATB)
 * Enemy projectiles
 
-* Current map
 * Player level
 
 * Main menu save slots

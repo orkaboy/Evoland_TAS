@@ -5,6 +5,7 @@ from enum import Enum
 import logging
 from PIL import Image
 import yaml
+import tmx
 
 try:
     from yaml import CDumper as Dumper
@@ -30,9 +31,11 @@ class NavMap:
             case "bitmap":
                 png_filename = f"{os.path.splitext(filename)[0]}.png"
                 self._load_bitmap(filename=png_filename, map_data=map_data)
-            # TODO: Tiled?
+            case "tmx":
+                tmx_filename = f"{os.path.splitext(filename)[0]}.tmx"
+                self._load_tmx(filename=tmx_filename, map_data=map_data)
 
-    def _load_ascii(self, map_data: dict):
+    def _load_ascii(self, map_data: dict) -> None:
         self.tiles = map_data.get("tiles", []) # ascii representation of map, as array of strings
         for i, line in enumerate(self.tiles):
             y_pos = i + self.origin.y
@@ -40,6 +43,24 @@ class NavMap:
                 if tile == '.':
                     x_pos = j + self.origin.x
                     self.map.append(Vec2(x_pos, y_pos))
+
+    def _load_tmx(self, filename: str, map_data: dict) -> None:
+        #self.map.append()
+        tilemap: tmx.TileMap = tmx.TileMap.load(fname=filename)
+        width, height = tilemap.width, tilemap.height
+        self.tiles = ["" for _ in range(height)]
+        logger.debug(f"Map bitmap {filename} dims: {width} x {height}")
+        layer: tmx.Layer
+        for layer in tilemap.layers_list:
+            if layer.name != "collide":
+                continue
+            tile: tmx.LayerTile
+            for i, tile in enumerate(layer.tiles):
+                x, y = i % width, i // width
+                wall = tile.gid != 0
+                self.tiles[y] += '#' if wall else '.'
+                if not wall:
+                    self.map.append(Vec2(x, y))
 
     class BitmapTile(Enum):
         # Impassable terrain
@@ -133,7 +154,7 @@ class NavMap:
                 return trees_passable
         return True
 
-    def _load_bitmap(self, filename: str, map_data: dict):
+    def _load_bitmap(self, filename: str, map_data: dict) -> None:
         self.tiles = []
         trees_passable = map_data.get("trees_passable", False)
         bitmap = Image.open(filename)

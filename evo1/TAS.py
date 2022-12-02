@@ -6,10 +6,13 @@ import memory.core as core
 from engine.seq import SeqList, SeqLog, SeqOptional, SequencerEngine
 from evo1.checkpoints import Checkpoints
 from evo1.memory import load_memory, load_zelda_memory
-from evo1.seq import Edel1, Evoland1StartGame, OverworldToMeadow, MeadowFight, PapurikaVillage
+from evo1.seq import Edel1, Evoland1StartGame, OverworldToMeadow, MeadowFight, PapurikaVillage, OverworldToCavern, CrystalCavern
 from term.curses import WindowLayout
 from evo1.observer import SeqObserver2D
-from evo1.seq.edel_vale import _edel_vale_map
+
+# TODO: TEMP
+#from evo1.seq.edel_vale import _edel_vale_map
+from evo1.seq.papurika import _village_interior_map
 
 def setup_memory() -> None:
     with contextlib.suppress(ReferenceError):
@@ -19,7 +22,7 @@ def setup_memory() -> None:
 
 def observer(window: WindowLayout):
     observer = SeqObserver2D(
-        "Observer", tilemap=_edel_vale_map, func=setup_memory
+        "Observer", tilemap=_village_interior_map, func=setup_memory
     )
 
     engine = SequencerEngine(
@@ -57,13 +60,9 @@ def perform_TAS(window: WindowLayout):
                             Edel1(),
                             OverworldToMeadow(),
                             MeadowFight(),
-                            PapurikaVillage(), # TODO: Finish/Verify
-                            # TODO: Grab the item shop (+ cash inside) and buy gear (sword + armor)
-                            # TODO: Leave the village to the east->north into the overworld
-                            # TODO: Grab the forced combat chest and rescue/name Kaeris
-                            # TODO: Go through the caves, grab the level up chest and fight a bit, leveling up
-                            # TODO: Fight against Kefka's ghost (need to implement a smarter combat function to avoid the boss counter)
-                            # TODO: Grab the crystal and become 3D
+                            PapurikaVillage(),
+                            OverworldToCavern(),
+                            CrystalCavern(),
                             # TODO: Navigate Edel Vale in 3D, solving puzzles and escaping to the south
                             # TODO: Navigate through the Mines, solving puzzles
                             # TODO: The TAS should abuse the menu bug and potentially deathwarp here (see speedrun)

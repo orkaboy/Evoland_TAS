@@ -1,7 +1,8 @@
 # Current
 
 0.0.2:
-*
+* TAS now loads maps from tmx (village/cavern)
+* TAS can now progress through cavern up to Kefka's Ghost
 
 # Older changelogs
 

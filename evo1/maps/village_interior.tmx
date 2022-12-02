@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.9" tiledversion="1.9.2" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" infinite="0" nextlayerid="11" nextobjectid="27">
+ <tileset firstgid="1" name="inner_tilemap" tilewidth="16" tileheight="16" tilecount="464" columns="29">
+  <image source="../tiles/inner_tilemap.png" trans="ff678b" width="464" height="256"/>
+ </tileset>
+ <layer id="1" name="sol" width="100" height="100">
+  <data encoding="base64" compression="zlib">
+   eJzt2m1OwkAQBuAlQfQagN5DvbByD+Ue6iXcJp2IS8uX0Jb6PMn7pylhM1OWTTopAQAAwN/cFKFf85xpnUXPa0E/ulTVutyPItGDsh+b19s+u3lfhP2qms4mKd3WuZts13FXP8p7X3Jec1ZJL05R1XSZe3Bf56GhH8fkLec9Z53041SPuQdPdZ4n2/VrqnuT6vpHzmfO18VWy6H9GIrYMyOrfpdzduX/xNDPWLFnRtb9LuffieclznaxZ0Zi75wW9w39ubpGbee8Q6If5xf9mO04r+tHt6raLvec1+mO+gMAAAAAAF0o31UP7Z3EmN+VxNxo1D+l495j96Fac8wFjU3bPEHb7Gg5e3op8T1t87AxFzQmu+Y72mZHu5oniLWV87DlXNAYNe0/fc+OVr2oel7Owy7S79C/zfMG/Zunn98PAAAAAAAAAAAAAAAAAAAAAAAAAAAA1+MbVR0rEg==
+  </data>
+ </layer>
+ <layer id="2" name="wall" width="100" height="100">
+  <data encoding="base64" compression="zlib">
+   eJzt2uFtgzAQhmEn3SPxHm32aPnRLZr86BZtBi6nYsm9+gCLENvkPelRJVQk218wIO7onDsCAAAMXpTS43lkvvfaext0vUMF43pUksdH7zy4kMeq9F6k9yXJ46v3PbhGeYydy76WT9Y63ou0w/A/usJx67z4/NJzbImsabwXac+9UyKPcNw6LyCP/DzivUiTa6dL5BGOW+cF5JGfx1jJtXPJOK6rVB6t3sv8xHrKtXPNOK6rRB4yp1bvZX7Gmi6pe61BfB1Y9zXrmbB0Btp+wlNinXczztvfafze/X9fte5l3v29Zlp8t/WJPGqag4xPv6+mKvVM2OK7rU/MraY5yPj0+2qqUs+E8bttS0rsQ0t+L6nSz4Tvu9+/LeZRMz+RQyj9TPhJHkXzsIo8bk8/A859/qtt790S1hgAAAAAAAC5av5WHY/LVTCetdfdO7sPu3RG8dha/IY+d266zzTVh+2NjG5NyuorPkVja/Eb+lQeuuc09A7o79q6p2DNtZBxWb3JXTS2Vr+hj81b95zO7TNdcy1kXFZvsu5B2VoeunL6TNfMw+pN1j0oW88jp890zTzm1tbzyCnyuL0lVcPvZGt56ExKjyWMZ6yvRFfp8T46sgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACANv0AV3PgwQ==
+  </data>
+ </layer>
+ <layer id="3" name="over" width="100" height="100">
+  <data encoding="base64" compression="zlib">
+   eJzt2uFqwyAYBdCsfY/tvsfe/726wmAgaRdJrMaeA/nR4Cc219qQuCwAAAAAy/LZewAnk8b9y6NOGvcvjzpp3L886qRx//Ko8/VzXP45rit1HxvqLr/9t5aN7WaZG1k5N9J3y8Z23y0H8UJZOXfGPGaxtqa9Yh3aKjvrR5pbM8jOenkcKzvr5XGs+9pZ3gNuvf8bbe2dRfkf5xoDAAAAcGbl8y3Pu3g37zrn03sAD6Si7UzvpNJ7AA+koq08/rS6FhlgDD1kZ708jpWd9fI41qj7CVLRdqY87kbcT/Bsb3I5f2bL42xSfJZHXyP+ngEAAAAAAAAAAAAAAAAAAAAAAAAAgHHdAMZbCH0=
+  </data>
+ </layer>
+ <layer id="4" name="overCond" width="100" height="100">
+  <data encoding="base64" compression="zlib">
+   eJzt2rENACAMA0GnB/Yflx2IEEK6m+ArV04AAAAAAO6Ylax6XQEAAAAAAAAAAAAAZ/xhgV8N2wUAAAAAAAAAAAAAAAAAAAAAAAAAAABtG/VlAEg=
+  </data>
+ </layer>
+ <layer id="5" name="misc1" width="100" height="100">
+  <data encoding="base64" compression="zlib">
+   eJzt2ultE0EYBuDZP0ASjiKAJEAT5qoCnABVgBOgCs4yIEAZEI4u4A8V8C5ey5a1iSzhC/t5pFc7msxKI6+y+0nzlQIAwLLbTLYWvQn+epzsJLuL3ghlvyrlRa53kruL3gzlsOpfHyaPJli/nzyY3XZWWjfZa8ZPmuuZ5GzL2mfJ85b5+l12L7nfjA+Tp9Pd5troJQfJUfKymbucXJng3nfJ+9J/l42O3yRvp77T9fAqeZ0cj8x1kpvJ9+RHspH31WaylZyvhvOfky/NPaPjj8mnOex9lV3I73yxav/bduZ3kt3k2sian8mvljH/7np+5xsnPI//zblkowz/j1msq8l2GX7TPrSsUQPOzng9eCu5XYbftK8t96gBZ2dQDx6Nzbd907p5J+9VasBZ6pR+PXh8yprBt6SXZ3FQqQGXzWn1JPO3SvUkAAAAAADrwVn18vhdlves+tuiNzBDdZ/oeF9BfVZ9yVn13NV9BHWf6Hifaa85fxs/q677CbpNmL5BH0GnTNZnWvcT9Krh82I+TuozBQAAAAAAAAAAAAAAAAAAAAAAAAAAAACYpz8olETm
+  </data>
+ </layer>
+ <layer id="6" name="misc2" width="100" height="100">
+  <data encoding="base64" compression="zlib">
+   eJzt2ltKw1AQBuB2AboQXZJC4y4UTHehUJfRelmGt20o1R04hVRPH1LEJOcE/D4YMi0n9IfpS8hMJgAAANBNNf3pz6bt58ijTmYwN48s1h3uvU36u65B+LXXlu+fk/4lRxCgNxelA7DjunSAf+q853N0c9XzOYZXeX4ale2z7UfUZ9EkAAAAAAAA/ZtFVaVD8O0yqi4dYiRK7xRs3tsu4npTOMcQ/rJrmmun4CTqtOnT/8Dmve19XB8y5RiDtv3SraF3C5ZRq+SzvZL96oHn8Rj11PQH8VuHdkuKeot6b/qjmMWxeQAAAAAAAAAAAAAAAAAAAAAAAAAAAACQyRcjQhxy
+  </data>
+ </layer>
+ <layer id="7" name="misc3" width="100" height="100">
+  <data encoding="base64" compression="zlib">
+   eJzt1bEJACAQA8C3dxH330tXsP0BhCDcVSkDKVIFAAAAQMpu+cRaAMBbPg0AAAAAAAAAAAAAsuZIN6Bb9gAAAAAAAAAAAAAAAAAAAAAAAAAAAPjSBaL6AwQ=
+  </data>
+ </layer>
+ <layer id="8" name="lights" width="100" height="100">
+  <data encoding="base64" compression="zlib">
+   eJzt2kEKgzAUBFDvfwVpvYa1Hq5uFUTT0k5M34OQvwnMIou/mK4DAADO6tMBWBnTAeCi+p2ZjHFnBvimx4dv3nkPV3dbzj0d4sDZ3a6FHXBazjMd4sDZ3c4OCKQN6QCszOkAAAAAAABAU0o7Ai10CmpW2hFIdAr8gbrolZBU0if4Za902Nz/otY+wby5AQAAAAAAAAAAAAAAAAAAAAAAAAAAAFr0ArehFZk=
+  </data>
+ </layer>
+ <layer id="9" name="collide" width="100" height="100" opacity="0.42">
+  <data encoding="base64" compression="zlib">
+   eJzt2lsOgyAQBVC7/811SY1/NgEFBR3wnMSfBpXOhfhiWQAAAAC44vv537a/HbXd2yiXq11NveXRzlG9amqeqr886qTmRK/j9zLTXO3dxyh5bNtFdnZcRRqTb7vG5fKIYq++qfkhj75KaztTHpH/Q2lfUteTmv0pc7aeEcfWDK7WUx5t5Z5DZ72/GoEaAwAAAMAYvLuLRR6xjPiue8Q+lypdw/HU96CSc86USW79SUn978qjZbvoon6/Tq0nyZ1r9vlx5/4tjjtLFquo6wnemscq4v1KzTiI0N83S81nnhNxPgMAAAAAAAAAAAAAAAAAAAAAAAAAwNYPBgrpfw==
+  </data>
+ </layer>
+ <objectgroup id="10" name="items">
+  <object id="1" name="door" class="0" x="330" y="297"/>
+  <object id="2" name="door" class="0" x="347" y="297"/>
+  <object id="3" name="door" class="1" x="470" y="697"/>
+  <object id="4" name="door" class="2" x="984" y="362"/>
+  <object id="5" name="npc" class="6" x="345" y="201"/>
+  <object id="6" x="334" y="180" height="1"/>
+  <object id="7" name="trigger" class="inn" x="345" y="216"/>
+  <object id="8" x="349" y="197" width="1"/>
+  <object id="9" name="npc" class="7" x="553" y="635"/>
+  <object id="10" name="trigger" class="shop" x="551" y="647"/>
+  <object id="11" name="trigger" class="book0" x="168" y="199"/>
+  <object id="12" name="trigger" class="book1" x="185" y="200"/>
+  <object id="13" name="trigger" class="book2" x="441" y="196"/>
+  <object id="14" name="trigger" class="book3" x="488" y="196"/>
+  <object id="15" name="trigger" class="book4" x="441" y="627"/>
+  <object id="16" name="trigger" class="book5" x="472" y="627"/>
+  <object id="17" name="trigger" class="book6" x="1032" y="257"/>
+  <object id="18" name="trigger" class="book7" x="1080" y="257"/>
+  <object id="19" name="trigger" class="gold" x="664" y="645"/>
+  <object id="20" name="trigger" class="potion" x="1128" y="306"/>
+  <object id="21" name="trigger" class="potion" x="251" y="197"/>
+  <object id="22" name="door" class="3" x="1208" y="648"/>
+  <object id="23" name="chest" class="star" x="1049" y="679"/>
+  <object id="24" name="chest" class="shop" x="632" y="646"/>
+  <object id="25" name="chest" class="inn" x="233" y="200"/>
+  <object id="26" name="card" class="24" x="999" y="296"/>
+ </objectgroup>
+</map>
