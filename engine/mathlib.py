@@ -15,6 +15,24 @@ class Vec2(NamedTuple):
     def __sub__(self, other):
         return Vec2(self.x - other.x, self.y - other.y)
 
+    def __mul__(self, scalar: float):
+        return Vec2(self.x * scalar, self.y * scalar)
+
+    def __rmul__(self, scalar: float):
+        return self * scalar
+
+    def rotated(self, rad_angle: float, center = None):
+        s = math.sin(rad_angle)
+        c = math.cos(rad_angle)
+        # Move point to center
+        center = center or Vec2(0, 0)
+        translated = self - center
+        # Rotate point using 2d matrix
+        xnew = translated.x * c - translated.y * s
+        ynew = translated.x * s + translated.y * c
+        # Translate point back
+        return Vec2(xnew, ynew) + center
+
     def __repr__(self) -> str:
         return f"Vec2({self.x:0.3f}, {self.y:0.3f})"
 
@@ -70,6 +88,19 @@ class Facing(IntEnum):
     RIGHT = 1
     UP = 2
     DOWN = 3
+
+def is_facing_opposite(a: Facing, b: Facing) -> bool:
+    match a:
+        case Facing.LEFT: return b == Facing.RIGHT
+        case Facing.RIGHT: return b == Facing.LEFT
+        case Facing.UP: return b == Facing.DOWN
+        case Facing.DOWN: return b == Facing.UP
+
+def get_2d_facing_from_dir(dir: Vec2) -> Facing:
+    if abs(dir.x) > abs(dir.y):
+        return Facing.LEFT if dir.x < 0 else Facing.RIGHT
+    else: # dir.y is larger
+        return Facing.UP if dir.y < 0 else Facing.DOWN
 
 def facing_str(facing: Facing) -> str:
     match facing:
