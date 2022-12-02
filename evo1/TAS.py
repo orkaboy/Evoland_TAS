@@ -8,12 +8,33 @@ from evo1.checkpoints import Checkpoints
 from evo1.memory import load_memory, load_zelda_memory
 from evo1.seq import Edel1, Evoland1StartGame, OverworldToMeadow, MeadowFight, PapurikaVillage
 from term.curses import WindowLayout
-
+from evo1.observer import SeqObserver2D
+from evo1.seq.edel1 import _edel_vale_map
 
 def setup_memory() -> None:
     with contextlib.suppress(ReferenceError):
         load_memory()
         load_zelda_memory()
+
+
+def observer(window: WindowLayout):
+    observer = SeqObserver2D(
+        "Observer", tilemap=_edel_vale_map, func=setup_memory
+    )
+
+    engine = SequencerEngine(
+        window=window,
+        root=observer,
+    )
+
+    window.main.clear()
+    window.stats.clear()
+    curses.doupdate()
+
+    while engine.active():
+        engine.run()
+
+    core.wait_seconds(3)
 
 
 def perform_TAS(window: WindowLayout):
@@ -37,7 +58,7 @@ def perform_TAS(window: WindowLayout):
                             OverworldToMeadow(),
                             MeadowFight(),
                             PapurikaVillage(), # TODO: Finish/Verify
-                            # TODO: Grab the seed to grow up. Grab the item shop (+ cash inside) and buy gear (sword + armor)
+                            # TODO: Grab the item shop (+ cash inside) and buy gear (sword + armor)
                             # TODO: Leave the village to the east->north into the overworld
                             # TODO: Grab the forced combat chest and rescue/name Kaeris
                             # TODO: Go through the caves, grab the level up chest and fight a bit, leveling up

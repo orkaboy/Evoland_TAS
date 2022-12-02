@@ -129,8 +129,8 @@ class PapurikaVillage(SeqList):
                     "Shopping",
                     coords=[
                         Vec2(38, 41),
-                        Vec2(35, 41),
-                        Vec2(34.5, 40.6),
+                        Vec2(34.6, 41),
+                        Vec2(34.3, 40.6),
                     ],
                 ),
                 SeqShopBuy("Sword", slot=1),

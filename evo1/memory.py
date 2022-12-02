@@ -1,6 +1,6 @@
 # Libraries and Core Files
 import logging
-from enum import Flag, auto
+from enum import Flag, auto, Enum
 from typing import List, Tuple
 
 from engine.mathlib import Vec2, Facing
@@ -99,6 +99,7 @@ def get_memory() -> Evoland1Memory:
 
 # Only valid when instantiated, on the screen that they live
 class GameEntity2D:
+    _ENT_KIND_PTR = [0x4, 0x4]  # int
     _X_PTR = [0x8]  # double
     _Y_PTR = [0x10]  # double
     _X_TILE_PTR = [0x14]  # int
@@ -121,6 +122,7 @@ class GameEntity2D:
         self.setup_pointers()
 
     def setup_pointers(self):
+        self.ent_kind_ptr = self.process.get_pointer(self.entity_ptr, offsets=self._ENT_KIND_PTR)
         self.x_ptr = self.process.get_pointer(self.entity_ptr, offsets=self._X_PTR)
         self.y_ptr = self.process.get_pointer(self.entity_ptr, offsets=self._Y_PTR)
         self.x_tile_ptr = self.process.get_pointer(
@@ -147,6 +149,19 @@ class GameEntity2D:
         self.inv_open_ptr = self.process.get_pointer(
             self.entity_ptr, offsets=self._INV_OPEN_PTR
         )
+
+    class EKind(Enum):
+        PLAYER = 0
+        ENEMY = 2
+        CHEST = 3
+        ITEM = 4
+        NPC = 5
+        SPECIAL = 7
+
+    # TODO: EKind Enum instead of str
+    def get_kind(self) -> EKind:
+        kind_val = self.process.read_u32(self.ent_kind_ptr)
+        return GameEntity2D.EKind(kind_val)
 
     def get_pos(self) -> Vec2:
         return Vec2(
@@ -181,7 +196,9 @@ class GameEntity2D:
         return self.process.read_u8(self.inv_open_ptr) == 1
 
     def __repr__(self) -> str:
-        return f"Ent({self.get_pos()}, hp: {self.get_hp()})"
+        kind = self.get_kind()
+        hp_str = f", hp: {self.get_hp()}" if kind == self.EKind.ENEMY else ""
+        return f"Ent({kind.name}, {self.get_pos()}{hp_str})"
 
 
 class ZeldaMemory:

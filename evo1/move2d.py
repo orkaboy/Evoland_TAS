@@ -116,9 +116,9 @@ class SeqAttack(SeqBase):
 # Base class for 2D movement areas
 class SeqSection2D(SeqBase):
 
-    def __init__(self, name: str, tilemap: NavMap = None):
+    def __init__(self, name: str, tilemap: NavMap = None, annotations: dict = None, func=None):
         self.tilemap = tilemap
-        super().__init__(name)
+        super().__init__(name, annotations=annotations, func=func)
 
     # Map starts at line 2 and fills the rest of the map window
     _map_start_y = 2
@@ -278,6 +278,8 @@ class SeqMove2DClunkyCombat(SeqMove2D):
             ReferenceError
         ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
             for enemy in mem.enemies:
+                if enemy.get_kind() != GameEntity2D.EKind.ENEMY:
+                    continue
                 enemy_pos = enemy.get_pos()
                 dist_to_player = dist(player_pos, enemy_pos)
                 if dist_to_player < 1.5:  # TODO Arbitrary magic number, distance to enemy

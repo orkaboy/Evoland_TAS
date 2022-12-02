@@ -16,8 +16,13 @@ def main_menu(window: WindowLayout):
                 "func": evo1.perform_TAS,
             },
             {
-                "name": "Evoland 2",
+                "name": "Evoland 1 Observer",
                 "key": "2",
+                "func": evo1.observer,
+            },
+            {
+                "name": "Evoland 2",
+                "key": "3",
                 "func": evo2.perform_TAS,
             },
         ]
