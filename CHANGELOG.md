@@ -2,7 +2,8 @@
 
 0.0.2:
 * TAS now loads maps from tmx (village/cavern)
-* TAS can now progress through cavern up to Kefka's Ghost
+* TAS can now progress through cavern up to Kefka's Ghost (some pathing issues remain)
+* TAS can now kill the knights! No manual intervention required anymore
 
 # Older changelogs
 
