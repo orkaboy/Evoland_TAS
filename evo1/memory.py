@@ -206,11 +206,11 @@ class ZeldaMemory:
     # Zelda-related things:
     _ZELDA_PTR = [0x7C8, 0x8, 0x3C]
     _PLAYER_PTR = [0x30]
-    _ENEMY_ARR_PTR = [0x48, 0x8]
+    _ACTOR_ARR_PTR = [0x48, 0x8]
 
-    _ENEMY_ARR_SIZE_PTR = [0x48, 0x8, 0x8]  # TODO: Need to verify this one
-    _ENEMY_PTR_SIZE = 4
-    _ENEMY_BASE_ADDR = 0x10  # TODO: Need to verify this one
+    _ACTOR_ARR_SIZE_PTR = [0x38, 0x88, 0x8, 0xC]
+    _ACTOR_PTR_SIZE = 4
+    _ACTOR_BASE_ADDR = 0x10  # TODO: Need to verify this one
 
     def __init__(self):
         mem_handle = memory.core.handle()
@@ -222,26 +222,26 @@ class ZeldaMemory:
         )
 
         self._init_player()
-        self._init_enemies()
+        self._init_actors()
 
     def _init_player(self):
         player_ptr = self.process.get_pointer(self.base_offset, self._PLAYER_PTR)
         self.player = GameEntity2D(self.process, player_ptr)
 
-    def _init_enemies(self):
-        self.enemies: List[GameEntity2D] = []
-        enemy_arr_size_ptr = self.process.get_pointer(
-            self.base_offset, offsets=self._ENEMY_ARR_SIZE_PTR
+    def _init_actors(self):
+        self.actors: List[GameEntity2D] = []
+        actor_arr_size_ptr = self.process.get_pointer(
+            self.base_offset, offsets=self._ACTOR_ARR_SIZE_PTR
         )
-        enemy_arr_size = self.process.read_u32(enemy_arr_size_ptr)
-        enemy_arr_offset = self.process.get_pointer(
-            self.base_offset, offsets=self._ENEMY_ARR_PTR
+        actor_arr_size = self.process.read_u32(actor_arr_size_ptr)
+        actor_arr_offset = self.process.get_pointer(
+            self.base_offset, offsets=self._ACTOR_ARR_PTR
         )
-        for i in range(enemy_arr_size):
+        for i in range(actor_arr_size):
             # Set enemy offsets
-            enemy_offset = self._ENEMY_BASE_ADDR + i * self._ENEMY_PTR_SIZE
-            enemy_ptr = self.process.get_pointer(enemy_arr_offset, [enemy_offset])
-            self.enemies.append(GameEntity2D(self.process, enemy_ptr))
+            actor_offset = self._ACTOR_BASE_ADDR + i * self._ACTOR_PTR_SIZE
+            actor_ptr = self.process.get_pointer(actor_arr_offset, [actor_offset])
+            self.actors.append(GameEntity2D(self.process, actor_ptr))
 
 
 _zelda_mem = None

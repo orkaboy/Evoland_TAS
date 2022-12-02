@@ -24,15 +24,15 @@ class SeqObserver2D(SeqSection2D):
         player_pos = mem.player.get_pos()
         with contextlib.suppress(
             ReferenceError
-        ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
-            for i, enemy in enumerate(mem.enemies):
-                enemy_pos = enemy.get_pos()
-                if enemy_pos in self.tracked:
+        ):  # Needed until I figure out which actors are valid (broken pointers will throw an exception)
+            for i, actor in enumerate(mem.actors):
+                actor_pos = actor.get_pos()
+                if actor_pos in self.tracked:
                     continue
-                dist_to_player = dist(player_pos, enemy_pos)
+                dist_to_player = dist(player_pos, actor_pos)
                 if dist_to_player < 3:  # TODO Arbitrary magic number, distance to enemy
-                    logger.info(f"Actor[{i}] {enemy}")
-                    self.tracked.add(enemy_pos)
+                    logger.info(f"Actor[{i}] {actor}")
+                    self.tracked.add(actor_pos)
         return False # Never finishes
 
     def render(self, window: WindowLayout, blackboard: dict) -> None:

@@ -167,8 +167,8 @@ class SeqSection2D(SeqBase):
 
         with contextlib.suppress(
             ReferenceError
-        ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
-            for actor in mem.enemies:
+        ):  # Needed until I figure out which actors are valid (broken pointers will throw an exception)
+            for actor in mem.actors:
                 actor_kind = actor.get_kind()
                 match actor_kind:
                     case GameEntity2D.EKind.ENEMY: ch = "!"
@@ -284,10 +284,10 @@ class SeqMove2DClunkyCombat(SeqMove2D):
         with contextlib.suppress(
             ReferenceError
         ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
-            for enemy in mem.enemies:
-                if enemy.get_kind() != GameEntity2D.EKind.ENEMY:
+            for actor in mem.actors:
+                if actor.get_kind() != GameEntity2D.EKind.ENEMY:
                     continue
-                enemy_pos = enemy.get_pos()
+                enemy_pos = actor.get_pos()
                 dist_to_player = dist(player_pos, enemy_pos)
                 if dist_to_player < 1.5:  # TODO Arbitrary magic number, distance to enemy
                     enemy_angle = get_angle(enemy_pos, player_pos)
@@ -332,13 +332,15 @@ class SeqKnight2D(SeqSection2D):
             with contextlib.suppress(
                     ReferenceError
                 ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
-                for enemy in mem.enemies:
-                    enemy_pos = enemy.get_pos()
+                for actor in mem.actors:
+                    if actor.get_kind() != GameEntity2D.EKind.ENEMY:
+                        continue
+                    enemy_pos = actor.get_pos()
                     search_box = _get_tracker(last_pos=enemy_pos, movement=track_size)
                     for target in targets_copy:
                         # Check if target is found. If so, initialize the tracking entity
                         if search_box.contains(target):
-                            self.targets.append(enemy)
+                            self.targets.append(actor)
             # TODO Track decisions
             if len(targets) != len(self.targets):
                 logger.error(f"Couldn't track all entities! Found {len(self.targets)}/{len(targets)} enemies")

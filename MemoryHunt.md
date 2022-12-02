@@ -2,7 +2,6 @@
 
 * ASK IN THE EVOLAND DISCORD
 
-* Differentiate between enemies and other actors (chests etc.) in zelda mode.
 * Enemy health in combat (should be pretty easy?)
 * Kaeris health in combat
 * Menu cursor stuff in combat (other than main ATB)
@@ -15,6 +14,7 @@
 
 # Found
 
+* Differentiate between enemies and other actors (chests etc.) in zelda mode.
 * Player struct (x,y,direction) in world movement [ptr]
 * In control
     - Inv open(?)
