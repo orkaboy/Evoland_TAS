@@ -1,4 +1,4 @@
-from evo1.seq.edel1 import EdelExperimental
+from evo1.seq.edel_vale import EdelExperimental
 from evo1.seq import OverworldToMeadow, MeadowFight
 
 

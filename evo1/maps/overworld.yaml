@@ -1,0 +1,3 @@
+name: "Overworld"
+type: "bitmap"
+trees_passable: True

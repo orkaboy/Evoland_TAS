@@ -9,7 +9,7 @@ from evo1.memory import load_memory, load_zelda_memory
 from evo1.seq import Edel1, Evoland1StartGame, OverworldToMeadow, MeadowFight, PapurikaVillage
 from term.curses import WindowLayout
 from evo1.observer import SeqObserver2D
-from evo1.seq.edel1 import _edel_vale_map
+from evo1.seq.edel_vale import _edel_vale_map
 
 def setup_memory() -> None:
     with contextlib.suppress(ReferenceError):

@@ -168,10 +168,17 @@ class SeqSection2D(SeqBase):
         with contextlib.suppress(
             ReferenceError
         ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
-            for enemy in mem.enemies:
-                enemy_pos = enemy.get_pos()
-                enemy_dir_ch = facing_ch(enemy.get_facing())
-                self._print_ch_in_map(map_win=map_win, pos=enemy_pos-center, ch=enemy_dir_ch)
+            for actor in mem.enemies:
+                actor_kind = actor.get_kind()
+                match actor_kind:
+                    case GameEntity2D.EKind.ENEMY: ch = "!"
+                    case GameEntity2D.EKind.CHEST: ch = "C"
+                    case GameEntity2D.EKind.ITEM: ch = "$"
+                    case GameEntity2D.EKind.NPC: ch = "&"
+                    case GameEntity2D.EKind.SPECIAL: ch = "*"
+                    case _: ch = "?"
+                actor_pos = actor.get_pos()
+                self._print_ch_in_map(map_win=map_win, pos=actor_pos-center, ch=ch)
 
     def render(self, window: WindowLayout, blackboard: dict) -> None:
         window.stats.erase()

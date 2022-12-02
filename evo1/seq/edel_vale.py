@@ -2,7 +2,6 @@ from engine.seq import SeqDelay, SeqList
 from engine.mathlib import Facing, Vec2, Box2
 from engine.navmap import NavMap, AStar
 from evo1.move2d import SeqAttack, SeqGrabChest, SeqMove2D, SeqMove2DClunkyCombat, SeqKnight2D, SeqZoneTransition
-from evo1.atb import SeqATBmove2D, FarmingGoal
 
 
 _edel_vale_map = NavMap("evo1/maps/edel_vale.yaml")
@@ -127,36 +126,6 @@ class Edel1(SeqList):
         )
 
 
-class OverworldToMeadow(SeqList):
-    def __init__(self):
-        super().__init__(
-            name="Overworld",
-            children=[
-                # TODO: Movement is awkward, would look better with joystick move instead of dpad
-                # Battle handler for random battles, mashing confirm is fine for now
-                SeqATBmove2D(
-                    "Navigating overworld",
-                    coords=[
-                        Vec2(79.7, 54.8),
-                        # Nudge chest (encounters) at (79, 54)
-                        # TODO: Adjust, a bit akward
-                        Vec2(79.5, 53),
-                        Vec2(85, 47),
-                        Vec2(87, 43),
-                    ],
-                    # Need to farm gli before progressing. We need 250 to buy gear, and we can get 50 in the village
-                    goal=FarmingGoal(farm_coords=[Vec2(87, 44), Vec2(87, 43)], precision=0.2, gli_goal=200),
-                ),
-                SeqZoneTransition("Meadow", direction=Facing.UP, time_in_s=1.0),
-            ],
-        )
-
-
-
-
-
-
-
 
 
 
@@ -177,10 +146,8 @@ class EdelExperimental(SeqList):
                         Vec2(53, 36),
                         Vec2(54.1, 33.5),  # Near left knight
                     ],
+                    tilemap=_edel_vale_map
                 ),
-
-
-
                 # TODO: Keep testing from here
                 SeqMove2D(
                     "Nudging the knights",
@@ -191,6 +158,7 @@ class EdelExperimental(SeqList):
                         Vec2(56, 34),  # Nudge past right knight to activate
                         Vec2(55, 35),  # Retreat and prepare for combat!
                     ],
+                    tilemap=_edel_vale_map
                 ),
                 # TODO: We need to kill two knights. These enemies must be killed with 3 attacks, but cannot be harmed from the front.
                 # TODO: Need to get hold of the enemies in question so we know when they are dead. Need to strategize for the best way to kill them without dying.
@@ -198,15 +166,7 @@ class EdelExperimental(SeqList):
                     "Killing two knights",
                     arena=Box2(pos=Vec2(53, 32), w=5, h=4), # Valid arena to fight inside (should be clear of obstacles)
                     targets=[Vec2(54, 33), Vec2(56, 33)], # Positions of enemies (known from start)
+                    tilemap=_edel_vale_map
                 ),
-                SeqMove2D(
-                    "Grabbing inv",
-                    coords=[
-                        Vec2(54, 31),
-                        # TODO: Grab chest (Inv)
-                        Vec2(54, 29),
-                    ],
-                ),
-                SeqZoneTransition("Overworld", direction=Facing.UP, time_in_s=1.0),
             ],
         )

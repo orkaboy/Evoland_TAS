@@ -124,39 +124,41 @@ class SeqOptional(SeqBase):
     ):
         self.fallback = fallback
         self.selector = selector
+        self.selector_repr = selector
+        self.selected = False
+        self.selection = None
         self.cases = cases
         super().__init__(name)
 
-    def execute(self, delta: float, blackboard: dict) -> bool:
-        selector = self.selector
-        if callable(self.selector):
-            selector = selector()
+    def reset(self) -> None:
+        self.selected = False
+        self.selection = None
 
-        if selection := self.cases.get(selector):
-            return selection.execute(delta=delta, blackboard=blackboard)
+    def execute(self, delta: float, blackboard: dict) -> bool:
+        if not self.selected:
+            self.selector_repr = self.selector() if callable(self.selector) else self.selector
+            self.selection = self.cases.get(self.selector_repr)
+            self.selected = True
+
+        if self.selection:
+            return self.selection.execute(delta=delta, blackboard=blackboard)
         if self.fallback:
             return self.fallback.execute(delta=delta, blackboard=blackboard)
         logging.getLogger(self.name).warning(
-            f"Missing case {selector} and no fallback, skipping!"
+            f"Missing case {self.selector_repr} and no fallback, skipping!"
         )
         return True
 
     def render(self, window: WindowLayout, blackboard: dict) -> None:
-        selector = self.selector
-        if callable(self.selector):
-            selector = selector()
-        if selection := self.cases.get(selector):
-            selection.render(window, blackboard)
+        if self.selection:
+            self.selection.render(window, blackboard)
         elif self.fallback:
             self.fallback.render(window, blackboard)
 
     def __repr__(self) -> str:
-        selector = self.selector
-        if callable(self.selector):
-            selector = selector()  # TODO: a way to grab the blackboard?
-        if selection := self.cases.get(selector):
-            return f"<{self.name}:{selector}> => {selection}"
-        if self.fallback:
+        if self.selection:
+            return f"<{self.name}:{self.selector_repr}> => {self.selection}"
+        if self.selected and self.fallback:
             return f"<{self.name}:fallback> => {self.fallback}"
         return f"<{self.name}>"
 
