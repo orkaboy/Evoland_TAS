@@ -11,7 +11,7 @@ class Evoland1StartGame(SeqList):
                 SeqLog(name="SYSTEM", text="Starting Evoland1 from main menu..."),
                 SeqDebug(name="SYSTEM", text="Press confirm to activate main menu."),
                 SeqMenuConfirm(),
-                SeqDelay(name="Menu", time_in_s=1.0),
+                SeqDelay(name="Menu", timeout_in_s=1.0),
                 SeqOptional(
                     name="Game mode",
                     cases={
@@ -23,7 +23,7 @@ class Evoland1StartGame(SeqList):
                                     text="Press confirm to select new game.",
                                 ),
                                 SeqMenuConfirm(),
-                                SeqDelay(name="Menu", time_in_s=1.0),
+                                SeqDelay(name="Menu", timeout_in_s=1.0),
                                 SeqDebug(
                                     name="SYSTEM",
                                     text="Press confirm to select Evoland1.",
@@ -36,9 +36,9 @@ class Evoland1StartGame(SeqList):
                         name="Load game",
                         children=[
                             SeqMenuDown(name="Menu"),
-                            SeqDelay(name="Menu", time_in_s=0.5),
+                            SeqDelay(name="Menu", timeout_in_s=0.5),
                             SeqMenuConfirm(),
-                            SeqDelay(name="Menu", time_in_s=1.0),
+                            SeqDelay(name="Menu", timeout_in_s=1.0),
                             SeqLoadGame(name="Load game", saveslot=saveslot),
                         ],
                     ),
@@ -50,10 +50,10 @@ class Evoland1StartGame(SeqList):
                 SeqOptional(
                     name="Conditional delay",
                     cases={
-                        0: SeqDelay(name="Starting game", time_in_s=3.0),
+                        0: SeqDelay(name="Starting game", timeout_in_s=3.0),
                     },
                     selector=saveslot,
-                    fallback=SeqDelay(name="Starting game", time_in_s=4.0),
+                    fallback=SeqDelay(name="Starting game", timeout_in_s=4.0),
                 ),
                 SeqLog(name="SYSTEM", text="In game!"),
             ],

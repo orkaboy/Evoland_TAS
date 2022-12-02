@@ -112,7 +112,7 @@ class PapurikaVillage(SeqList):
                     tilemap=_village_map
                 ),
                 # Transition north (into shop)
-                SeqZoneTransition("Enter shop", Facing.UP, time_in_s=0.5),
+                SeqZoneTransition("Enter shop", Facing.UP, timeout_in_s=0.5),
                 SeqMove2D(
                     "Moving to chest",
                     coords=[
@@ -145,7 +145,7 @@ class PapurikaVillage(SeqList):
                     "Shopping",
                     coords=[
                         Vec2(38, 41),
-                        Vec2(34.6, 41),
+                        Vec2(34.3, 41),
                         Vec2(34.3, 40.6),
                     ],
                     tilemap=_village_interior_map
@@ -161,7 +161,7 @@ class PapurikaVillage(SeqList):
                     tilemap=_village_interior_map
                 ),
                 # Transition south (exit shop)
-                SeqZoneTransition("Leave shop", Facing.DOWN, time_in_s=0.5),
+                SeqZoneTransition("Leave shop", Facing.DOWN, timeout_in_s=0.5),
                 SeqMove2D(
                     "Leave town",
                     coords=[
@@ -176,6 +176,6 @@ class PapurikaVillage(SeqList):
                     tilemap=_village_map
                 ),
                 # Transition north (exit town to overworld)
-                SeqZoneTransition("To overworld", Facing.UP, time_in_s=0.5),
+                SeqZoneTransition("To overworld", Facing.UP, timeout_in_s=0.5),
             ],
         )

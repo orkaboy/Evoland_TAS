@@ -121,7 +121,7 @@ class Edel1(SeqList):
                     ],
                     tilemap=_edel_vale_map
                 ),
-                SeqZoneTransition("Overworld", direction=Facing.UP, time_in_s=1.0),
+                SeqZoneTransition("Overworld", direction=Facing.UP, timeout_in_s=1.0),
             ],
         )
 
@@ -137,7 +137,7 @@ class EdelExperimental(SeqList):
             name="Knights",
             children=[
                 # TODO: This appears to be needed on load for some reason, or the game crashes
-                SeqDelay("Memory delay", time_in_s=1.0),
+                SeqDelay("Memory delay", timeout_in_s=1.0),
                 # TODO: DUMMY SEQUENCE, DO NOT USE UNLESS LOADING FROM SAVEPOINT
                 SeqMove2D(
                     "Navigate to knights",

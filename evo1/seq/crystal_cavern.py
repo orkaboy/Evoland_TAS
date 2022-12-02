@@ -17,12 +17,12 @@ class CrystalCavern(SeqList):
                 SeqGrabChest("Experience", Facing.UP),
                 SeqATBmove2D(name="Move to trigger", tilemap=_cavern_map, coords=_cavern_astar.calculate(Vec2(18, 39), Vec2(54, 37))),
                 SeqMove2D(name="Trigger plate", tilemap=_cavern_map, coords=[Vec2(54, 36.5)]),
-                SeqInteract(name="Trigger plate", time_in_s=0.5),
+                SeqInteract(name="Trigger plate", timeout_in_s=0.5),
                 SeqATBmove2D(name="Move to boss", tilemap=_cavern_map, coords=_cavern_astar.calculate(Vec2(54, 37), Vec2(49, 9))),
                 # TODO: Trigger fight against Kefka's ghost (interact with crystal)
                 # TODO: Fight against Kefka's ghost (need to implement a smarter combat function to avoid the boss counter)
                 # TODO: Grab the crystal and become 3D
                 SeqMove2D(name="Move to portal", coords=[Vec2(7, 6)]),
-                SeqZoneTransition("Enter the third dimension", Facing.UP, time_in_s=1.0),
+                SeqZoneTransition("Enter the third dimension", Facing.UP, timeout_in_s=1.0),
             ],
         )

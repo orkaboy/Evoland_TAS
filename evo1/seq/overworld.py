@@ -29,7 +29,7 @@ class OverworldToMeadow(SeqList):
                     goal=FarmingGoal(farm_coords=[Vec2(87, 44), Vec2(87, 43)], precision=0.2, gli_goal=200),
                     tilemap=_overworld_map
                 ),
-                SeqZoneTransition("Meadow", direction=Facing.UP, time_in_s=1.0),
+                SeqZoneTransition("Meadow", direction=Facing.UP, timeout_in_s=1.0),
             ],
         )
 
@@ -45,7 +45,7 @@ class OverworldToCavern(SeqList):
                     tilemap=_overworld_map
                 ),
                 # Move into the caverns
-                SeqZoneTransition("Crystal Cavern", direction=Facing.UP, time_in_s=1.0)
+                SeqZoneTransition("Crystal Cavern", direction=Facing.UP, timeout_in_s=1.0)
             ]
         )
 

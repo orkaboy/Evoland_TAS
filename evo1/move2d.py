@@ -68,9 +68,9 @@ class SeqGrabChest(SeqBase):
 
 
 class SeqZoneTransition(SeqBase):
-    def __init__(self, name: str, direction: Facing, time_in_s: float):
+    def __init__(self, name: str, direction: Facing, timeout_in_s: float):
         self.direction = direction
-        self.timeout = time_in_s
+        self.timeout = timeout_in_s
         self.timer = 0
         super().__init__(name)
 

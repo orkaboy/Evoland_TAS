@@ -55,9 +55,9 @@ class SeqDebug(SeqBase):
 
 
 class SeqDelay(SeqBase):
-    def __init__(self, name: str, time_in_s: float):
+    def __init__(self, name: str, timeout_in_s: float):
         self.timer = 0.0
-        self.timeout = time_in_s
+        self.timeout = timeout_in_s
         super().__init__(name)
 
     def reset(self) -> None:
