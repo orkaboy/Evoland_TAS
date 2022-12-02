@@ -147,7 +147,7 @@ class SeqSection2D(SeqBase):
         maxy, maxx = map_win.getmaxyx()
         # Fill box with .
         for y in range(self._map_start_y, maxy):
-            map_win.hline(y, 0, "#", maxx)
+            map_win.hline(y, 0, " ", maxx)
 
     def _print_map(self, window: WindowLayout, blackboard: dict) -> None:
         mem = get_zelda_memory()
