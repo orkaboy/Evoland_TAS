@@ -1,6 +1,7 @@
 # Libraries and Core Files
 import logging
 import time
+import datetime
 from typing import Any, Callable, List
 from term.curses import WindowLayout
 
@@ -182,8 +183,8 @@ class SequencerEngine(object):
         self.root.reset()
 
     def pause(self) -> None:
+        # TODO: Should restore controls to neutral state
         self.paused = True
-        self.window.main.addstr(0, 0, "== PAUSED ==")
         logger.info("------------------------")
         logger.info("  TAS EXECUTION PAUSED  ")
         logger.info("------------------------")
@@ -217,6 +218,16 @@ class SequencerEngine(object):
             delta = self._get_deltatime()
             self.done = self.root.execute(delta=delta, blackboard=self.blackboard)
 
+    def _print_timer(self) -> None:
+        # Timestamp
+        start_time = logging._startTime
+        now = time.time()
+        elapsed = now - start_time
+        duration = datetime.datetime.utcfromtimestamp(elapsed)
+        timestamp = f"{duration.strftime('%H:%M:%S')}.{int(duration.strftime('%f')) // 1000:03d}"
+        pause_str = " == PAUSED ==" if self.paused else ""
+        self.window.main.addstr(0, 0, f"[{timestamp}]{pause_str}")
+
     def _render(self) -> None:
         # Clear display windows
         self.window.main.erase()
@@ -226,6 +237,7 @@ class SequencerEngine(object):
             window=self.window, blackboard=self.blackboard
         )
         self.window.main.addstr(1, 0, f"Gamestate:\n  {self.root}")
+        self._print_timer()
 
         self.window.update()
 
