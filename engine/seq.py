@@ -234,12 +234,13 @@ class SequencerEngine(object):
         # Clear display windows
         self.window.main.erase()
 
+        # Render timer and gamestate tree
+        self._print_timer()
+        self.window.main.addstr(1, 0, f"Gamestate:\n  {self.root}")
         # Render the current gamestate
         self.root.render(
             window=self.window, blackboard=self.blackboard
         )
-        self.window.main.addstr(1, 0, f"Gamestate:\n  {self.root}")
-        self._print_timer()
 
         self.window.update()
 

@@ -71,7 +71,7 @@ class EvolandRNG:
             return ((self.rand_int() / big + self.rand_int()) / big + self.rand_int()) / big
 
     # Get the current RNG values
-    def _read_rng_raw(self) -> RNGStruct:
+    def get_rng(self) -> RNGStruct:
         cursor = self.process.read_u32(self.rng_cursor_ptr)
         values = [self.process.read_u32(self.rng_base_ptr + i * self._RNG_VALUE_SIZE) for i in range(self.RNG_VALS)]
         return EvolandRNG.RNGStruct(cursor=cursor, values=values)

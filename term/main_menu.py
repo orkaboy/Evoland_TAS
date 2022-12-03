@@ -5,6 +5,8 @@ import evo2
 from app import TAS_VERSION_STRING
 from term.curses import WindowLayout
 
+from memory.seq_rng_observer import rng_observer
+
 
 def main_menu(window: WindowLayout):
     while True:
@@ -24,6 +26,11 @@ def main_menu(window: WindowLayout):
                 "name": "Evoland 2",
                 "key": "3",
                 "func": evo2.perform_TAS,
+            },
+            {
+                "name": "RNG Observer",
+                "key": "4",
+                "func": rng_observer,
             },
         ]
 
