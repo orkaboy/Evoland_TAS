@@ -1,7 +1,7 @@
 from engine.seq import SeqList
 from engine.mathlib import Facing, Vec2, Box2
 from engine.navmap import NavMap, AStar
-from evo1.move2d import SeqAttack, SeqGrabChest, SeqGrabChest3D, SeqMove2D, SeqMove2DClunkyCombat, SeqZoneTransition
+from evo1.move2d import SeqAttack, SeqGrabChest, SeqGrabChest3D, SeqMove2D, SeqMove2DClunkyCombat, SeqZoneTransition, SeqMove2DConfirm
 from evo1.knights import SeqKnight2D
 
 
@@ -148,12 +148,11 @@ class Edel2(SeqList):
                 SeqAttack("Bush"), # TODO: DOWN
                 SeqMove2DClunkyCombat("Move past bush", coords=[Vec2(58, 60)], tilemap=_edel_vale_map),
                 # TODO: Optional? Health + 1
-                SeqMove2DClunkyCombat("Move to chest", coords=[Vec2(57, 59.7)], tilemap=_edel_vale_map),
+                SeqMove2DClunkyCombat("Move to chest", coords=[Vec2(57, 59.5)], tilemap=_edel_vale_map),
                 SeqGrabChest("Health +1", direction=Facing.UP),
                 # TODO: End optional health + 1
                 SeqMove2DClunkyCombat("Move to end", coords=_edel_vale_astar.calculate(start=Vec2(57, 60), goal=Vec2(58, 78)), tilemap=_edel_vale_map),
-                # TODO: spam confirm
-                SeqMove2DClunkyCombat("Move to end", coords=[Vec2(58, 82)], tilemap=_edel_vale_map),
-                SeqZoneTransition("To overworld", direction=Facing.DOWN, timeout_in_s=0.5),
+                SeqMove2DConfirm("Move to end", coords=[Vec2(58, 82)], tilemap=_edel_vale_map),
+                SeqZoneTransition("To overworld", direction=Facing.DOWN, timeout_in_s=1.0),
             ]
         )

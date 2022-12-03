@@ -353,6 +353,18 @@ class SeqMove2D(SeqSection2D):
         return f"{self.name}[{step}/{num_coords}]: {target}"
 
 
+# Mash confirm while moving along a path
+class SeqMove2DConfirm(SeqMove2D):
+    def __init__(self, name: str, coords: List[Vec2], precision: float = 0.2, tilemap: NavMap = None):
+        super().__init__(name, coords, precision, tilemap)
+
+    def execute(self, delta: float, blackboard: dict) -> bool:
+        done = super().execute(delta=delta, blackboard=blackboard)
+        ctrl = evo1.control.handle()
+        ctrl.confirm(tapping=True)
+        return done
+
+
 class SeqMove2DClunkyCombat(SeqMove2D):
     def execute(self, delta: float, blackboard: dict) -> bool:
         self._navigate_to_checkpoint(blackboard=blackboard)
