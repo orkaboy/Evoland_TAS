@@ -38,3 +38,10 @@ class SeqObserver2D(SeqSection2D):
     def render(self, window: WindowLayout, blackboard: dict) -> None:
         super().render(window, blackboard)
         self._print_actors(map_win=window.map, blackboard=blackboard)
+
+        mem = get_zelda_memory()
+
+        if target := mem.player.get_target():
+            window.stats.addstr(9, 1, f" Target X: {target.x:.3f}")
+            window.stats.addstr(10, 1, f" Target Y: {target.y:.3f}")
+

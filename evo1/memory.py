@@ -1,7 +1,7 @@
 # Libraries and Core Files
 import logging
 from enum import Flag, auto, Enum
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from engine.mathlib import Vec2, Facing
 
@@ -120,6 +120,10 @@ class GameEntity2D:
     _Y_PTR = [0x10]  # double
     _X_TILE_PTR = [0x14]  # int
     _Y_TILE_PTR = [0x18]  # int
+    _SPEED_PTR = [0x20]  # double (quite small numbers, 0.05 for player)
+    _TARGET_PTR = [0x40]  # Target pointer. Only valid if != 0
+    _TARGET_X_OFFSET = 0x18  # In reference to Target
+    _TARGET_Y_OFFSET = 0x20  # In reference to Target
     _TIMER_PTR = [0x48]  # double (timeout in s)
     _FACING_PTR = [0x58]  # int
     _ATTACK_PTR = [0x5C]  # byte, bit 5
@@ -146,6 +150,12 @@ class GameEntity2D:
         )
         self.y_tile_ptr = self.process.get_pointer(
             self.entity_ptr, offsets=self._Y_TILE_PTR
+        )
+        self.speed_ptr = self.process.get_pointer(
+            self.entity_ptr, offsets=self._SPEED_PTR
+        )
+        self.target_ptr = self.process.get_pointer(
+            self.entity_ptr, offsets=self._TARGET_PTR
         )
         self.timer_ptr = self.process.get_pointer(
             self.entity_ptr, offsets=self._TIMER_PTR
@@ -193,6 +203,18 @@ class GameEntity2D:
             self.process.read_u32(self.x_tile_ptr),
             self.process.read_u32(self.y_tile_ptr),
         ]
+
+    def get_speed(self) -> float:
+        return self.process.read_double(self.speed_ptr)
+
+    def get_target(self) -> Optional[Vec2]:
+        target_ptr = self.process.read_u32(self.target_ptr)
+        if target_ptr != 0:
+            return Vec2(
+                x=self.process.read_double(target_ptr + self._TARGET_X_OFFSET),
+                y=self.process.read_double(target_ptr + self._TARGET_Y_OFFSET),
+            )
+        return None
 
     def get_timer(self) -> float:
         return self.process.read_double(self.timer_ptr)
