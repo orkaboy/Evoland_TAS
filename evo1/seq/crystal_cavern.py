@@ -2,8 +2,8 @@ from engine.seq import SeqList
 from engine.mathlib import Facing, Vec2
 from engine.navmap import NavMap, AStar
 from evo1.move2d import SeqGrabChest, SeqMove2D, SeqZoneTransition, SeqHoldInPlace, SeqManualUntilClose
-from evo1.interact import SeqInteract
 from evo1.atb import SeqATBmove2D
+from evo1.memory import MapID
 
 _cavern_map = NavMap("evo1/maps/crystal_cavern.yaml")
 _cavern_astar = AStar(map_nodes=_cavern_map.map)
@@ -28,6 +28,6 @@ class CrystalCavern(SeqList):
                 # Limbo realm
                 #SeqInteract(name="Story stuff", timeout_in_s=0.5),
                 SeqMove2D(name="Move to portal", tilemap=_limbo_map, coords=_limbo_astar.calculate(start=Vec2(7, 10), goal=Vec2(7, 6))),
-                SeqZoneTransition("Enter the third dimension", Facing.UP, timeout_in_s=1.0),
+                SeqZoneTransition("Enter the third dimension", Facing.UP, target_zone=MapID.EDEL_VALE),
             ],
         )

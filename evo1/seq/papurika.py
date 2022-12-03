@@ -4,7 +4,7 @@ from engine.navmap import NavMap
 from evo1.knights import SeqKnight2D
 from evo1.move2d import SeqGrabChest, SeqMove2D, SeqZoneTransition
 from evo1.interact import SeqShopBuy, SeqInteract
-from evo1.memory import get_memory
+from evo1.memory import get_memory, MapID
 
 _meadow_map = NavMap("evo1/maps/meadow.yaml")
 
@@ -112,7 +112,7 @@ class PapurikaVillage(SeqList):
                     tilemap=_village_map
                 ),
                 # Transition north (into shop)
-                SeqZoneTransition("Enter shop", Facing.UP, timeout_in_s=0.5),
+                SeqZoneTransition("Enter shop", Facing.UP, target_zone=MapID.PAPURIKA_INTERIOR),
                 SeqMove2D(
                     "Moving to chest",
                     coords=[
@@ -161,7 +161,7 @@ class PapurikaVillage(SeqList):
                     tilemap=_village_interior_map
                 ),
                 # Transition south (exit shop)
-                SeqZoneTransition("Leave shop", Facing.DOWN, timeout_in_s=0.5),
+                SeqZoneTransition("Leave shop", Facing.DOWN, target_zone=MapID.PAPURIKA),
                 SeqMove2D(
                     "Leave town",
                     coords=[
@@ -176,6 +176,6 @@ class PapurikaVillage(SeqList):
                     tilemap=_village_map
                 ),
                 # Transition north (exit town to overworld)
-                SeqZoneTransition("To overworld", Facing.UP, timeout_in_s=0.5),
+                SeqZoneTransition("To overworld", Facing.UP, target_zone=MapID.OVERWORLD),
             ],
         )

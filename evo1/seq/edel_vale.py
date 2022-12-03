@@ -3,6 +3,7 @@ from engine.mathlib import Facing, Vec2, Box2
 from engine.navmap import NavMap, AStar
 from evo1.move2d import SeqAttack, SeqGrabChest, SeqGrabChest3D, SeqMove2D, SeqMove2DClunkyCombat, SeqZoneTransition, SeqMove2DConfirm
 from evo1.knights import SeqKnight2D
+from evo1.memory import MapID
 
 
 _edel_vale_map = NavMap("evo1/maps/edel_vale.yaml")
@@ -123,7 +124,7 @@ class Edel1(SeqList):
                     ],
                     tilemap=_edel_vale_map
                 ),
-                SeqZoneTransition("Overworld", direction=Facing.UP, timeout_in_s=1.0),
+                SeqZoneTransition("Overworld", direction=Facing.UP, target_zone=MapID.OVERWORLD),
             ],
         )
 
@@ -153,6 +154,6 @@ class Edel2(SeqList):
                 # TODO: End optional health + 1
                 SeqMove2DClunkyCombat("Move to end", coords=_edel_vale_astar.calculate(start=Vec2(57, 60), goal=Vec2(58, 78)), tilemap=_edel_vale_map),
                 SeqMove2DConfirm("Move to end", coords=[Vec2(58, 82)], tilemap=_edel_vale_map),
-                SeqZoneTransition("To overworld", direction=Facing.DOWN, timeout_in_s=1.0),
+                SeqZoneTransition("To overworld", direction=Facing.DOWN, target_zone=MapID.OVERWORLD),
             ]
         )

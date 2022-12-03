@@ -1,6 +1,6 @@
 # Libraries and Core Files
 import logging
-from enum import Flag, auto, Enum
+from enum import Flag, auto, Enum, IntEnum
 from typing import List, Optional, Tuple
 
 from engine.mathlib import Vec2, Facing
@@ -32,12 +32,40 @@ _LIBHL_OFFSET = 0x0004914C
 
 
 
+class MapID(Enum):
+    EDEL_VALE = 0
+    OVERWORLD = 1
+    MEADOW = 2
+    PAPURIKA = 3
+    PAPURIKA_WELL = 4
+    NORIA_CLOSED = 5
+    NORIA = 6
+    CRYSTAL_CAVERN = 7
+    PAPURIKA_INTERIOR = 8
+    HIDDEN_MEADOW = 9
+    HIDDEN_MEADON_CAVE = 10
+    LIMBO = 11
+    AOGAI = 12
+    SACRED_GROVE_2D = 13
+    SACRED_GROVE_3D = 14
+    SARUDNAHK = 15
+    SACRED_GROVE_CAVE_1 = 16
+    SACRED_GROVE_CAVE_2 = 17
+    BABAMUT_SHRINE = 18
+    FORBIDDEN_LAKE_2D = 19
+    FORBIDDEN_LAKE_3D = 20
+    END = 21
+
+
 # TODO: Refactor (currently only used in very specific cases)
 class Evoland1Memory:
 
     # Zelda player health for roaming battle (hearts)
     _PLAYER_HP_ZELDA_PTR = [0x7FC, 0x8, 0x30, 0x7C, 0x0] # each heart is 16 "health"
     _GLI_PTR = [0x7FC, 0x8, 0x30, 0x84, 0x0] # Money
+
+    _MAP_ID_PTR = [0x7FC, 0x8, 0x30, 0xC8, 0x0, 0x4]
+
     # TODO: Verify these are useful/correct (got from mem searching)
     _PLAYER_MAX_HP_ZELDA_PTR = [0x7FC, 0x8, 0x30, 0x80, 0x0]
     _PLAYER_HP_OVERWORLD_PTR = [0x7FC, 0x8, 0x30, 0x3C, 0x0]
@@ -48,6 +76,7 @@ class Evoland1Memory:
     _KAERIS_LVL_PTR = [0x7FC, 0x8, 0x30, 0x78, 0x0, 0x8, 0x14, 0x8, 0x0] # int
     _KAERIS_EXP_PTR = [0x7FC, 0x8, 0x30, 0x78, 0x0, 0x8, 0x14, 0x8, 0x4] # int
 
+    # TODO: Split battle stuff into own memory block
     # Only valid in atb battle
     _PLAYER_ATB_CUR_HP_PTR = [0x860, 0x0, 0x244, 0x2C, 0x8, 0x10, 0xF4]
 
@@ -68,6 +97,9 @@ class Evoland1Memory:
         self.gli_ptr = self.process.get_pointer(
             self.base_addr + _LIBHL_OFFSET, offsets=self._GLI_PTR
         )
+        self.map_id_ptr = self.process.get_pointer(
+            self.base_addr + _LIBHL_OFFSET, self._MAP_ID_PTR
+        )
 
     # Only valid in zelda map
     def get_player_hearts(self) -> float:
@@ -82,6 +114,9 @@ class Evoland1Memory:
     def get_lvl(self) -> int:
         # TODO: Implement level
         return 1
+
+    def get_map_id(self) -> MapID:
+        return MapID(self.process.read_u32(self.map_id_ptr))
 
     # Only valid in battle!
     def get_atb_player_hp(self) -> int:
@@ -176,7 +211,7 @@ class GameEntity2D:
             self.entity_ptr, offsets=self._INV_OPEN_PTR
         )
 
-    class EKind(Enum):
+    class EKind(IntEnum):
         PLAYER = 0
         ENEMY = 2
         CHEST = 3

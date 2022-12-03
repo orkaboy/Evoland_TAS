@@ -1,7 +1,10 @@
 # Current
 
 0.0.3:
-*
+* TAS can progress to the start of Noria mines (though it needs some handholding against Kefka's Ghost)
+* Improvements to knight combat
+* Zone transitions are now verified against memory
+* A lot of backend work to make RNG prediction possible
 
 # Older changelogs
 

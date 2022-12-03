@@ -6,7 +6,7 @@ from typing import List
 import evo1.control
 from engine.seq import SeqBase, SeqDelay
 from engine.navmap import NavMap
-from evo1.memory import GameFeatures, GameEntity2D, get_zelda_memory
+from evo1.memory import GameFeatures, GameEntity2D, get_zelda_memory, get_memory, MapID
 from term.curses import WindowLayout
 from engine.mathlib import Facing, facing_str, Vec2, is_close, dist, get_angle
 
@@ -108,14 +108,10 @@ class SeqGrabChest3D(SeqBase):
 
 
 class SeqZoneTransition(SeqBase):
-    def __init__(self, name: str, direction: Facing, timeout_in_s: float):
+    def __init__(self, name: str, direction: Facing, target_zone: MapID):
         self.direction = direction
-        self.timeout = timeout_in_s
-        self.timer = 0
+        self.target_zone = target_zone
         super().__init__(name)
-
-    def reset(self) -> None:
-        self.timer = 0
 
     def execute(self, delta: float, blackboard: dict) -> bool:
         ctrl = evo1.control.handle()
@@ -130,15 +126,15 @@ class SeqZoneTransition(SeqBase):
             case Facing.DOWN:
                 ctrl.dpad.down()
 
-        self.timer = self.timer + delta
-        if self.timer >= self.timeout:
-            self.timer = self.timeout
+        mem = get_memory()
+        if mem.get_map_id() == self.target_zone:
             ctrl.dpad.none()
+            logger.info(f"Transitioned to zone: {self.target_zone.name}")
             return True
         return False
 
     def __repr__(self) -> str:
-        return f"Transition to {self.name}, walking {facing_str(self.direction)} for {self.timer:.2f}/{self.timeout:.2f}"
+        return f"Transition to {self.name}, walking {facing_str(self.direction)}"
 
 
 class SeqAttack(SeqBase):

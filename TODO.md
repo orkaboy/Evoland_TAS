@@ -13,8 +13,7 @@
 * Cavern
     - Fix smarter ATB combat
 * Do more memory hunting
-    - ATB combat values
-    - 3D enemies are stored elsewhere in memory? find where
+    - ATB combat values (Atk, Def, Acc, Evade, ATB gauge, Invincibility)
 * 3D Movement and combat
     - Handle 3D enemy detection/tracking
     - Handle pathfinding past breakable objects
@@ -24,5 +23,3 @@
 * Write a sequence capture script that reads the memory and saves it, but doesn't control the game. Could possibly be used to "record" maps.
 
 * Test out stuff with the evo classic codebase (EKind etc.)
-* Map out RNG values from memory
-    - Can look at Haxe open source code + paper to see how it works

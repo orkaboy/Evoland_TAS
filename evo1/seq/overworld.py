@@ -3,6 +3,7 @@ from engine.mathlib import Facing, Vec2
 from engine.navmap import NavMap, AStar
 from evo1.atb import SeqATBmove2D, FarmingGoal
 from evo1.move2d import SeqZoneTransition, SeqGrabChest, SeqMove2D
+from evo1.memory import MapID
 
 _overworld_map = NavMap("evo1/maps/overworld.yaml")
 _overworld_astar = AStar(_overworld_map.map)
@@ -29,7 +30,7 @@ class OverworldToMeadow(SeqList):
                     goal=FarmingGoal(farm_coords=[Vec2(87, 44), Vec2(87, 43)], precision=0.2, gli_goal=200),
                     tilemap=_overworld_map
                 ),
-                SeqZoneTransition("Meadow", direction=Facing.UP, timeout_in_s=1.0),
+                SeqZoneTransition("Meadow", direction=Facing.UP, target_zone=MapID.MEADOW),
             ],
         )
 
@@ -45,7 +46,7 @@ class OverworldToCavern(SeqList):
                     tilemap=_overworld_map
                 ),
                 # Move into the caverns
-                SeqZoneTransition("Crystal Cavern", direction=Facing.UP, timeout_in_s=1.0)
+                SeqZoneTransition("Crystal Cavern", direction=Facing.UP, target_zone=MapID.CRYSTAL_CAVERN)
             ]
         )
 
@@ -58,6 +59,6 @@ class OverworldToNoria(SeqList):
                 SeqMove2D("Move to chest", coords=_overworld_astar.calculate(start=Vec2(79, 73), goal=Vec2(78, 76)), tilemap=_overworld_map),
                 SeqGrabChest("Perspective", direction=Facing.LEFT),
                 SeqMove2D("Move to mines", coords=_overworld_astar.calculate(start=Vec2(78, 76), goal=Vec2(75, 79)), tilemap=_overworld_map),
-                SeqZoneTransition("Noria Mines", direction=Facing.LEFT, timeout_in_s=0.5),
+                SeqZoneTransition("Noria Mines", direction=Facing.LEFT, target_zone=MapID.NORIA_CLOSED),
             ]
         )
