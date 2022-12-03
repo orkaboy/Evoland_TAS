@@ -19,6 +19,9 @@ class SeqBase(object):
     def reset(self) -> None:
         pass
 
+    def handle_input(self, input: str) -> None:
+        pass
+
     # Return true if the sequence is done with, or False if we should remain in this state
     def execute(self, delta: float, blackboard: dict) -> bool:
         blackboard |= self.annotations  # Apply the annotations to the blackboard
@@ -207,6 +210,8 @@ class SequencerEngine(object):
                 self.pause()
             else:
                 self.unpause()
+        else:
+            self.root.handle_input(c)
 
     def _get_deltatime(self) -> float:
         now = time.time()
