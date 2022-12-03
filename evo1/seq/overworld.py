@@ -2,7 +2,7 @@ from engine.seq import SeqList
 from engine.mathlib import Facing, Vec2
 from engine.navmap import NavMap, AStar
 from evo1.atb import SeqATBmove2D, FarmingGoal
-from evo1.move2d import SeqZoneTransition
+from evo1.move2d import SeqZoneTransition, SeqGrabChest, SeqMove2D
 
 _overworld_map = NavMap("evo1/maps/overworld.yaml")
 _overworld_astar = AStar(_overworld_map.map)
@@ -49,3 +49,15 @@ class OverworldToCavern(SeqList):
             ]
         )
 
+
+class OverworldToNoria(SeqList):
+    def __init__(self):
+        super().__init__(
+            name="Overworld",
+            children=[
+                SeqMove2D("Move to chest", coords=_overworld_astar.calculate(start=Vec2(79, 73), goal=Vec2(78, 76)), tilemap=_overworld_map),
+                SeqGrabChest("Perspective", direction=Facing.LEFT),
+                SeqMove2D("Move to mines", coords=_overworld_astar.calculate(start=Vec2(78, 76), goal=Vec2(75, 79)), tilemap=_overworld_map),
+                SeqZoneTransition("Noria Mines", direction=Facing.LEFT, timeout_in_s=0.5),
+            ]
+        )

@@ -6,7 +6,7 @@ import memory.core as core
 from engine.seq import SeqList, SeqLog, SeqOptional, SequencerEngine
 from evo1.checkpoints import Checkpoints
 from evo1.memory import load_memory, load_zelda_memory
-from evo1.seq import Edel1, Evoland1StartGame, OverworldToMeadow, MeadowFight, PapurikaVillage, OverworldToCavern, CrystalCavern
+from evo1.seq import Edel1, Evoland1StartGame, OverworldToMeadow, MeadowFight, PapurikaVillage, OverworldToCavern, CrystalCavern, Edel2, OverworldToNoria, NoriaMines
 from term.curses import WindowLayout
 from evo1.observer import SeqObserver2D
 
@@ -63,10 +63,9 @@ def perform_TAS(window: WindowLayout):
                             PapurikaVillage(),
                             OverworldToCavern(),
                             CrystalCavern(),
-                            # TODO: Navigate Edel Vale in 3D, solving puzzles and escaping to the south
-                            # TODO: Navigate through the Mines, solving puzzles
-                            # TODO: The TAS should abuse the menu bug and potentially deathwarp here (see speedrun)
-                            # TODO: Fight shadow Clink boss
+                            Edel2(),
+                            OverworldToNoria(),
+                            NoriaMines(),
                             # TODO: Glitch around the 3D combat chest to avoid more overworld encounters (watch speedrun)
                             # TODO: Navigate to Aogai village
                             # TODO: Have a long conversation with Sid

@@ -1,7 +1,7 @@
-from engine.seq import SeqDelay, SeqList
+from engine.seq import SeqList
 from engine.mathlib import Facing, Vec2, Box2
 from engine.navmap import NavMap, AStar
-from evo1.move2d import SeqAttack, SeqGrabChest, SeqMove2D, SeqMove2DClunkyCombat, SeqZoneTransition
+from evo1.move2d import SeqAttack, SeqGrabChest, SeqGrabChest3D, SeqMove2D, SeqMove2DClunkyCombat, SeqZoneTransition
 from evo1.knights import SeqKnight2D
 
 
@@ -127,47 +127,32 @@ class Edel1(SeqList):
         )
 
 
-
-
-
-
-# TODO REMOVE when knight fight is implemented fully
-class EdelExperimental(SeqList):
+class Edel2(SeqList):
     def __init__(self):
         super().__init__(
-            name="Knights",
+            name="Edel Vale",
             children=[
-                # TODO: This appears to be needed on load for some reason, or the game crashes
-                SeqDelay("Memory delay", timeout_in_s=1.0),
-                # TODO: DUMMY SEQUENCE, DO NOT USE UNLESS LOADING FROM SAVEPOINT
-                SeqMove2D(
-                    "Navigate to knights",
-                    coords=[
-                        Vec2(52, 36.5),
-                        Vec2(53, 36),
-                        Vec2(54.1, 33.5),  # Near left knight
-                    ],
-                    tilemap=_edel_vale_map
-                ),
-                # TODO: Keep testing from here
-                SeqMove2D(
-                    "Nudging the knights",
-                    precision=0.1,
-                    coords=[
-                        Vec2(55, 33),  # Nudge past left knight to activate
-                        Vec2(55.5, 33.1),  # Approach right knight
-                        Vec2(56, 34),  # Nudge past right knight to activate
-                        Vec2(55, 35),  # Retreat and prepare for combat!
-                    ],
-                    tilemap=_edel_vale_map
-                ),
-                # TODO: We need to kill two knights. These enemies must be killed with 3 attacks, but cannot be harmed from the front.
-                # TODO: Need to get hold of the enemies in question so we know when they are dead. Need to strategize for the best way to kill them without dying.
-                SeqKnight2D(
-                    "Killing two knights",
-                    arena=Box2(pos=Vec2(53, 32), w=5, h=4), # Valid arena to fight inside (should be clear of obstacles)
-                    targets=[Vec2(54, 33), Vec2(56, 33)], # Positions of enemies (known from start)
-                    tilemap=_edel_vale_map
-                ),
-            ],
+                # TODO: Implement 3D combat (need to track )
+                SeqMove2DClunkyCombat("Move to chest", coords=_edel_vale_astar.calculate(start=Vec2(10, 8), goal=Vec2(15, 14)), tilemap=_edel_vale_map),
+                SeqGrabChest3D("Hearts", direction=Facing.UP),
+                SeqMove2DClunkyCombat("Move to bush", coords=_edel_vale_astar.calculate(start=Vec2(15, 13), goal=Vec2(33, 19)), tilemap=_edel_vale_map),
+                SeqAttack("Bush"), # TODO: RIGHT
+                # TODO: Improve on sequence here
+                SeqMove2DClunkyCombat("Move to bush", coords=[Vec2(35, 19), Vec2(36, 20)], tilemap=_edel_vale_map),
+                SeqAttack("Bush"), # TODO: DOWN
+                SeqMove2DClunkyCombat("Move to bush", coords=[Vec2(36, 22), Vec2(34, 26)], tilemap=_edel_vale_map),
+                SeqAttack("Bush"), # TODO: DOWN
+                SeqMove2DClunkyCombat("Move past bush", coords=[Vec2(34, 28)], tilemap=_edel_vale_map),
+                SeqMove2DClunkyCombat("Move to bush", coords=_edel_vale_astar.calculate(start=Vec2(34, 28), goal=Vec2(58, 54)), tilemap=_edel_vale_map),
+                SeqAttack("Bush"), # TODO: DOWN
+                SeqMove2DClunkyCombat("Move past bush", coords=[Vec2(58, 60)], tilemap=_edel_vale_map),
+                # TODO: Optional? Health + 1
+                SeqMove2DClunkyCombat("Move to chest", coords=[Vec2(57, 60)], tilemap=_edel_vale_map),
+                SeqGrabChest3D("Health +1", direction=Facing.UP),
+                # TODO: End optional health + 1
+                SeqMove2DClunkyCombat("Move to end", coords=_edel_vale_astar.calculate(start=Vec2(57, 60), goal=Vec2(58, 78)), tilemap=_edel_vale_map),
+                # TODO: spam confirm
+                SeqMove2DClunkyCombat("Move to end", coords=[Vec2(58, 82)], tilemap=_edel_vale_map),
+                SeqZoneTransition("To overworld", direction=Facing.DOWN, timeout_in_s=0.5),
+            ]
         )

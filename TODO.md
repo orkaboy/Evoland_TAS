@@ -10,10 +10,19 @@
         + Predict where enemies will be/what areas are threatened
         + Incorporate the waittimer to path more efficiently
 * Add combat that can kill knights
-    + Set up plan
-    + Account for spaces that are threatened
+    - Set up plan
+    - Account for spaces that are threatened
+* Cavern
+    - Fix trigger tile (SeqHoldInPlace)
+    - Diagonal movement
+    - Fix smarter ATB combat
 * Do more memory hunting
     - Verify the stuff from the discord
+    - 3D enemies are stored elsewhere in memory? find where
+* 3D Movement and combat
+    - Handle 3D enemy detection/tracking
+    - Handle pathfinding past breakable objects
+    - Improve GrabChest logic (must be in correct position and approach). Can build together several steps into one
 
 * Fix the trigger issues in Crystal Caverns
 

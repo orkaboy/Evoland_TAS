@@ -3,7 +3,7 @@ import logging
 from typing import List
 
 import evo1.control
-from engine.seq import SeqBase
+from engine.seq import SeqBase, SeqDelay
 from engine.navmap import NavMap
 from evo1.memory import GameFeatures, GameEntity2D, get_zelda_memory
 from term.curses import WindowLayout
@@ -34,7 +34,7 @@ def move_to(player: Vec2, target: Vec2, precision: float, blackboard: dict) -> N
         ctrl.dpad.up()
 
 
-# TODO: Improve on class to be able to handle free move
+# TODO: Improve on class to be able to handle free move/3d
 class SeqGrabChest(SeqBase):
     def __init__(self, name: str, direction: Facing):
         self.dir = direction
@@ -60,6 +60,43 @@ class SeqGrabChest(SeqBase):
                     ctrl.dpad.tap_down()
         # Wait out any cutscene/pickup animation
         mem = get_zelda_memory()
+        return not mem.player.get_inv_open()
+
+    def __repr__(self) -> str:
+        return f"Chest({self.name})... awaiting control"
+
+
+# TODO: Improve on class to be able to handle free move/3D
+class SeqGrabChest3D(SeqBase):
+    def __init__(self, name: str, direction: Facing):
+        self.dir = direction
+        self.grabbed = False
+        super().__init__(name)
+
+    def reset(self) -> None:
+        self.grabbed = False
+
+    def execute(self, delta: float, blackboard: dict) -> bool:
+        ctrl = evo1.control.handle()
+        mem = get_zelda_memory()
+        if not self.grabbed:
+            match self.dir:
+                case Facing.LEFT:
+                    ctrl.dpad.left()
+                case Facing.RIGHT:
+                    ctrl.dpad.right()
+                case Facing.UP:
+                    ctrl.dpad.up()
+                case Facing.DOWN:
+                    ctrl.dpad.down()
+            if mem.player.get_inv_open():
+                logger.info(f"Picking up {self.name}!")
+                self.grabbed = True
+            return False
+        # Tap past any popups
+        ctrl.dpad.none()
+        ctrl.confirm(tapping=True)
+        # Wait out any cutscene/pickup animation
         return not mem.player.get_inv_open()
 
     def __repr__(self) -> str:
@@ -99,6 +136,7 @@ class SeqZoneTransition(SeqBase):
     def __repr__(self) -> str:
         return f"Transition to {self.name}, walking {facing_str(self.direction)} for {self.timer:.2f}/{self.timeout:.2f}"
 
+
 class SeqAttack(SeqBase):
     def __init__(self, name: str):
         super().__init__(name)
@@ -113,9 +151,57 @@ class SeqAttack(SeqBase):
         return f"Attack({self.name})"
 
 
+# Temp testing
+class SeqManualUntilClose(SeqBase):
+    def __init__(self, name: str, target: Vec2, precision: float = 0.2, annotations: dict = None, func=None):
+        self.target = target
+        self.precision = precision
+        super().__init__(name, annotations, func)
+
+    def execute(self, delta: float, blackboard: dict) -> bool:
+        super().execute(delta, blackboard)
+        # Stay still
+        ctrl = evo1.control.handle()
+        ctrl.dpad.none()
+        # Check if we have reached the goal
+        mem = get_zelda_memory()
+        player_pos = mem.player.get_pos()
+        return is_close(player_pos, self.target, precision=self.precision)
+
+    def __repr__(self) -> str:
+        return f"MANUAL CONTROL({self.name}) until reaching {self.target}"
+
+
+class SeqHoldInPlace(SeqDelay):
+    def __init__(self, name: str, target: Vec2, timeout_in_s: float, precision: float = 0.1):
+        self.target = target
+        self.precision = precision
+        self.timer = 0
+        super().__init__(name=name, timeout_in_s=timeout_in_s)
+
+    def execute(self, delta: float, blackboard: dict) -> bool:
+        mem = get_zelda_memory()
+        player_pos = mem.player.get_pos()
+        # If arrived, go to next coordinate in the list
+        if not is_close(player_pos, self.target, precision=self.precision):
+            move_to(player=player_pos, target=self.target, precision=self.precision, blackboard=blackboard)
+            return False
+        # Stay still
+        ctrl = evo1.control.handle()
+        ctrl.dpad.none()
+        # Wait for a while
+        self.timer = self.timer + delta
+        if self.timer >= self.timeout:
+            self.timer = self.timeout
+            return True
+        return False
+
+    def __repr__(self) -> str:
+        return f"Waiting({self.name}) at {self.target}... {self.timer:.2f}/{self.timeout:.2f}"
+
+
 # Base class for 2D movement areas
 class SeqSection2D(SeqBase):
-
     def __init__(self, name: str, tilemap: NavMap = None, annotations: dict = None, func=None):
         self.tilemap = tilemap
         super().__init__(name, annotations=annotations, func=func)

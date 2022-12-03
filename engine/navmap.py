@@ -96,6 +96,7 @@ class NavMap:
         SPIKES = 0xbae5fe
         HIDDEN_PASSAGE = 0x8294c8
         PUZZLE_TILE = 0xf7f6e9
+        VOID_GROUND = 0xe0e0e0
         # Actors
         SPAWN = 0xffffff
         CHEST = 0xffff00
