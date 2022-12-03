@@ -228,9 +228,6 @@ class AStar:
             # else (goal not reached), add to closed_list list and elaborate
             closed_list.append(node)
             for neighbor in self._neighbors(node, goal, free_move):
-                # Ignore nodes that are not traversible
-                if neighbor.pos not in self.map:
-                    continue
                 if neighbor in closed_list:
                     self._update_node(node, neighbor, closed_list)
                 elif neighbor in open_list:
@@ -246,19 +243,35 @@ class AStar:
             node_list[n_idx].parent = cur_node
 
     def _neighbors(self, node: Node, goal: Vec2, free_move: bool) -> List[Node]:
-        adjacent = [
-            # directly adjacent
-            AStar.Node(node.pos + Vec2(-1, 0), goal=goal, cost=node.cost+1, parent=node),
-            AStar.Node(node.pos + Vec2(1, 0), goal=goal, cost=node.cost+1, parent=node),
-            AStar.Node(node.pos + Vec2(0, -1), goal=goal, cost=node.cost+1, parent=node),
-            AStar.Node(node.pos + Vec2(0, 1), goal=goal, cost=node.cost+1, parent=node),
-        ]
+        adjacent = []
+        # directly adjacent
+        node_n = AStar.Node(node.pos + Vec2(0, -1), goal=goal, cost=node.cost+1, parent=node)
+        node_e = AStar.Node(node.pos + Vec2(1, 0), goal=goal, cost=node.cost+1, parent=node)
+        node_s = AStar.Node(node.pos + Vec2(0, 1), goal=goal, cost=node.cost+1, parent=node)
+        node_w = AStar.Node(node.pos + Vec2(-1, 0), goal=goal, cost=node.cost+1, parent=node)
+        # Ignore nodes that are not traversible
+        if node_n.pos in self.map:
+            adjacent.append(node_n)
+        if node_e.pos in self.map:
+            adjacent.append(node_e)
+        if node_s.pos in self.map:
+            adjacent.append(node_s)
+        if node_w.pos in self.map:
+            adjacent.append(node_w)
+        # diagonals
         if free_move:
-            adjacent.extend([
-            # diagonals
-                AStar.Node(node.pos + Vec2(-1, -1), goal=goal, cost=node.cost+1.4, parent=node),
-                AStar.Node(node.pos + Vec2(1, 1), goal=goal, cost=node.cost+1.4, parent=node),
-                AStar.Node(node.pos + Vec2(-1, 1), goal=goal, cost=node.cost+1.4, parent=node),
-                AStar.Node(node.pos + Vec2(1, -1), goal=goal, cost=node.cost+1.4, parent=node),
-            ])
+            node_nw = AStar.Node(node.pos + Vec2(-1, -1), goal=goal, cost=node.cost+1.4, parent=node)
+            node_ne = AStar.Node(node.pos + Vec2(1, -1), goal=goal, cost=node.cost+1.4, parent=node)
+            node_se = AStar.Node(node.pos + Vec2(1, 1), goal=goal, cost=node.cost+1.4, parent=node)
+            node_sw = AStar.Node(node.pos + Vec2(-1, 1), goal=goal, cost=node.cost+1.4, parent=node)
+            # Ignore nodes that are not traversible
+            # Only allow nodes we can easily walk to without hitting stuff in the way (disallow hugging walls)
+            if node_nw.pos in self.map and node_n.pos in self.map and node_w.pos in self.map:
+                adjacent.append(node_nw)
+            if node_ne.pos in self.map and node_n.pos in self.map and node_e.pos in self.map:
+                adjacent.append(node_ne)
+            if node_se.pos in self.map and node_s.pos in self.map and node_e.pos in self.map:
+                adjacent.append(node_se)
+            if node_sw.pos in self.map and node_s.pos in self.map and node_w.pos in self.map:
+                adjacent.append(node_sw)
         return adjacent

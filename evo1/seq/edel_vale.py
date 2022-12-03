@@ -133,7 +133,7 @@ class Edel2(SeqList):
         super().__init__(
             name="Edel Vale",
             children=[
-                # TODO: Implement 3D combat (need to track )
+                # TODO: Implement 3D combat (need to track 3D entities)
                 SeqMove2DClunkyCombat("Move to chest", coords=_edel_vale_astar.calculate(start=Vec2(10, 8), goal=Vec2(15, 14)), tilemap=_edel_vale_map),
                 SeqGrabChest3D("Hearts", direction=Facing.UP),
                 SeqMove2DClunkyCombat("Move to bush", coords=_edel_vale_astar.calculate(start=Vec2(15, 13), goal=Vec2(33, 19)), tilemap=_edel_vale_map),
