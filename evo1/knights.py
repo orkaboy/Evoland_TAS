@@ -2,7 +2,7 @@ import contextlib
 import logging
 from typing import List
 
-from engine.mathlib import Facing, Vec2, Box2, grow_box, get_2d_facing_from_dir, dist
+from engine.mathlib import Facing, Vec2, Box2, get_box_with_size, grow_box, get_2d_facing_from_dir, dist
 from engine.navmap import NavMap
 from evo1.memory import GameEntity2D, ZeldaMemory, get_zelda_memory
 from evo1.move2d import SeqSection2D, move_to
@@ -11,9 +11,6 @@ from term.curses import WindowLayout
 
 logger = logging.getLogger(__name__)
 
-
-def _get_tracker(last_pos: Vec2, movement: float) -> Box2:
-    return Box2(pos=Vec2(last_pos.x - movement, last_pos.y - movement), w=2*movement, h=2*movement)
 
 class SeqKnight2D(SeqSection2D):
 
@@ -29,7 +26,7 @@ class SeqKnight2D(SeqSection2D):
                     if actor.get_kind() != GameEntity2D.EKind.ENEMY:
                         continue
                     enemy_pos = actor.get_pos()
-                    search_box = _get_tracker(last_pos=enemy_pos, movement=track_size)
+                    search_box = get_box_with_size(center=enemy_pos, half_size=track_size)
                     for target in targets_copy:
                         # Check if target is found. If so, initialize the tracking entity
                         if search_box.contains(target):
@@ -47,7 +44,7 @@ class SeqKnight2D(SeqSection2D):
             return len(self.targets)
 
     # TODO: Change List[Vec2] to some kind of ID or monster structure instead to make tracking easier
-    def __init__(self, name: str, arena: Box2, targets: List[Vec2], track_size: float = 0.2, precision: float = 0.2, tilemap: NavMap = None) -> None:
+    def __init__(self, name: str, arena: Box2, targets: List[Vec2], track_size: float = 1.2, precision: float = 0.2, tilemap: NavMap = None) -> None:
         self.plan = None
         self.arena = arena
         self.target_coords = targets
@@ -62,14 +59,13 @@ class SeqKnight2D(SeqSection2D):
     def execute(self, delta: float, blackboard: dict) -> bool:
         mem = get_zelda_memory()
 
-        # TODO Track decisions, so we are not being wishy-washy
         if self.plan is None:
             self.plan = SeqKnight2D._Plan(mem=mem, targets=self.target_coords, track_size=self.track_size)
 
-        # TODO: Should reuse the stuff from move2d or refactor out?
         with contextlib.suppress(
             ReferenceError
         ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
+            # TODO Track decisions, so we are not being wishy-washy
             for target in self.plan.targets:
                 if self._try_move_into_position_and_attack(target=target, blackboard=blackboard):
                     continue
@@ -112,7 +108,7 @@ class SeqKnight2D(SeqSection2D):
         ctrl = evo1.control.handle()
         mem = get_zelda_memory()
         player_pos = mem.player.get_pos()
-        box = _get_tracker(player_pos, self.precision)
+        box = get_box_with_size(center=player_pos, half_size=self.precision)
         # Check facing (are we facing enemy)
         dir_to_enemy = target.get_pos() - player_pos
         facing_to_enemy = get_2d_facing_from_dir(dir_to_enemy)
@@ -134,26 +130,36 @@ class SeqKnight2D(SeqSection2D):
                 return False
         return False # Couldn't attack this target right now
 
+    def _find_closest_point(self, origin: Vec2, points: List[Vec2]) -> Vec2:
+        closest_point = None
+        closest_dist = 999
+        for point in points:
+            dist_to_point = dist(origin, point)
+            if dist_to_point < closest_dist:
+                closest_dist = dist_to_point
+                closest_point = point
+        return closest_point
+
     def _try_move_into_position_and_attack(self, target: GameEntity2D, blackboard: dict) -> bool:
         # Find all the ways that the knight is vulnerable
         attack_vectors = self._get_attack_vectors(target=target)
-        # TODO: Filter out invalid/threatened positions
+        # TODO: Filter out invalid positions due to pathing
+        # Filter out threatened positions so we don't walk into another enemy
+        for enemy in self.plan.targets:
+            # For each enemy get a hitbox around them
+            enemy_hitbox = get_box_with_size(center=enemy.get_pos(), half_size=0.3) # TODO: enemy collision magic number. Get bounds
+            # Remove any weak points that fall inside the enemy hitbox
+            attack_vectors = [wp for wp in attack_vectors if not enemy_hitbox.contains(wp)]
         if len(attack_vectors) == 0:
             return False
         # Find the closest point to attack
         mem = get_zelda_memory()
         player_pos = mem.player.get_pos()
-        closest_weak_point = None
-        closest_dist = 999
-        for weak_spot in attack_vectors:
-            d = dist(player_pos, weak_spot)
-            if d < closest_dist:
-                closest_dist = d
-                closest_weak_point = weak_spot
+        closest_weak_spot = self._find_closest_point(origin=player_pos, points=attack_vectors)
         # Move towards target weak point
-        move_to(player=player_pos, target=closest_weak_point, precision=self.precision, blackboard=blackboard)
+        move_to(player=player_pos, target=closest_weak_spot, precision=self.precision, blackboard=blackboard)
         # Attempt to attack if in range
-        return self._try_attack(target=target, weak_spot=closest_weak_point)
+        return self._try_attack(target=target, weak_spot=closest_weak_spot)
 
     def render(self, window: WindowLayout, blackboard: dict) -> None:
         # Update stats window

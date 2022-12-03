@@ -75,6 +75,11 @@ class Box2(NamedTuple):
     def br(self) -> Vec2:
         return Vec2(self.pos.x + self.w, self.pos.y + self.h)
 
+
+def get_box_with_size(center: Vec2, half_size: float) -> Box2:
+    return Box2(pos=Vec2(center.x - half_size, center.y - half_size), w=2*half_size, h=2*half_size)
+
+
 # expand the box by a set amount in all directions
 def grow_box(box: Box2, amount: int = 1) -> Box2:
     return Box2(

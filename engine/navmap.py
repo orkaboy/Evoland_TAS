@@ -217,7 +217,7 @@ class AStar:
     def __init__(self, map_nodes: List[Vec2]) -> None:
         self.map = map_nodes
 
-    def calculate(self, start: Vec2, goal: Vec2) -> List[Vec2]:
+    def calculate(self, start: Vec2, goal: Vec2, free_move: bool = True) -> List[Vec2]:
         open_list = [AStar.Node(start, goal)]
         closed_list: List[AStar.Node] = []
         while open_list:
@@ -227,7 +227,7 @@ class AStar:
                 return node.trace_path()
             # else (goal not reached), add to closed_list list and elaborate
             closed_list.append(node)
-            for neighbor in self._neighbors(node, goal):
+            for neighbor in self._neighbors(node, goal, free_move):
                 # Ignore nodes that are not traversible
                 if neighbor.pos not in self.map:
                     continue
@@ -245,17 +245,20 @@ class AStar:
             node_list[n_idx].cost = neighbor.cost
             node_list[n_idx].parent = cur_node
 
-    def _neighbors(self, node: Node, goal: Vec2) -> List[Node]:
-        return [
+    def _neighbors(self, node: Node, goal: Vec2, free_move: bool) -> List[Node]:
+        adjacent = [
             # directly adjacent
             AStar.Node(node.pos + Vec2(-1, 0), goal=goal, cost=node.cost+1, parent=node),
             AStar.Node(node.pos + Vec2(1, 0), goal=goal, cost=node.cost+1, parent=node),
             AStar.Node(node.pos + Vec2(0, -1), goal=goal, cost=node.cost+1, parent=node),
             AStar.Node(node.pos + Vec2(0, 1), goal=goal, cost=node.cost+1, parent=node),
-            # diagonals
-            #AStar.Node(node.pos + Vec2(-1, -1), goal=goal, cost=node.cost+1.4, parent=node),
-            #AStar.Node(node.pos + Vec2(1, 1), goal=goal, cost=node.cost+1.4, parent=node),
-            #AStar.Node(node.pos + Vec2(-1, 1), goal=goal, cost=node.cost+1.4, parent=node),
-            #AStar.Node(node.pos + Vec2(1, -1), goal=goal, cost=node.cost+1.4, parent=node),
         ]
-
+        if free_move:
+            adjacent.extend([
+            # diagonals
+                AStar.Node(node.pos + Vec2(-1, -1), goal=goal, cost=node.cost+1.4, parent=node),
+                AStar.Node(node.pos + Vec2(1, 1), goal=goal, cost=node.cost+1.4, parent=node),
+                AStar.Node(node.pos + Vec2(-1, 1), goal=goal, cost=node.cost+1.4, parent=node),
+                AStar.Node(node.pos + Vec2(1, -1), goal=goal, cost=node.cost+1.4, parent=node),
+            ])
+        return adjacent

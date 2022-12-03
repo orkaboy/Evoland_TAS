@@ -1,3 +1,4 @@
+import math
 import contextlib
 import logging
 from typing import List
@@ -80,6 +81,7 @@ class SeqGrabChest3D(SeqBase):
         ctrl = evo1.control.handle()
         mem = get_zelda_memory()
         if not self.grabbed:
+            ctrl.dpad.none()
             match self.dir:
                 case Facing.LEFT:
                     ctrl.dpad.left()
@@ -100,7 +102,9 @@ class SeqGrabChest3D(SeqBase):
         return not mem.player.get_inv_open()
 
     def __repr__(self) -> str:
-        return f"Chest({self.name})... awaiting control"
+        if self.grabbed:
+            return f"Chest({self.name})... awaiting control"
+        return f"Chest({self.name})... grabbing"
 
 
 class SeqZoneTransition(SeqBase):
@@ -365,6 +369,7 @@ class SeqMove2DClunkyCombat(SeqMove2D):
     # ============
     # = Algoritm =
     # ============
+    # TODO: Implement
     # * Check where we are going in the next few steps (TODO: need to know player speed)
     # * Check where nearby enemies are, and which squares are threatened. Enemies has a threat of 1 in the current square they are in, 0.5 in adjacent (transferred over when moving)
     # * Adjacent threat is adjusted by timer
@@ -394,23 +399,19 @@ class SeqMove2DClunkyCombat(SeqMove2D):
 
     def _clunky_counter_with_sword(self, angle: float, enemy_angle: float) -> None:
         # If in front, attack!
-        if abs(angle) < 0.7:  # TODO Arbitrary magic number, angle difference between where we are heading and where the enemy is
+        if abs(angle) < math.pi/4:  # TODO Arbitrary magic number, angle difference between where we are heading and where the enemy is
             ctrl = evo1.control.handle()
             ctrl.attack(tapping=False)
-        elif abs(angle) <= 1.5:  # TODO On our sides
+        elif abs(angle) <= math.pi/2:  # TODO On our sides
             ctrl = evo1.control.handle()
             ctrl.attack(tapping=False)
             ctrl.dpad.none()
-            # Turn and attack
-            if abs(enemy_angle) < 0.7:
-                # logger.debug("Attacking right")
+            # Turn and attack (angle is in the range +PI to -PI, with 0 to our right)
+            if abs(enemy_angle) < math.pi/4:
                 ctrl.dpad.right()
-            elif abs(enemy_angle) > 2:
-                # logger.debug("Attacking left")
+            elif abs(enemy_angle) > 3*math.pi/4:
                 ctrl.dpad.left()
             elif enemy_angle > 0:
-                # logger.debug("Attacking down")
                 ctrl.dpad.down()
             else:
-                # logger.debug("Attacking up")
                 ctrl.dpad.up()
