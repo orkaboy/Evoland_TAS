@@ -88,7 +88,7 @@ class SeqRngObserver(SeqBase):
         for i in range(EvolandRNG.RNG_VALS):
             y = y_offset + 1 + i // self.COLUMNS
             x = 2 + (i % self.COLUMNS) * self.VAL_WIDTH
-            if i == rng.cursor:
+            if i == (rng.cursor % EvolandRNG.RNG_VALS):
                 window.main.addstr(y, x-1, f"<{rng.values[i]:#010x}>")
             else:
                 window.main.addstr(y, x, f"{rng.values[i]:#010x}")
