@@ -18,6 +18,20 @@ class GameFeatures(Flag):
 _LIBHL_OFFSET = 0x0004914C
 
 
+
+# TODO RNG Calculations
+# Evoland1 specific stuff
+
+# Clinks attack in ATB combat
+# Att + (0.5 * Att * random_float) - enemy_def
+
+# Maybe correct formulas for stats. Should be readable in memory while in combat
+# Att: 8 + round(level / 3) + modifiers
+# Def:  0 + floor(level / 3) + modifiers
+# HP: 100 + (ceil(level / 3) * 5 - 5)
+
+
+
 # TODO: Refactor (currently only used in very specific cases)
 class Evoland1Memory:
 
@@ -211,11 +225,11 @@ class ZeldaMemory:
     # Zelda-related things:
     _ZELDA_PTR = [0x7C8, 0x8, 0x3C]
     _PLAYER_PTR = [0x30]
-    _ACTOR_ARR_PTR = [0x48, 0x8]
 
-    _ACTOR_ARR_SIZE_PTR = [0x38, 0x88, 0x8, 0xC]
+    _ACTOR_ARR_PTR = [0x48, 0x8]
+    _ACTOR_ARR_SIZE_PTR = [0x48, 0x4]
     _ACTOR_PTR_SIZE = 4
-    _ACTOR_BASE_ADDR = 0x10  # TODO: Need to verify this one
+    _ACTOR_BASE_ADDR = 0x10
 
     def __init__(self):
         mem_handle = memory.core.handle()
