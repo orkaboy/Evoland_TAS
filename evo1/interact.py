@@ -22,13 +22,13 @@ class SeqInteract(SeqBase):
         ctrl.confirm(tapping=True)
         # Wait out any cutscene/pickup animation
         mem = get_zelda_memory()
-        return not mem.player.get_inv_open() and self.timer >= self.timeout_in_s
+        return mem.player.in_control and self.timer >= self.timeout_in_s
 
 
 class SeqWaitForControl(SeqBase):
     def execute(self, delta: float, blackboard: dict) -> bool:
         mem = get_zelda_memory()
-        return not mem.player.get_inv_open()
+        return mem.player.in_control
 
     def __repr__(self) -> str:
         return f"Wait for control ({self.name})"

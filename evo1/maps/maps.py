@@ -30,7 +30,7 @@ _maps = {
 
 def CurrentTilemap() -> Optional[TileMap]:
     mem = get_memory()
-    current_map = mem.get_map_id()
+    current_map = mem.map_id
     return navmap.tilemap if (navmap := _maps.get(current_map)) else None
 
 

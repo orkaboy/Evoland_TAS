@@ -121,6 +121,10 @@ class BattleMemory:
     _FIRST_ENT_OFFSET = 0x10 # Offset from base ptr
     _ENT_PTR_SIZE = 0x4 # 0x10, 0x14...
 
+    # Only valid when menu is open
+    # TODO: Implement
+    _PLAYER_ATB_MENU_CURSOR_PTR = [0x48, 0x8C]
+
     def __init__(self):
         mem_handle = memory.core.handle()
         self.process = mem_handle.process
@@ -165,30 +169,12 @@ class Evoland1Memory:
     # TODO: Verify these are useful/correct (got from mem searching)
     _PLAYER_MAX_HP_ZELDA_PTR = [0x7FC, 0x8, 0x30, 0x80, 0x0]
     _PLAYER_HP_OVERWORLD_PTR = [0x7FC, 0x8, 0x30, 0x3C, 0x0]
-    _KAERIS_HP_OVERWORLD_PTR = [0x7FC, 0x8, 0x30, 0x48]
+    #_KAERIS_HP_OVERWORLD_PTR = [0x7FC, 0x8, 0x30, 0x48] # TODO: Verify, looks wrong
     _LEVEL_ARRAY_SIZE_PTR = [0x7FC, 0x8, 0x30, 0x78, 0x0, 0x4] # Should be 2
     _PLAYER_LVL_PTR = [0x7FC, 0x8, 0x30, 0x78, 0x0, 0x8, 0x10, 0x8, 0x0] # int
     _PLAYER_EXP_PTR = [0x7FC, 0x8, 0x30, 0x78, 0x0, 0x8, 0x10, 0x8, 0x4] # int
     _KAERIS_LVL_PTR = [0x7FC, 0x8, 0x30, 0x78, 0x0, 0x8, 0x14, 0x8, 0x0] # int
     _KAERIS_EXP_PTR = [0x7FC, 0x8, 0x30, 0x78, 0x0, 0x8, 0x14, 0x8, 0x4] # int
-
-    # TODO: Split battle stuff into own memory block
-    # TODO: Split battle actor into own entity
-    # Only valid in atb battle
-    _PLAYER_ATB_SIZE_PTR = [0x860, 0x0, 0x244, 0x2C, 0x8, 0x8] # int, num allies
-    _PLAYER_ATB_MAX_HP_PTR = [0x860, 0x0, 0x244, 0x2C, 0x8, 0x10, 0xF0] # int
-    _PLAYER_ATB_CUR_HP_PTR = [0x860, 0x0, 0x244, 0x2C, 0x8, 0x10, 0xF4] # int
-    _PLAYER_ATB_ATK_PTR = [0x860, 0x0, 0x244, 0x2C, 0x8, 0x10, 0xF8] # int
-    _PLAYER_ATB_DEF_PTR = [0x860, 0x0, 0x244, 0x2C, 0x8, 0x10, 0xFC] # int
-    #_PLAYER_ATB_CUR_HP_PTR = [0x860, 0x0, 0x244, 0x2C, 0x8, 0x10, 0x104] # int: 12? Acc??
-    _PLAYER_ATB_TURN_GAUGE_PTR = [0x860, 0x0, 0x244, 0x2C, 0x8, 0x10, 0x110] # double: [0-1.0]
-    #_PLAYER_ATB_CUR_HP_PTR = [0x860, 0x0, 0x244, 0x2C, 0x8, 0x14, *] # Kaeris stats block
-
-    #_ENEMY_ATB_MAX_HP_PTR = [0x860, 0x0, 0x244, 0x30, 0x8, 0x8] # Num combatants
-    _ENEMY_ATB_MAX_HP_PTR = [0x860, 0x0, 0x244, 0x30, 0x8, 0x10, 0xF0]
-    _ENEMY_ATB_CUR_HP_PTR = [0x860, 0x0, 0x244, 0x30, 0x8, 0x10, 0xF4]
-    # Only valid when menu is open
-    _PLAYER_ATB_MENU_CURSOR_PTR = [0x860, 0x0, 0x244, 0x48, 0x8C]
 
     def __init__(self):
         mem_handle = memory.core.handle()
@@ -208,37 +194,28 @@ class Evoland1Memory:
         )
 
     # Only valid in zelda map
-    def get_player_hearts(self) -> float:
+    @property
+    def player_hearts(self) -> float:
         player_hearts_ptr = self.process.get_pointer(
             self.base_addr + _LIBHL_OFFSET, offsets=self._PLAYER_HP_ZELDA_PTR
         )
         return self.process.read_double(player_hearts_ptr)
 
-    def get_gli(self) -> int:
+    @property
+    def gli(self) -> int:
         return self.process.read_u32(self.gli_ptr)
 
-    def get_lvl(self) -> int:
-        # TODO: Implement level
+    @property
+    def lvl(self) -> int:
+        # TODO: Implement player level
         return 1
 
-    def get_map_id(self) -> MapID:
+    @property
+    def map_id(self) -> MapID:
         return MapID(self.process.read_u32(self.map_id_ptr))
 
-    # Only valid in battle!
-    def get_atb_player_hp(self) -> int:
-        atb_player_hp_ptr = self.process.get_pointer(
-            self.base_addr + _LIBHL_OFFSET, offsets=self._PLAYER_ATB_CUR_HP_PTR
-        )
-        return self.process.read_u32(atb_player_hp_ptr)
-
-    def get_atb_menu_cursor(self) -> int:
-        atb_menu_cursor_ptr = self.process.get_pointer(
-            self.base_addr + _LIBHL_OFFSET,
-            offsets=self._PLAYER_ATB_MENU_CURSOR_PTR,
-        )
-        return self.process.read_u32(atb_menu_cursor_ptr)
-
-    def get_player_hp_overworld(self) -> int:
+    @property
+    def player_hp_overworld(self) -> int:
         return self.process.read_u32(self.player_hp_overworld_ptr)
 
 
@@ -270,12 +247,9 @@ class GameEntity2D:
     _ATTACK_PTR = [0x5C]  # byte, bit 5
     _ROTATION_PTR = [0x90]  # double (left = 0.0, up = 1.57, right = 3.14, down = -1.57)
     _HP_PTR = [0x100]  # int, for enemies such as knights
-    # TODO Verify these
-    #_ATTACK_TIMER_PTR = [0xC8]  # double unclear purpose, resets when swinging sword
+    #TODO: _ATTACK_TIMER_PTR = [0xC8]  # double. unclear purpose, resets when swinging sword
     _ENCOUNTER_TIMER_PTR = [0xD0]  # double. Steps to encounter
-    # This seems to be set on picking up stuff/opening inventory/opening menu, may be misnamed. Invincibility flag?
-    # This is also marked when in ATB combat. GUI open?
-    _INV_OPEN_PTR = [0xA4]
+    _IN_CONTROL_PTR = [0xA4]
 
     def __init__(self, process: LocProcess, entity_ptr: int):
         self.process = process
@@ -313,8 +287,8 @@ class GameEntity2D:
         self.hp_ptr = self.process.get_pointer(
             self.entity_ptr, offsets=self._HP_PTR
         )
-        self.inv_open_ptr = self.process.get_pointer(
-            self.entity_ptr, offsets=self._INV_OPEN_PTR
+        self.in_control_ptr = self.process.get_pointer(
+            self.entity_ptr, offsets=self._IN_CONTROL_PTR
         )
         self.encounter_timer_ptr = self.process.get_pointer(
             self.entity_ptr, offsets=self._ENCOUNTER_TIMER_PTR
@@ -331,8 +305,8 @@ class GameEntity2D:
         SPECIAL = 7
         UNKNOWN = 999
 
-    # TODO: EKind Enum instead of str
-    def get_kind(self) -> EKind:
+    @property
+    def kind(self) -> EKind:
         kind_val = self.process.read_u32(self.ent_kind_ptr)
         try:
             return GameEntity2D.EKind(kind_val)
@@ -340,22 +314,26 @@ class GameEntity2D:
             logger.error(f"Unknown GameEntity2D EKind: {kind_val}")
             return GameEntity2D.EKind.UNKNOWN
 
-    def get_pos(self) -> Vec2:
+    @property
+    def pos(self) -> Vec2:
         return Vec2(
             self.process.read_double(self.x_ptr),
             self.process.read_double(self.y_ptr),
         )
 
-    def get_tile_pos(self) -> Tuple[int, int]:
+    @property
+    def tile_pos(self) -> Tuple[int, int]:
         return [
             self.process.read_u32(self.x_tile_ptr),
             self.process.read_u32(self.y_tile_ptr),
         ]
 
-    def get_speed(self) -> float:
+    @property
+    def speed(self) -> float:
         return self.process.read_double(self.speed_ptr)
 
-    def get_target(self) -> Optional[Vec2]:
+    @property
+    def target(self) -> Optional[Vec2]:
         target_ptr = self.process.read_u32(self.target_ptr)
         if target_ptr != 0:
             return Vec2(
@@ -364,33 +342,44 @@ class GameEntity2D:
             )
         return None
 
-    def get_timer(self) -> float:
+    @property
+    def timer(self) -> float:
         return self.process.read_double(self.timer_ptr)
 
     # 0=left,1=right,2=up,3=down. Doesn't do diagonal facings.
-    def get_facing(self) -> Facing:
+    @property
+    def facing(self) -> Facing:
         return self.process.read_u32(self.facing_ptr)
 
-    def get_attacking(self) -> bool:
+    @property
+    def is_attacking(self) -> bool:
         attacking = self.process.read_u8(self.attack_ptr)
         return attacking & 0x10  # Bit5 denotes attacking
 
-    def get_rotation(self) -> float:
+    @property
+    def rotation(self) -> float:
         return self.process.read_double(self.rotation_ptr)
 
-    def get_hp(self) -> int:
+    @property
+    def hp(self) -> int:
         return self.process.read_u32(self.hp_ptr)
 
-    def get_inv_open(self) -> bool:
-        return self.process.read_u8(self.inv_open_ptr) == 1
+    @property
+    def not_in_control(self) -> bool:
+        return self.process.read_u8(self.in_control_ptr) == 1
 
-    def get_encounter_timer(self) -> float:
+    @property
+    def in_control(self) -> bool:
+        return self.process.read_u8(self.in_control_ptr) == 0
+
+    @property
+    def encounter_timer(self) -> float:
         return self.process.read_double(self.encounter_timer_ptr)
 
     def __repr__(self) -> str:
-        kind = self.get_kind()
-        hp_str = f", hp: {self.get_hp()}" if kind == self.EKind.ENEMY else ""
-        return f"Ent({kind.name}, {self.get_pos()}{hp_str})"
+        kind = self.kind
+        hp_str = f", hp: {self.hp}" if kind == self.EKind.ENEMY else ""
+        return f"Ent({kind.name}, {self.pos}{hp_str})"
 
 
 class ZeldaMemory:

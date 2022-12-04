@@ -36,7 +36,7 @@ class EncounterID(Enum):
 
 def calc_next_encounter(has_3d_monsters: bool = False) -> EncounterID:
     rng = EvolandRNG().get_rng()
-    map_id = get_memory().get_map_id()
+    map_id = get_memory().map_id
     modulo = 0xA
     if map_id == MapID.CRYSTAL_CAVERN:
         lut_value = (rng.rand_int() & 0x3fffffff) % modulo
@@ -79,7 +79,7 @@ class FarmingGoal:
         # Move towards target
         target = self.farm_coords[self.step]
         mem = get_zelda_memory()
-        cur_pos = mem.player.get_pos()
+        cur_pos = mem.player.pos
 
         move_to(player=cur_pos, target=target, precision=self.precision, blackboard=blackboard)
 
@@ -90,19 +90,19 @@ class FarmingGoal:
     def is_done(self) -> bool:
         # Check that farming goals are met
         mem = get_memory()
-        gli_goal_met = mem.get_gli() >= self.gli_goal if self.gli_goal else True
-        lvl_goal_met = mem.get_lvl() >= self.lvl_goal if self.lvl_goal else True
+        gli_goal_met = mem.gli >= self.gli_goal if self.gli_goal else True
+        lvl_goal_met = mem.lvl >= self.lvl_goal if self.lvl_goal else True
         # Check that we are in the last position of the farm cycle
         mem = get_zelda_memory()
-        cur_pos = mem.player.get_pos()
+        cur_pos = mem.player.pos
         last_pos = self.farm_coords[-1]
         nav_done = is_close(cur_pos, last_pos, self.precision)
         return gli_goal_met and lvl_goal_met and nav_done
 
     def __repr__(self) -> str:
         mem = get_memory()
-        gli_goal = f" {mem.get_gli()}/{self.gli_goal} gli" if self.gli_goal else ""
-        lvl_goal = f" {mem.get_lvl()}/{self.lvl_goal} lvl" if self.lvl_goal else ""
+        gli_goal = f" {mem.gli}/{self.gli_goal} gli" if self.gli_goal else ""
+        lvl_goal = f" {mem.lvl}/{self.lvl_goal} lvl" if self.lvl_goal else ""
         return f"Farming goal:{gli_goal}{lvl_goal}"
 
 
@@ -128,7 +128,7 @@ class SeqATBmove2D(SeqMove2D):
     def execute(self, delta: float, blackboard: dict) -> bool:
         mem = get_zelda_memory()
         # For some reason, this flag is set when in ATB combat
-        if mem.player.get_inv_open():
+        if mem.player.not_in_control:
             self._handle_combat()
             return False
         else:
@@ -151,7 +151,7 @@ class SeqATBmove2D(SeqMove2D):
 
         if self.next_enc:
             mem = get_zelda_memory()
-            enc_timer = mem.player.get_encounter_timer()
+            enc_timer = mem.player.encounter_timer
             window.stats.addstr(12, 1, f" Next encounter ({enc_timer:.3f}):")
             window.stats.addstr(13, 1, f"  {self.next_enc.name}")
 

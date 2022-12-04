@@ -24,9 +24,9 @@ class SeqKnight2D(SeqSection2D):
                     ReferenceError
                 ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
                 for actor in mem.actors:
-                    if actor.get_kind() != GameEntity2D.EKind.ENEMY:
+                    if actor.kind != GameEntity2D.EKind.ENEMY:
                         continue
-                    enemy_pos = actor.get_pos()
+                    enemy_pos = actor.pos
                     search_box = get_box_with_size(center=enemy_pos, half_size=track_size)
                     for target in targets_copy:
                         # Check if target is found. If so, initialize the tracking entity
@@ -43,9 +43,9 @@ class SeqKnight2D(SeqSection2D):
                 return self.next_target
 
             mem = get_zelda_memory()
-            player_pos = mem.player.get_pos()
+            player_pos = mem.player.pos
             # Using key sorting, order by closest target to player
-            key_list = [(dist(player_pos, target.get_pos()), target) for target in self.targets]
+            key_list = [(dist(player_pos, target.pos), target) for target in self.targets]
             sorted_list = sorted(key_list)
             if sorted_list:
                 self.next_target = sorted_list[0][1]
@@ -54,7 +54,7 @@ class SeqKnight2D(SeqSection2D):
                 return None
 
         def remove_dead(self) -> None:
-            self.targets = [enemy for enemy in self.targets if enemy.get_hp() > 0]
+            self.targets = [enemy for enemy in self.targets if enemy.hp > 0]
             if self.next_target not in self.targets:
                 self.next_target = None
 
@@ -102,8 +102,8 @@ class SeqKnight2D(SeqSection2D):
         return False
 
     def _get_attack_vectors(self, target: GameEntity2D) -> List[Vec2]:
-        enemy_facing = target.get_facing()
-        enemy_pos = target.get_pos()
+        enemy_facing = target.facing
+        enemy_pos = target.pos
         match enemy_facing:
             case Facing.UP:
                 forward = Vec2(0, -1)
@@ -129,12 +129,12 @@ class SeqKnight2D(SeqSection2D):
     def _try_attack(self, target: GameEntity2D, weak_spot: Vec2) -> bool:
         ctrl = evo1.control.handle()
         mem = get_zelda_memory()
-        player_pos = mem.player.get_pos()
+        player_pos = mem.player.pos
         box = get_box_with_size(center=player_pos, half_size=self.precision)
         # Check facing (are we facing enemy)
-        dir_to_enemy = target.get_pos() - player_pos
+        dir_to_enemy = target.pos - player_pos
         facing_to_enemy = get_2d_facing_from_dir(dir_to_enemy)
-        player_facing = mem.player.get_facing()
+        player_facing = mem.player.facing
         # Check position (must be in range, in a weak spot)
         if box.contains(weak_spot):
             if player_facing == facing_to_enemy:
@@ -169,14 +169,14 @@ class SeqKnight2D(SeqSection2D):
         # Filter out threatened positions so we don't walk into another enemy
         for enemy in self.plan.targets:
             # For each enemy get a hitbox around them
-            enemy_hitbox = get_box_with_size(center=enemy.get_pos(), half_size=0.3) # TODO: enemy collision magic number. Get bounds
+            enemy_hitbox = get_box_with_size(center=enemy.pos, half_size=0.3) # TODO: enemy collision magic number. Get bounds
             # Remove any weak points that fall inside the enemy hitbox
             attack_vectors = [wp for wp in attack_vectors if not enemy_hitbox.contains(wp)]
         if len(attack_vectors) == 0:
             return False
         # Find the closest point to attack
         mem = get_zelda_memory()
-        player_pos = mem.player.get_pos()
+        player_pos = mem.player.pos
         closest_weak_spot = self._find_closest_point(origin=player_pos, points=attack_vectors)
         # Move towards target weak point
         move_to(player=player_pos, target=closest_weak_spot, precision=self.precision, blackboard=blackboard)
@@ -193,7 +193,7 @@ class SeqKnight2D(SeqSection2D):
         # Draw a box representing the arena on the map. The representation is one tile
         # bigger so no entities inside the actual arena are overwritten.
         mem = get_zelda_memory()
-        center = mem.player.get_pos()
+        center = mem.player.pos
 
         arena_borders = grow_box(self.arena, 1)
         # Print corners

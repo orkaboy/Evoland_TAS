@@ -61,7 +61,7 @@ class SeqGrabChest(SeqBase):
                     ctrl.dpad.tap_down()
         # Wait out any cutscene/pickup animation
         mem = get_zelda_memory()
-        return not mem.player.get_inv_open()
+        return mem.player.in_control
 
     def __repr__(self) -> str:
         return f"Chest({self.name})... awaiting control"
@@ -91,7 +91,7 @@ class SeqGrabChestKeyItem(SeqBase):
                     ctrl.dpad.up()
                 case Facing.DOWN:
                     ctrl.dpad.down()
-            if mem.player.get_inv_open():
+            if mem.player.not_in_control:
                 logger.info(f"Picking up {self.name}!")
                 self.grabbed = True
             return False
@@ -99,7 +99,7 @@ class SeqGrabChestKeyItem(SeqBase):
         ctrl.dpad.none()
         ctrl.confirm(tapping=True)
         # Wait out any cutscene/pickup animation
-        return not mem.player.get_inv_open()
+        return mem.player.in_control
 
     def __repr__(self) -> str:
         if self.grabbed:
@@ -127,7 +127,7 @@ class SeqZoneTransition(SeqBase):
                 ctrl.dpad.down()
 
         mem = get_memory()
-        if mem.get_map_id() == self.target_zone:
+        if mem.map_id == self.target_zone:
             ctrl.dpad.none()
             logger.info(f"Transitioned to zone: {self.target_zone.name}")
             return True
@@ -165,7 +165,7 @@ class SeqManualUntilClose(SeqBase):
         ctrl.dpad.none()
         # Check if we have reached the goal
         mem = get_zelda_memory()
-        player_pos = mem.player.get_pos()
+        player_pos = mem.player.pos
         return is_close(player_pos, self.target, precision=self.precision)
 
     def __repr__(self) -> str:
@@ -181,7 +181,7 @@ class SeqHoldInPlace(SeqDelay):
 
     def execute(self, delta: float, blackboard: dict) -> bool:
         mem = get_zelda_memory()
-        player_pos = mem.player.get_pos()
+        player_pos = mem.player.pos
         # If arrived, go to next coordinate in the list
         if not is_close(player_pos, self.target, precision=self.precision):
             move_to(player=player_pos, target=self.target, precision=self.precision, blackboard=blackboard)
@@ -212,10 +212,10 @@ class SeqSection2D(SeqBase):
         window.write_stats_centered(line=1, text="Evoland 1 TAS")
         window.write_stats_centered(line=2, text="2D section")
         mem = get_zelda_memory()
-        pos = mem.player.get_pos()
+        pos = mem.player.pos
         window.stats.addstr(4, 1, f" Player X: {pos.x:.3f}")
         window.stats.addstr(5, 1, f" Player Y: {pos.y:.3f}")
-        window.stats.addstr(6, 1, f"  Facing: {facing_str(mem.player.get_facing())}")
+        window.stats.addstr(6, 1, f"  Facing: {facing_str(mem.player.facing)}")
         # Draw the player at the center for reference
         self._print_ch_in_map(map_win=window.map, pos=Vec2(0, 0), ch="@")
 
@@ -237,7 +237,7 @@ class SeqSection2D(SeqBase):
     def _print_map(self, window: WindowLayout, blackboard: dict) -> None:
         if tilemap := CurrentTilemap():
             mem = get_zelda_memory()
-            center = mem.player.get_pos()
+            center = mem.player.pos
             # Render map
             window.write_map_centered(0, tilemap.name)
             for i, line in enumerate(tilemap.tiles):
@@ -249,13 +249,13 @@ class SeqSection2D(SeqBase):
 
     def _print_actors(self, map_win, blackboard: dict) -> None:
         mem = get_zelda_memory()
-        center = mem.player.get_pos()
+        center = mem.player.pos
 
         with contextlib.suppress(
             ReferenceError
         ):  # Needed until I figure out which actors are valid (broken pointers will throw an exception)
             for actor in mem.actors:
-                actor_kind = actor.get_kind()
+                actor_kind = actor.kind
                 match actor_kind:
                     case GameEntity2D.EKind.ENEMY: ch = "!"
                     case GameEntity2D.EKind.CHEST: ch = "C"
@@ -263,7 +263,7 @@ class SeqSection2D(SeqBase):
                     case GameEntity2D.EKind.NPC: ch = "&"
                     case GameEntity2D.EKind.SPECIAL: ch = "*"
                     case _: ch = "?"
-                actor_pos = actor.get_pos()
+                actor_pos = actor.pos
                 self._print_ch_in_map(map_win=map_win, pos=actor_pos-center, ch=ch)
 
     def render(self, window: WindowLayout, blackboard: dict) -> None:
@@ -295,7 +295,7 @@ class SeqMove2D(SeqSection2D):
             return
         target = self.coords[self.step]
         mem = get_zelda_memory()
-        cur_pos = mem.player.get_pos()
+        cur_pos = mem.player.pos
 
         move_to(player=cur_pos, target=target, precision=self.precision, blackboard=blackboard)
 
@@ -330,7 +330,7 @@ class SeqMove2D(SeqSection2D):
 
         # Draw target in relation to player
         mem = get_zelda_memory()
-        center = mem.player.get_pos()
+        center = mem.player.pos
         self._print_ch_in_map(map_win=window.map, pos=target-center, ch="X")
 
     def render(self, window: WindowLayout, blackboard: dict) -> None:
@@ -388,15 +388,15 @@ class SeqMove2DClunkyCombat(SeqMove2D):
     # TODO: Handle some edge cases, like when the enemy is at a diagonal, moving into the target space
     def _clunky_combat2d(self, target: Vec2, blackboard: dict) -> None:
         mem = get_zelda_memory()
-        player_pos = mem.player.get_pos()
+        player_pos = mem.player.pos
         player_angle = get_angle(target, player_pos)
         with contextlib.suppress(
             ReferenceError
         ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
             for actor in mem.actors:
-                if actor.get_kind() != GameEntity2D.EKind.ENEMY:
+                if actor.kind != GameEntity2D.EKind.ENEMY:
                     continue
-                enemy_pos = actor.get_pos()
+                enemy_pos = actor.pos
                 dist_to_player = dist(player_pos, enemy_pos)
                 if dist_to_player < 1.5:  # TODO Arbitrary magic number, distance to enemy
                     enemy_angle = get_angle(enemy_pos, player_pos)

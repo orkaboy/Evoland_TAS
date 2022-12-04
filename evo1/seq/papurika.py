@@ -44,8 +44,7 @@ class MeadowFight(SeqList):
 
 def need_to_steal_cash() -> int:
     mem = get_memory()
-    gli = mem.get_gli()
-    return 1 if gli < 250 else 0
+    return 1 if mem.gli < 250 else 0
 
 
 class PapurikaVillage(SeqList):
