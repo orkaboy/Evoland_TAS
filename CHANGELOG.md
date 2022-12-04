@@ -1,5 +1,10 @@
 # Current
 
+0.0.4:
+*
+
+# Older changelogs
+
 0.0.3:
 * TAS can progress to the start of Noria mines (though it needs some handholding against Kefka's Ghost)
     - Pathing done to the start of the maze
@@ -8,8 +13,6 @@
 * A lot of backend work to make RNG prediction possible
 * Added countdown to main menu
 * Added diagonal movement to pathfinding
-
-# Older changelogs
 
 0.0.2:
 * TAS now loads maps from tmx (village/cavern)
