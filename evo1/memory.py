@@ -57,9 +57,105 @@ class MapID(Enum):
     END = 21
 
 
+class BattleEntity:
+    _MAX_HP_PTR = [0xF0] # int
+    _CUR_HP_PTR = [0xF4] # int
+    _ATK_PTR = [0xF8] # int
+    _DEF_PTR = [0xFC] # int
+    #_?_PTR = [0x104] # int: 12 for Clink? Acc??
+    _TURN_GAUGE_PTR = [0x110] # double: [0-1.0]
+
+    def __init__(self, process: LocProcess, entity_ptr: int):
+        self.process = process
+        self.entity_ptr = entity_ptr
+        self.setup_pointers()
+
+    def setup_pointers(self) -> None:
+        self.max_hp_ptr = self.process.get_pointer(
+            self.entity_ptr, offsets=self._MAX_HP_PTR
+        )
+        self.cur_hp_ptr = self.process.get_pointer(
+            self.entity_ptr, offsets=self._CUR_HP_PTR
+        )
+        self.atk_ptr = self.process.get_pointer(
+            self.entity_ptr, offsets=self._ATK_PTR
+        )
+        self.def_ptr = self.process.get_pointer(
+            self.entity_ptr, offsets=self._DEF_PTR
+        )
+        self.turn_gauge_ptr = self.process.get_pointer(
+            self.entity_ptr, offsets=self._TURN_GAUGE_PTR
+        )
+
+    @property
+    def max_hp(self) -> int:
+        return self.process.read_u32(self.max_hp_ptr)
+
+    @property
+    def cur_hp(self) -> int:
+        return self.process.read_u32(self.cur_hp_ptr)
+
+    @property
+    def attack(self) -> int:
+        return self.process.read_u32(self.atk_ptr)
+
+    @property
+    def defense(self) -> int:
+        return self.process.read_u32(self.def_ptr)
+
+    @property
+    def turn_gauge(self) -> float:
+        return self.process.read_double(self.turn_gauge_ptr)
+
+
+class BattleMemory:
+    # All battle data is stored here
+    _BATTLE_BASE_PTR = [0x860, 0x0, 0x244]
+    # All allies are listed here
+    _ALLIES_ARR_SIZE_PTR = [0x2C, 0x4]
+    _ALLIES_ARR_BASE_PTR = [0x2C, 0x8]
+    # All enemies are listed here
+    _ENEMIES_ARR_SIZE_PTR = [0x30, 0x4]
+    _ENEMIES_ARR_BASE_PTR = [0x30, 0x8]
+    # Each list has these properties
+    _FIRST_ENT_OFFSET = 0x10 # Offset from base ptr
+    _ENT_PTR_SIZE = 0x4 # 0x10, 0x14...
+
+    def __init__(self):
+        mem_handle = memory.core.handle()
+        self.process = mem_handle.process
+        self.base_addr = mem_handle.base_addr
+        # logger.debug(f"Zelda base address: {hex(self.base_addr)}")
+        # TODO: Need a check here... we will get into trouble if we start reading these when battle isn't active
+        self.base_offset = self.process.get_pointer(
+            self.base_addr + _LIBHL_OFFSET, offsets=self._BATTLE_BASE_PTR
+        )
+        self.allies = self._init_entities(array_size_ptr=self._ALLIES_ARR_SIZE_PTR, array_base_ptr=self._ALLIES_ARR_BASE_PTR)
+        self.enemies = self._init_entities(array_size_ptr=self._ENEMIES_ARR_SIZE_PTR, array_base_ptr=self._ENEMIES_ARR_BASE_PTR)
+        # TODO: Other battle related data?
+
+    def _init_entities(self, array_size_ptr: List[int], array_base_ptr: List[int]) -> List[BattleEntity]:
+        entities: List[BattleEntity] = []
+        entities_arr_size_ptr = self.process.get_pointer(
+            self.base_offset, offsets=array_size_ptr
+        )
+        entities_arr_size = self.process.read_u32(entities_arr_size_ptr)
+        entities_arr_offset = self.process.get_pointer(
+            self.base_offset, offsets=array_base_ptr
+        )
+        for i in range(entities_arr_size):
+            # Set enemy offsets
+            entity_offset = self._FIRST_ENT_OFFSET + i * self._ENT_PTR_SIZE
+            entity_ptr = self.process.get_pointer(entities_arr_offset, [entity_offset])
+            entities.append(BattleEntity(self.process, entity_ptr))
+        return entities
+
+
+# TODO: Apply Python @property for getters/setters
 # TODO: Refactor (currently only used in very specific cases)
 class Evoland1Memory:
 
+    # TODO
     # Zelda player health for roaming battle (hearts)
     _PLAYER_HP_ZELDA_PTR = [0x7FC, 0x8, 0x30, 0x7C, 0x0] # each heart is 16 "health"
     _GLI_PTR = [0x7FC, 0x8, 0x30, 0x84, 0x0] # Money
@@ -77,9 +173,19 @@ class Evoland1Memory:
     _KAERIS_EXP_PTR = [0x7FC, 0x8, 0x30, 0x78, 0x0, 0x8, 0x14, 0x8, 0x4] # int
 
     # TODO: Split battle stuff into own memory block
+    # TODO: Split battle actor into own entity
     # Only valid in atb battle
-    _PLAYER_ATB_CUR_HP_PTR = [0x860, 0x0, 0x244, 0x2C, 0x8, 0x10, 0xF4]
+    _PLAYER_ATB_SIZE_PTR = [0x860, 0x0, 0x244, 0x2C, 0x8, 0x8] # int, num allies
+    _PLAYER_ATB_MAX_HP_PTR = [0x860, 0x0, 0x244, 0x2C, 0x8, 0x10, 0xF0] # int
+    _PLAYER_ATB_CUR_HP_PTR = [0x860, 0x0, 0x244, 0x2C, 0x8, 0x10, 0xF4] # int
+    _PLAYER_ATB_ATK_PTR = [0x860, 0x0, 0x244, 0x2C, 0x8, 0x10, 0xF8] # int
+    _PLAYER_ATB_DEF_PTR = [0x860, 0x0, 0x244, 0x2C, 0x8, 0x10, 0xFC] # int
+    #_PLAYER_ATB_CUR_HP_PTR = [0x860, 0x0, 0x244, 0x2C, 0x8, 0x10, 0x104] # int: 12? Acc??
+    _PLAYER_ATB_TURN_GAUGE_PTR = [0x860, 0x0, 0x244, 0x2C, 0x8, 0x10, 0x110] # double: [0-1.0]
+    #_PLAYER_ATB_CUR_HP_PTR = [0x860, 0x0, 0x244, 0x2C, 0x8, 0x14, *] # Kaeris stats block
 
+    #_ENEMY_ATB_MAX_HP_PTR = [0x860, 0x0, 0x244, 0x30, 0x8, 0x8] # Num combatants
+    _ENEMY_ATB_MAX_HP_PTR = [0x860, 0x0, 0x244, 0x30, 0x8, 0x10, 0xF0]
     _ENEMY_ATB_CUR_HP_PTR = [0x860, 0x0, 0x244, 0x30, 0x8, 0x10, 0xF4]
     # Only valid when menu is open
     _PLAYER_ATB_MENU_CURSOR_PTR = [0x860, 0x0, 0x244, 0x48, 0x8C]
