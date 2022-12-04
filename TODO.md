@@ -8,6 +8,7 @@
     - Fix combat to more consistently survive the pre-free move section
         + Predict where enemies will be/what areas are threatened
         + Incorporate the waittimer to path more efficiently
+        + Use target value for enemies
 * Add combat that can kill knights
     - Account for spaces that are invalid (not passable). Can use navmap here
 * Cavern
@@ -15,7 +16,8 @@
 * Do more memory hunting
     - ATB combat values (Atk, Def, Acc, Evade, ATB gauge, Invincibility)
 * 3D Movement and combat
-    - Handle 3D enemy detection/tracking
+    - Handle 3D enemy detection/tracking (Skellies/Mages)
+    - Killing bats
     - Handle pathfinding past breakable objects
 
 * Fix Curses gui color log if possible

@@ -49,6 +49,7 @@ class Evoland1StartGame(SeqList):
                 # Loading the game needs a slightly longer delay than starting a new game
                 SeqOptional(
                     name="Conditional delay",
+                    shadow=True,
                     cases={
                         0: SeqDelay(name="Starting game", timeout_in_s=3.0),
                     },
