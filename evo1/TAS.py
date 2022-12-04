@@ -4,10 +4,10 @@ import curses
 import logging
 
 import memory.core as core
-from engine.seq import SeqList, SeqLog, SeqOptional, SequencerEngine
+from engine.seq import SeqList, SeqOptional, SequencerEngine
 from evo1.checkpoints import Checkpoints
 from evo1.memory import load_memory, load_zelda_memory
-from evo1.seq import Edel1, Evoland1StartGame, OverworldToMeadow, MeadowFight, PapurikaVillage, OverworldToCavern, CrystalCavern, Edel2, OverworldToNoria, NoriaMines
+from evo1.seq import Edel1, Evoland1StartGame, OverworldToMeadow, MeadowFight, PapurikaVillage, OverworldToCavern, CrystalCavern, Edel2, OverworldToNoria, NoriaMines, OverworldToAogai
 from term.curses import WindowLayout
 from evo1.observer import SeqObserver2D
 
@@ -89,6 +89,7 @@ def perform_TAS(window: WindowLayout):
                             NoriaMines(),
                             # TODO: Glitch around the 3D combat chest to avoid more overworld encounters (watch speedrun)
                             # TODO: Navigate to Aogai village
+                            OverworldToAogai(),
                             # TODO: Have a long conversation with Sid
                             # TODO: Get the text glitch from card player in Aogai
                             # TODO: Get bombs by talking to everyone

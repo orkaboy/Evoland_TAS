@@ -25,9 +25,6 @@
     - Handle pathfinding past breakable objects (bushes/pots)
 * Routing
     - Route Noria mines
-* Maps
-    - Put maps/AStar into map directory and import
-    - Rewrite Move2D code to always fetch current tilemap for the map window
 
 * Terminal improvements
     - Move WindowLayout into abstract class with exposed methods to abstract away all curses code from TAS

@@ -59,3 +59,14 @@ class OverworldToNoria(SeqList):
                 SeqZoneTransition("Noria Mines", direction=Facing.LEFT, target_zone=MapID.NORIA_CLOSED),
             ]
         )
+
+class OverworldToAogai(SeqList):
+    def __init__(self):
+        super().__init__(
+            name="Overworld",
+            children=[
+                SeqMove2D("Performing skip", coords=[Vec2(75, 84.95), Vec2(78, 84.95)], precision=0.05),
+                SeqMove2D("Moving to Aogai", coords=_overworld_astar.calculate(start=Vec2(78, 85), goal=Vec2(95, 93))),
+                SeqZoneTransition("Aogai village", direction=Facing.UP, target_zone=MapID.AOGAI),
+            ]
+        )
