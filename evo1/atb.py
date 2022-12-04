@@ -5,11 +5,65 @@ from engine.navmap import NavMap
 from engine.mathlib import Vec2, is_close
 import evo1.control
 from evo1.move2d import SeqMove2D, move_to
-from evo1.memory import get_memory, get_zelda_memory
+from evo1.memory import get_memory, get_zelda_memory, MapID
+from memory.rng import EvolandRNG
+from enum import Enum, auto
+from term.curses import WindowLayout
 
 from typing import List
 
 logger = logging.getLogger(__name__)
+
+
+class EncounterID(Enum):
+    # Overworld 2D
+    SLIME = auto()
+    EMUK = auto()
+    SLIME_2 = auto()
+    SLIME_EMUK = auto()
+    SLIME_3 = auto()
+    # Cavern
+    SCAVEN_2 = auto()
+    KOBRA = auto()
+    TORK = auto()
+    KOBRA_2 = auto()
+    SCAVEN_2_TORK = auto()
+    # Overworld 3D
+    ZOOMBA_2_APIDYA = auto()
+    APIDYA = auto()
+    ZOOMBA_2_ATUIN = auto()
+    ZOOMBA_APIDYA = auto()
+
+
+def calc_next_encounter(has_3d_monsters: bool = False) -> EncounterID:
+    rng = EvolandRNG().get_rng()
+    map_id = get_memory().get_map_id()
+    modulo = 0xA
+    if map_id == MapID.CRYSTAL_CAVERN:
+        lut_value = (rng.rand_int() & 0x3fffffff) % modulo
+        match lut_value:
+            case 0 | 1 | 2: return EncounterID.SCAVEN_2
+            case 3 | 4 | 5: return EncounterID.KOBRA
+            case 6 | 7: return EncounterID.TORK
+            case 8: return EncounterID.KOBRA_2
+            case _: return EncounterID.SCAVEN_2_TORK
+    elif not has_3d_monsters: # Overworld 2D
+        lut_value = (rng.rand_int() & 0x3fffffff) % modulo
+        match lut_value:
+            case 0 | 1 | 2: return EncounterID.SLIME
+            case 3 | 4 | 5: return EncounterID.EMUK
+            case 6 | 7: return EncounterID.SLIME_2
+            case 8: return EncounterID.SLIME_EMUK
+            case _: return EncounterID.SLIME_3
+    else:
+        # Overworld 3D
+        modulo = 0x7
+        lut_value = (rng.rand_int() & 0x3fffffff) % modulo
+        match lut_value:
+            case 0 | 1 | 2: return EncounterID.ZOOMBA_2_APIDYA
+            case 3 | 4: return EncounterID.APIDYA
+            case 5: return EncounterID.ZOOMBA_2_ATUIN
+            case 6: return EncounterID.ZOOMBA_APIDYA
 
 class FarmingGoal:
     def __init__(self, farm_coords: List[Vec2], precision: float = 0.2, gli_goal: int = None, lvl_goal: int = None) -> None:
@@ -56,6 +110,7 @@ class FarmingGoal:
 class SeqATBmove2D(SeqMove2D):
     def __init__(self, name: str, coords: List[Vec2], goal: FarmingGoal = None, precision: float = 0.2, tilemap: NavMap = None):
         self.goal = goal
+        self.next_enc: EncounterID = None
         super().__init__(name, coords, precision, tilemap=tilemap)
 
     def reset(self) -> None:
@@ -78,6 +133,7 @@ class SeqATBmove2D(SeqMove2D):
             self._handle_combat()
             return False
         else:
+            self.next_enc = calc_next_encounter(has_3d_monsters=False)  # TODO: Check for chest
             self._navigate_to_checkpoint(blackboard=blackboard)
 
             nav_done = self._nav_done()
@@ -90,6 +146,15 @@ class SeqATBmove2D(SeqMove2D):
             if done:
                 logger.debug(f"Finished moved2D section: {self.name}")
             return done
+
+    def render(self, window: WindowLayout, blackboard: dict) -> None:
+        super().render(window, blackboard)
+
+        if self.next_enc:
+            mem = get_zelda_memory()
+            enc_timer = mem.player.get_encounter_timer()
+            window.stats.addstr(12, 1, f" Next encounter ({enc_timer:.3f}):")
+            window.stats.addstr(13, 1, f"  {self.next_enc.name}")
 
     def __repr__(self) -> str:
         num_coords = len(self.coords)

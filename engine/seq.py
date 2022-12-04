@@ -79,9 +79,10 @@ class SeqDelay(SeqBase):
 
 
 class SeqList(SeqBase):
-    def __init__(self, name: str, children: List[SeqBase], annotations: dict = None, func=None):
+    def __init__(self, name: str, children: List[SeqBase], annotations: dict = None, func=None, shadow: str = False):
         self.step = 0
         self.children = children
+        self.shadow = shadow
         super().__init__(name, annotations=annotations, func=func)
 
     def reset(self) -> None:
@@ -113,6 +114,8 @@ class SeqList(SeqBase):
         if self.step >= num_children:
             return f"{self.name}[{num_children}/{num_children}]"
         cur_child = self.children[self.step]
+        if self.shadow:
+            return f"{cur_child}"
         cur_step = self.step + 1
         return f"{self.name}[{cur_step}/{num_children}] =>\n  {cur_child}"
 
@@ -124,6 +127,7 @@ class SeqOptional(SeqBase):
         cases: dict[Any, SeqBase],
         selector: Callable | int,
         fallback: SeqBase = SeqBase(),
+        shadow: bool = False
     ):
         self.fallback = fallback
         self.selector = selector
@@ -131,6 +135,7 @@ class SeqOptional(SeqBase):
         self.selected = False
         self.selection = None
         self.cases = cases
+        self.shadow = shadow
         super().__init__(name)
 
     def reset(self) -> None:
@@ -160,8 +165,12 @@ class SeqOptional(SeqBase):
 
     def __repr__(self) -> str:
         if self.selection:
+            if self.shadow:
+                return f"{self.selection}"
             return f"<{self.name}:{self.selector_repr}> => {self.selection}"
         if self.selected and self.fallback:
+            if self.shadow:
+                return f"{self.fallback}"
             return f"<{self.name}:fallback> => {self.fallback}"
         return f"<{self.name}>"
 

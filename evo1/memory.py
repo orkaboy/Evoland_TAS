@@ -210,6 +210,9 @@ class GameEntity2D:
         self.inv_open_ptr = self.process.get_pointer(
             self.entity_ptr, offsets=self._INV_OPEN_PTR
         )
+        self.encounter_timer_ptr = self.process.get_pointer(
+            self.entity_ptr, offsets=self._ENCOUNTER_TIMER_PTR
+        )
 
     class EKind(IntEnum):
         PLAYER = 0
@@ -270,6 +273,9 @@ class GameEntity2D:
 
     def get_inv_open(self) -> bool:
         return self.process.read_u8(self.inv_open_ptr) == 1
+
+    def get_encounter_timer(self) -> float:
+        return self.process.read_double(self.encounter_timer_ptr)
 
     def __repr__(self) -> str:
         kind = self.get_kind()

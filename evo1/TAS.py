@@ -1,6 +1,7 @@
 # Libraries and Core Files
 import contextlib
 import curses
+import logging
 
 import memory.core as core
 from engine.seq import SeqList, SeqLog, SeqOptional, SequencerEngine
@@ -13,6 +14,9 @@ from evo1.observer import SeqObserver2D
 # TODO: TEMP
 #from evo1.seq.edel_vale import _edel_vale_map
 from evo1.seq.papurika import _village_interior_map
+
+logger = logging.getLogger("SYSTEM")
+
 
 def setup_memory() -> None:
     with contextlib.suppress(ReferenceError):
@@ -42,20 +46,40 @@ def observer(window: WindowLayout):
 
 def perform_TAS(window: WindowLayout):
 
+    # Print loading
+    window.main.clear()
+    window.stats.clear()
+
+    text = "Preparing TAS"
+    maxy, maxx = window.main.getmaxyx()
+    text_len = len(text)
+    x_off = int(maxx / 2 - text_len / 2)
+    window.main.addstr(int(maxy / 2), x_off, text)
+    window.update()
+
+    logger.info("Evoland1 TAS selected")
+
+    # Define sequence to run
     saveslot = window.config_data.get("saveslot", 0)
     checkpoint = window.config_data.get("checkpoint", "")
 
+    # TODO: More run modes
+    logger.info(f"Run mode is {'Any% from New Game' if saveslot == 0 else 'Any% from load'}")
+    logger.info("Preparing TAS... (may take a few seconds)")
+
     root = SeqList(
-        name="Evoland1",
+        name="Root node",
+        shadow=True,
         func=setup_memory,
         children=[
             Evoland1StartGame(saveslot),
             # TODO: This could be set up in a nicer way
             SeqOptional(
+                shadow=True,
                 name="New/Load",
                 cases={
                     0: SeqList(
-                        name="New game",
+                        name="Evoland1 Any%",
                         children=[
                             Edel1(),
                             OverworldToMeadow(),
@@ -92,12 +116,11 @@ def perform_TAS(window: WindowLayout):
                 },
                 selector=saveslot,
                 fallback=SeqOptional(
-                    name="Load game",
+                    name=f"Evoland1 Any% (checkpoint: {checkpoint})",
                     selector=checkpoint,
                     cases=Checkpoints(),
                 ),
             ),
-            SeqLog(name="SYSTEM", text="Evoland1 TAS Done!"),
         ],
     )
 
@@ -106,11 +129,15 @@ def perform_TAS(window: WindowLayout):
         root=root,
     )
 
+    # Clear screen
     window.main.clear()
     window.stats.clear()
     curses.doupdate()
 
+    # Run sequence
     while engine.active():
         engine.run()
+
+    logger.info("Evoland1 TAS Done!"),
 
     core.wait_seconds(3)

@@ -66,7 +66,12 @@ class Edel1(SeqList):
                 # TODO: Some enemies here, will probably fail
                 SeqMove2DClunkyCombat(
                     "Dodge enemies",
-                    coords=_edel_vale_astar.calculate(start=Vec2(44, 49), goal=Vec2(34, 33), free_move=False),
+                    coords=_edel_vale_astar.calculate(start=Vec2(44, 49), goal=Vec2(35, 33), free_move=False),
+                    tilemap=_edel_vale_map
+                ),
+                SeqMove2D(
+                    "Move to chest",
+                    coords=[Vec2(34, 33)],
                     tilemap=_edel_vale_map
                 ),
                 SeqGrabChest("Free move", direction=Facing.LEFT),
@@ -104,14 +109,14 @@ class Edel1(SeqList):
                         Vec2(55.5, 32.9),  # Approach right knight
                         Vec2(56, 32),  # Nudge past right knight to activate
                         # Retreat and prepare for combat!
-                        # TODO: Grab chest (Inv)
+                        # Grab chest (Inv)
                         Vec2(54, 30.3),
                     ],
                     tilemap=_edel_vale_map
                 ),
                 # We need to kill two knights. These enemies must be killed with 3 attacks, but cannot be harmed from the front.
                 SeqKnight2D(
-                    "Killing two knights", # TODO: Everything is fully tracked, but the enemies have to be killed manually for now. TAS resumes when all enemies are dead
+                    "Killing two knights",
                     arena=Box2(pos=Vec2(53, 32), w=5, h=4), # Valid arena to fight inside (should be clear of obstacles)
                     targets=[Vec2(54, 33), Vec2(56, 33)], # Positions of enemies (known from start)
                     tilemap=_edel_vale_map,
@@ -134,12 +139,11 @@ class Edel2(SeqList):
         super().__init__(
             name="Edel Vale",
             children=[
-                # TODO: Implement 3D combat (need to track 3D entities)
                 SeqMove2DClunkyCombat("Move to chest", coords=_edel_vale_astar.calculate(start=Vec2(10, 8), goal=Vec2(15, 14)), tilemap=_edel_vale_map),
                 SeqGrabChest3D("Hearts", direction=Facing.UP),
                 SeqMove2DClunkyCombat("Move to bush", coords=_edel_vale_astar.calculate(start=Vec2(15, 13), goal=Vec2(33, 19)), tilemap=_edel_vale_map),
                 SeqAttack("Bush"), # TODO: RIGHT
-                # TODO: Improve on sequence here
+                # TODO: Improve on sequence here? Works
                 SeqMove2DClunkyCombat("Move to bush", coords=[Vec2(35, 19), Vec2(36, 20)], tilemap=_edel_vale_map),
                 SeqAttack("Bush"), # TODO: DOWN
                 SeqMove2DClunkyCombat("Move to bush", coords=[Vec2(36, 22), Vec2(34, 26)], tilemap=_edel_vale_map),

@@ -19,6 +19,7 @@ class SeqRngObserver(SeqBase):
         self.captured_rng = self.mem.get_rng()
         self.last_values = []
         self.modulo = None
+        self.mask = 0xffffffff
         self.setting_modulo = 0
         super().__init__(name)
 
@@ -68,6 +69,8 @@ class SeqRngObserver(SeqBase):
                 self.setting_modulo = 0
             else:
                 self.setting_modulo = 0
+        elif input == ord("M"):
+            self.mask = 0x3fffffff if self.mask == 0xffffffff else 0xffffffff
         elif not self.modulo:
             digit = self._get_digit(input)
             if isinstance(digit, int):
@@ -104,13 +107,15 @@ class SeqRngObserver(SeqBase):
             window.stats.addstr(y-1, 0, f"Modulo: {self.modulo}")
         else:
             window.stats.addstr(y-1, 0, f"Setting modulo: {self.setting_modulo}")
-        self.max_cap_values = y-2
+        window.stats.addstr(y-2, 0, f"Mask: {self.mask:#10x}")
+        self.max_cap_values = y-3
         while len(self.last_values) > self.max_cap_values:
             self.last_values.pop(0)
 
         window.stats.addstr(0, 0, "Last values:")
         for i, value in enumerate(self.last_values):
             y = i + 1
+            value = value & self.mask
             if isinstance(value, int):
                 if self.modulo:
                     window.stats.addstr(y, 2, f"{value % self.modulo}")
