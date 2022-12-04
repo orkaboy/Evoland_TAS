@@ -216,11 +216,14 @@ class GameEntity2D:
 
     class EKind(IntEnum):
         PLAYER = 0
+        # TODO 1=?
         ENEMY = 2
         CHEST = 3
         ITEM = 4
         NPC = 5
+        PARTICLE = 6 # When breaking pots, closing bars?
         SPECIAL = 7
+        UNKNOWN = 999
 
     # TODO: EKind Enum instead of str
     def get_kind(self) -> EKind:
@@ -228,7 +231,8 @@ class GameEntity2D:
         try:
             return GameEntity2D.EKind(kind_val)
         except ValueError:
-            return GameEntity2D.EKind.SPECIAL
+            logger.error(f"Unknown GameEntity2D EKind: {kind_val}")
+            return GameEntity2D.EKind.UNKNOWN
 
     def get_pos(self) -> Vec2:
         return Vec2(
