@@ -93,9 +93,8 @@ class SeqLoadGame(SeqBase):
         self.saveslot = saveslot
         super().__init__(name)
 
-    # Navigate to the saveslot in question by tapping down x times, then confirming
+    # Navigate to the saveslot in question by tapping down x times
     def execute(self, delta: float, blackboard: dict) -> bool:
         for _ in range(1, self.saveslot):
             _menu_ctrl.dpad.tap_down()
-        _menu_ctrl.confirm()
         return True

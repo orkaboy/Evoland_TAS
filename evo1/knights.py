@@ -1,6 +1,7 @@
 import contextlib
 import logging
-from typing import List
+from typing import List, Optional
+import functools
 
 from engine.mathlib import Facing, Vec2, Box2, get_box_with_size, grow_box, get_2d_facing_from_dir, dist
 from engine.navmap import NavMap
@@ -17,6 +18,7 @@ class SeqKnight2D(SeqSection2D):
     class _Plan:
         def __init__(self, mem: ZeldaMemory, targets: List[Vec2], track_size: float) -> None:
             self.targets: List[GameEntity2D] = []
+            self.next_target: Optional[GameEntity2D] = None
             targets_copy = targets.copy()
             # Map start positions to array of GameEntity2D to track
             with contextlib.suppress(
@@ -37,8 +39,25 @@ class SeqKnight2D(SeqSection2D):
         def done(self) -> bool:
             return len(self.targets) == 0
 
+        def get_next_target(self) -> Optional[GameEntity2D]:
+            if self.next_target:
+                return self.next_target
+
+            mem = get_zelda_memory()
+            player_pos = mem.player.get_pos()
+            # Using key sorting, order by closest target to player
+            key_list = [(dist(player_pos, target.get_pos()), target) for target in self.targets]
+            sorted_list = sorted(key_list)
+            if sorted_list:
+                self.next_target = sorted_list[0][1]
+                return self.next_target
+            else:
+                return None
+
         def remove_dead(self) -> None:
             self.targets = [enemy for enemy in self.targets if enemy.get_hp() > 0]
+            if self.next_target not in self.targets:
+                self.next_target = None
 
         def enemies_left(self) -> int:
             return len(self.targets)
@@ -66,9 +85,13 @@ class SeqKnight2D(SeqSection2D):
             ReferenceError
         ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
             # TODO Track decisions, so we are not being wishy-washy
-            for target in self.plan.targets:
-                if self._try_move_into_position_and_attack(target=target, blackboard=blackboard):
-                    continue
+            target = self.plan.get_next_target()
+
+            if target:
+                self._try_move_into_position_and_attack(target=target, blackboard=blackboard)
+            # for target in self.plan.targets:
+            #     if self._try_move_into_position_and_attack(target=target, blackboard=blackboard):
+            #         continue
 
         # Remove dead enemies from tracking
         self.plan.remove_dead()

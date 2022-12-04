@@ -1,7 +1,7 @@
 from engine.seq import SeqList
 from engine.mathlib import Facing, Vec2, Box2
 from engine.navmap import NavMap, AStar
-from evo1.move2d import SeqAttack, SeqGrabChest, SeqGrabChest3D, SeqMove2D, SeqMove2DClunkyCombat, SeqZoneTransition, SeqMove2DConfirm
+from evo1.move2d import SeqAttack, SeqGrabChest, SeqGrabChestKeyItem, SeqMove2D, SeqMove2DClunkyCombat, SeqZoneTransition, SeqMove2DConfirm
 from evo1.knights import SeqKnight2D
 from evo1.memory import MapID
 
@@ -140,7 +140,7 @@ class Edel2(SeqList):
             name="Edel Vale",
             children=[
                 SeqMove2DClunkyCombat("Move to chest", coords=_edel_vale_astar.calculate(start=Vec2(10, 8), goal=Vec2(15, 14)), tilemap=_edel_vale_map),
-                SeqGrabChest3D("Hearts", direction=Facing.UP),
+                SeqGrabChestKeyItem("Hearts", direction=Facing.UP),
                 SeqMove2DClunkyCombat("Move to bush", coords=_edel_vale_astar.calculate(start=Vec2(15, 13), goal=Vec2(33, 19)), tilemap=_edel_vale_map),
                 SeqAttack("Bush"), # TODO: RIGHT
                 # TODO: Improve on sequence here? Works
@@ -152,10 +152,10 @@ class Edel2(SeqList):
                 SeqMove2DClunkyCombat("Move to bush", coords=_edel_vale_astar.calculate(start=Vec2(34, 28), goal=Vec2(58, 54)), tilemap=_edel_vale_map),
                 SeqAttack("Bush"), # TODO: DOWN
                 SeqMove2DClunkyCombat("Move past bush", coords=[Vec2(58, 60)], tilemap=_edel_vale_map),
-                # TODO: Optional? Health + 1
+                # TODO: Optional? Health drops
                 SeqMove2DClunkyCombat("Move to chest", coords=[Vec2(57, 59.5)], tilemap=_edel_vale_map),
-                SeqGrabChest("Health +1", direction=Facing.UP),
-                # TODO: End optional health + 1
+                SeqGrabChest("Health drops", direction=Facing.UP),
+                # TODO: End optional health drops
                 SeqMove2DClunkyCombat("Move to end", coords=_edel_vale_astar.calculate(start=Vec2(57, 60), goal=Vec2(58, 78)), tilemap=_edel_vale_map),
                 SeqMove2DConfirm("Move to end", coords=[Vec2(58, 82)], tilemap=_edel_vale_map),
                 SeqZoneTransition("To overworld", direction=Facing.DOWN, target_zone=MapID.OVERWORLD),

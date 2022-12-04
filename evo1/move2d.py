@@ -68,7 +68,7 @@ class SeqGrabChest(SeqBase):
 
 
 # TODO: Improve on class to be able to handle free move/3D
-class SeqGrabChest3D(SeqBase):
+class SeqGrabChestKeyItem(SeqBase):
     def __init__(self, name: str, direction: Facing):
         self.dir = direction
         self.grabbed = False

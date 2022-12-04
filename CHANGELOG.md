@@ -2,9 +2,12 @@
 
 0.0.3:
 * TAS can progress to the start of Noria mines (though it needs some handholding against Kefka's Ghost)
+    - Pathing done to the start of the maze
 * Improvements to knight combat
 * Zone transitions are now verified against memory
 * A lot of backend work to make RNG prediction possible
+* Added countdown to main menu
+* Added diagonal movement to pathfinding
 
 # Older changelogs
 
