@@ -5,10 +5,10 @@ from typing import List
 
 import evo1.control
 from engine.seq import SeqBase, SeqDelay
-from engine.navmap import NavMap
 from evo1.memory import GameFeatures, GameEntity2D, get_zelda_memory, get_memory, MapID
 from term.curses import WindowLayout
 from engine.mathlib import Facing, facing_str, Vec2, is_close, dist, get_angle
+from evo1.maps import CurrentTilemap
 
 logger = logging.getLogger(__name__)
 
@@ -202,8 +202,7 @@ class SeqHoldInPlace(SeqDelay):
 
 # Base class for 2D movement areas
 class SeqSection2D(SeqBase):
-    def __init__(self, name: str, tilemap: NavMap = None, annotations: dict = None, func=None):
-        self.tilemap = tilemap
+    def __init__(self, name: str, annotations: dict = None, func=None):
         super().__init__(name, annotations=annotations, func=func)
 
     # Map starts at line 2 and fills the rest of the map window
@@ -236,16 +235,17 @@ class SeqSection2D(SeqBase):
             map_win.hline(y, 0, " ", maxx)
 
     def _print_map(self, window: WindowLayout, blackboard: dict) -> None:
-        mem = get_zelda_memory()
-        center = mem.player.get_pos()
-        # Render map
-        window.write_map_centered(0, self.tilemap.name)
-        for i, line in enumerate(self.tilemap.tiles):
-            y_pos = i + self.tilemap.origin.y
-            for j, tile in enumerate(line):
-                x_pos = j + self.tilemap.origin.x
-                draw_pos = Vec2(x_pos, y_pos) - center
-                self._print_ch_in_map(window.map, pos=draw_pos, ch=tile)
+        if tilemap := CurrentTilemap():
+            mem = get_zelda_memory()
+            center = mem.player.get_pos()
+            # Render map
+            window.write_map_centered(0, tilemap.name)
+            for i, line in enumerate(tilemap.tiles):
+                y_pos = i + tilemap.origin.y
+                for j, tile in enumerate(line):
+                    x_pos = j + tilemap.origin.x
+                    draw_pos = Vec2(x_pos, y_pos) - center
+                    self._print_ch_in_map(window.map, pos=draw_pos, ch=tile)
 
     def _print_actors(self, map_win, blackboard: dict) -> None:
         mem = get_zelda_memory()
@@ -270,17 +270,16 @@ class SeqSection2D(SeqBase):
         window.stats.erase()
         window.map.erase()
         self._print_env(map_win=window.map, blackboard=blackboard)
-        if self.tilemap:
-            self._print_map(window=window, blackboard=blackboard)
+        self._print_map(window=window, blackboard=blackboard)
         self._print_player_stats(window=window, blackboard=blackboard)
 
 
 class SeqMove2D(SeqSection2D):
-    def __init__(self, name: str, coords: List[Vec2], precision: float = 0.2, tilemap: NavMap = None):
+    def __init__(self, name: str, coords: List[Vec2], precision: float = 0.2):
         self.step = 0
         self.coords = coords
         self.precision = precision
-        super().__init__(name, tilemap=tilemap)
+        super().__init__(name)
 
     def reset(self) -> None:
         self.step = 0
@@ -351,8 +350,8 @@ class SeqMove2D(SeqSection2D):
 
 # Mash confirm while moving along a path
 class SeqMove2DConfirm(SeqMove2D):
-    def __init__(self, name: str, coords: List[Vec2], precision: float = 0.2, tilemap: NavMap = None):
-        super().__init__(name, coords, precision, tilemap)
+    def __init__(self, name: str, coords: List[Vec2], precision: float = 0.2):
+        super().__init__(name, coords, precision)
 
     def execute(self, delta: float, blackboard: dict) -> bool:
         done = super().execute(delta=delta, blackboard=blackboard)

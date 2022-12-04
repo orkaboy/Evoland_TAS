@@ -11,9 +11,6 @@ from evo1.seq import Edel1, Evoland1StartGame, OverworldToMeadow, MeadowFight, P
 from term.curses import WindowLayout
 from evo1.observer import SeqObserver2D
 
-# TODO: TEMP
-#from evo1.seq.edel_vale import _edel_vale_map
-from evo1.seq.papurika import _village_interior_map
 
 logger = logging.getLogger("SYSTEM")
 
@@ -26,7 +23,7 @@ def setup_memory() -> None:
 
 def observer(window: WindowLayout):
     observer = SeqObserver2D(
-        "Observer", tilemap=_village_interior_map, func=setup_memory
+        "Observer", func=setup_memory
     )
 
     engine = SequencerEngine(

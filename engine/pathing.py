@@ -16,7 +16,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-class NavMap:
+class TileMap:
     def __init__(self, filename: str) -> None:
         map_data = self._open(filename=filename)
         self.name = map_data.get("name", "UNKNOWN")

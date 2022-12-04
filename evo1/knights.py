@@ -4,7 +4,6 @@ from typing import List, Optional
 import functools
 
 from engine.mathlib import Facing, Vec2, Box2, get_box_with_size, grow_box, get_2d_facing_from_dir, dist
-from engine.navmap import NavMap
 from evo1.memory import GameEntity2D, ZeldaMemory, get_zelda_memory
 from evo1.move2d import SeqSection2D, move_to
 import evo1.control
@@ -63,14 +62,14 @@ class SeqKnight2D(SeqSection2D):
             return len(self.targets)
 
     # TODO: Change List[Vec2] to some kind of ID or monster structure instead to make tracking easier
-    def __init__(self, name: str, arena: Box2, targets: List[Vec2], track_size: float = 1.2, precision: float = 0.2, tilemap: NavMap = None) -> None:
+    def __init__(self, name: str, arena: Box2, targets: List[Vec2], track_size: float = 1.2, precision: float = 0.2) -> None:
         self.plan = None
         self.arena = arena
         self.target_coords = targets
         self.track_size = track_size
         self.precision = precision
         self.num_targets = len(targets)
-        super().__init__(name, tilemap=tilemap)
+        super().__init__(name)
 
     def reset(self) -> None:
         self.plan = None

@@ -1,7 +1,6 @@
 import logging
 import time
 
-from engine.navmap import NavMap
 from engine.mathlib import Vec2, is_close
 import evo1.control
 from evo1.move2d import SeqMove2D, move_to
@@ -108,10 +107,10 @@ class FarmingGoal:
 
 
 class SeqATBmove2D(SeqMove2D):
-    def __init__(self, name: str, coords: List[Vec2], goal: FarmingGoal = None, precision: float = 0.2, tilemap: NavMap = None):
+    def __init__(self, name: str, coords: List[Vec2], goal: FarmingGoal = None, precision: float = 0.2):
         self.goal = goal
         self.next_enc: EncounterID = None
-        super().__init__(name, coords, precision, tilemap=tilemap)
+        super().__init__(name, coords, precision)
 
     def reset(self) -> None:
         if self.goal:

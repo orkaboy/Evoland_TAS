@@ -3,7 +3,6 @@ import logging
 
 from evo1.memory import get_zelda_memory
 from engine.mathlib import Vec2, dist
-from engine.navmap import NavMap
 from evo1.move2d import SeqSection2D
 from term.curses import WindowLayout
 
@@ -11,9 +10,9 @@ logger = logging.getLogger(__name__)
 
 
 class SeqObserver2D(SeqSection2D):
-    def __init__(self, name: str, tilemap: NavMap = None, annotations: dict = None, func=None):
+    def __init__(self, name: str, annotations: dict = None, func=None):
         self.tracked: set[Vec2] = set()
-        super().__init__(name, tilemap=tilemap, annotations=annotations, func=func)
+        super().__init__(name, annotations=annotations, func=func)
 
     def reset(self) -> None:
         self.tracked = set()
