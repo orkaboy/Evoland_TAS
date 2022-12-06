@@ -47,6 +47,16 @@ class SeqRngObserver(SeqBase):
         else:
             return None
 
+    def _handle_input_modulo(self) -> None:
+        if self.modulo:
+            self.modulo = None
+        elif self.setting_modulo != 0:
+            self.modulo = self.setting_modulo
+            self.setting_modulo = 0
+        else:
+            self.setting_modulo = 0
+
+
     def handle_input(self, input: str) -> None:
         # Capture the rng buffer
         if input == ord("c"):
@@ -62,13 +72,7 @@ class SeqRngObserver(SeqBase):
             logger.info(f"Next float is: {value}")
             self.last_values.append(value)
         elif input == ord("m"):
-            if self.modulo:
-                self.modulo = None
-            elif self.setting_modulo != 0:
-                self.modulo = self.setting_modulo
-                self.setting_modulo = 0
-            else:
-                self.setting_modulo = 0
+            self._handle_input_modulo()
         elif input == ord("M"):
             self.mask = 0x3fffffff if self.mask == 0xffffffff else 0xffffffff
         elif not self.modulo:
@@ -96,12 +100,7 @@ class SeqRngObserver(SeqBase):
             else:
                 window.main.addstr(y, x, f"{rng.values[i]:#010x}")
 
-    def render(self,  window: WindowLayout, blackboard: dict) -> None:
-        window.main.clear()
-        window.stats.clear()
-        self._render_rng_table(window, title="Current", rng=self.rng, y_offset=0)
-        self._render_rng_table(window, title="Captured", rng=self.captured_rng, y_offset=self.ROWS + 2)
-
+    def _render_modulo_text(self, window: WindowLayout) -> None:
         y, _ = window.stats.getmaxyx()
         if self.modulo:
             window.stats.addstr(y-1, 0, f"Modulo: {self.modulo}")
@@ -112,6 +111,7 @@ class SeqRngObserver(SeqBase):
         while len(self.last_values) > self.max_cap_values:
             self.last_values.pop(0)
 
+    def _render_calculated_values(self, window: WindowLayout) -> None:
         window.stats.addstr(0, 0, "Last values:")
         for i, value in enumerate(self.last_values):
             y = i + 1
@@ -123,6 +123,14 @@ class SeqRngObserver(SeqBase):
                     window.stats.addstr(y, 2, f"{value}")
             elif isinstance(value, float):
                 window.stats.addstr(y, 2, f"{value:.9f}")
+
+    def render(self,  window: WindowLayout, blackboard: dict) -> None:
+        window.main.clear()
+        window.stats.clear()
+        self._render_rng_table(window, title="Current", rng=self.rng, y_offset=0)
+        self._render_rng_table(window, title="Captured", rng=self.captured_rng, y_offset=self.ROWS + 2)
+        self._render_modulo_text(window=window)
+        self._render_calculated_values(window=window)
 
 
 def rng_observer(window: WindowLayout):
