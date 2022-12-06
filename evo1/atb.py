@@ -34,12 +34,12 @@ class EncounterID(Enum):
     ZOOMBA_APIDYA = auto()
 
 
-def calc_next_encounter(has_3d_monsters: bool = False) -> EncounterID:
-    rng = EvolandRNG().get_rng()
+def calc_next_encounter(rng: EvolandRNG.RNGStruct, has_3d_monsters: bool = False) -> EncounterID:
+    rng_value = (rng.rand_int() & 0x3fffffff)
     map_id = get_memory().map_id
     modulo = 0xA
     if map_id == MapID.CRYSTAL_CAVERN:
-        lut_value = (rng.rand_int() & 0x3fffffff) % modulo
+        lut_value = rng_value % modulo
         match lut_value:
             case 0 | 1 | 2: return EncounterID.SCAVEN_2
             case 3 | 4 | 5: return EncounterID.KOBRA
@@ -47,7 +47,7 @@ def calc_next_encounter(has_3d_monsters: bool = False) -> EncounterID:
             case 8: return EncounterID.KOBRA_2
             case _: return EncounterID.SCAVEN_2_TORK
     elif not has_3d_monsters: # Overworld 2D
-        lut_value = (rng.rand_int() & 0x3fffffff) % modulo
+        lut_value = rng_value % modulo
         match lut_value:
             case 0 | 1 | 2: return EncounterID.SLIME
             case 3 | 4 | 5: return EncounterID.EMUK
@@ -57,7 +57,7 @@ def calc_next_encounter(has_3d_monsters: bool = False) -> EncounterID:
     else:
         # Overworld 3D
         modulo = 0x7
-        lut_value = (rng.rand_int() & 0x3fffffff) % modulo
+        lut_value = rng_value % modulo
         match lut_value:
             case 0 | 1 | 2: return EncounterID.ZOOMBA_2_APIDYA
             case 3 | 4: return EncounterID.APIDYA
@@ -153,25 +153,23 @@ class SeqATBCombat(SeqBase):
             return False
         return True
 
-    # TODO RNG Calculations
-    # Evoland1 specific stuff
-
-    # Clinks attack in ATB combat
-
-    # Maybe correct formulas for stats. Should be readable in memory while in combat
-    # Att: 8 + round(level / 3) + modifiers
-    # Def:  0 + floor(level / 3) + modifiers
-    # HP: 100 + (ceil(level / 3) * 5 - 5)
-
+    # TODO: Predict hit-chance (need the formula based on acc/evade)
 
     # Att + (0.5 * Att * random_float) - enemy_def
     def predict_damage(self, attacker: BattleEntity, defender: BattleEntity) -> int:
-        # TODO: Modifiers
         rng = EvolandRNG().get_rng()
         rand_float = rng.rand_float()
         attack = attacker.attack
         defense = defender.defense
         return int(attack + (0.5 * attack * rand_float) - defense + 0.5)
+
+    def predict_hit(self, attacker: BattleEntity, defender: BattleEntity) -> bool:
+        rng = EvolandRNG().get_rng()
+        accuracy = 10 # TODO: from attacker
+        evade = 10 # TODO: from defender
+        miss_chance = 30 # TODO: Calc
+        roll = (rng.rand_int() & 0x3fffffff) % 100
+        return roll >= miss_chance
 
     # TODO: Actual combat logic
     # TODO: Overload with more complex
@@ -195,6 +193,7 @@ class SeqATBCombat(SeqBase):
         # TODO: Hit/Damage prediction
         # TODO: Who is acting?
         if not self.mem.ended:
+            # TODO: Damage prediction for Kaeris
             dmg = self.predict_damage(self.mem.allies[0], self.mem.enemies[0])
             window.stats.addstr(13, 1, "Damage prediction:")
             window.stats.addstr(14, 2, f"Clink: {dmg}")
@@ -240,6 +239,27 @@ class SeqATBmove2D(SeqMove2D):
     def _farm_done(self) -> bool:
         return self.goal.is_done() if self.goal else True
 
+    # Override
+    def do_encounter_manip(self, blackboard: dict) -> bool:
+        return False
+
+    def navigate_to_goal(self, blackboard: dict) -> bool:
+        rng = EvolandRNG().get_rng()
+        self.next_enc = calc_next_encounter(rng=rng, has_3d_monsters=False)  # TODO: Check for manips
+        if self.do_encounter_manip(blackboard=blackboard):
+            return True
+        self._navigate_to_checkpoint(blackboard=blackboard)
+        return False
+
+    def check_farming_goals(self, blackboard: dict) -> bool:
+        nav_done = self._nav_done()
+        farm_done = self._farm_done()
+
+        if nav_done and not farm_done:
+            self.goal.farm(blackboard=blackboard)
+
+        return nav_done and farm_done
+
     def execute(self, delta: float, blackboard: dict) -> bool:
         mem = get_zelda_memory()
         # For some reason, this flag is set when in ATB combat
@@ -252,17 +272,10 @@ class SeqATBmove2D(SeqMove2D):
             return False
 
         # Else navigate the world, checking for farming goals
-        self.next_enc = calc_next_encounter(has_3d_monsters=False)  # TODO: Check for manips
-        self._navigate_to_checkpoint(blackboard=blackboard)
+        if self.navigate_to_goal(blackboard=blackboard):
+            return False
 
-        nav_done = self._nav_done()
-        farm_done = self._farm_done()
-
-        if nav_done and not farm_done:
-            self.goal.farm(blackboard=blackboard)
-
-        done = nav_done and farm_done
-        if done:
+        if done := self.check_farming_goals(blackboard=blackboard):
             logger.debug(f"Finished moved2D section: {self.name}")
         return done
 
@@ -283,7 +296,6 @@ class SeqATBmove2D(SeqMove2D):
     def __repr__(self) -> str:
         # Check for active battle
         battle = f"\n    {self.battle_handler}" if self.battle_handler.active else ""
-        # TODO: Active battle
         num_coords = len(self.coords)
         farm = f"\n    {self.goal}" if self.goal else ""
         if self.step >= num_coords:
