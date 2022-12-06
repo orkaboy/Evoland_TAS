@@ -21,6 +21,8 @@ class SeqRngObserver(SeqBase):
         self.modulo = None
         self.mask = 0xffffffff
         self.setting_modulo = 0
+        self.tracking = False
+        self.tracking_offset = 0
         super().__init__(name)
 
     def _get_digit(self, input: str) -> Optional[int]:
@@ -62,6 +64,14 @@ class SeqRngObserver(SeqBase):
         if input == ord("c"):
             self.captured_rng = self.mem.get_rng()
             logger.info(f"Captured current rng values. Cursor is at {self.captured_rng.cursor}")
+        elif input == ord("t"):
+            if self.tracking:
+                logger.info(f"Stopped tracking. Offset from start: {self.tracking_offset}")
+            else:
+                self.captured_rng = self.mem.get_rng()
+                self.tracking_offset = 0
+                logger.info(f"Tracking rng. Cursor is at {self.captured_rng.cursor}")
+            self.tracking = not self.tracking
         # Capture next int from capture buffer
         elif input == ord("i"):
             value = self.captured_rng.rand_int()
@@ -88,6 +98,13 @@ class SeqRngObserver(SeqBase):
 
     def execute(self, delta: float, blackboard: dict) -> bool:
         self.rng = self.mem.get_rng()
+        if self.tracking:
+            # Frame-restricted to prevent softlocks if we lose the cursor
+            for _ in range(128):
+                if self.captured_rng.cursor == self.rng.cursor:
+                    break
+                self.captured_rng.advance_rng()
+                self.tracking_offset += 1
         return False # Never completes
 
     def _render_rng_table(self, window: WindowLayout, title: str, rng: EvolandRNG.RNGStruct, y_offset) -> None:
@@ -131,6 +148,10 @@ class SeqRngObserver(SeqBase):
         self._render_rng_table(window, title="Captured", rng=self.captured_rng, y_offset=self.ROWS + 2)
         self._render_modulo_text(window=window)
         self._render_calculated_values(window=window)
+
+        if self.tracking:
+            maxy, _ = window.main.getmaxyx()
+            window.main.addstr(maxy-1, 1, f"Tracking rng changes. Cursor has advanced by: {self.tracking_offset}")
 
 
 def rng_observer(window: WindowLayout):
