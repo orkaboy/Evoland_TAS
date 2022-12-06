@@ -2,6 +2,7 @@
 
 0.0.4:
 * Battle stats and damage prediction
+* ATB Encounter prediction and manipulation on overworld map
 
 # Older changelogs
 
