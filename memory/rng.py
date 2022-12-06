@@ -44,13 +44,14 @@ class EvolandRNG:
             self.cursor = cursor
             self.values = values
 
-        def _advance_rng(self) -> int:
-            pos = self.cursor
-            self.cursor += 1
-            if pos >= EvolandRNG.RNG_VALS:
-                self._calc_next_rng()
-                self.cursor = 1
-                pos = 0
+        def advance_rng(self, steps: int = 1) -> int:
+            for _ in range(steps):
+                pos = self.cursor
+                self.cursor += 1
+                if pos >= EvolandRNG.RNG_VALS:
+                    self._calc_next_rng()
+                    self.cursor = 1
+                    pos = 0
             return pos
 
         def _calc_next_rng(self):
@@ -61,7 +62,7 @@ class EvolandRNG:
 
         # consumes one rng value and returns an int
         def rand_int(self) -> int:
-            pos = self._advance_rng()
+            pos = self.advance_rng()
             ret = self.values[pos]
             ret ^= (ret << 7) & 0x2b5b2500
             ret ^= (ret << 15) & 0xdb8b0000
