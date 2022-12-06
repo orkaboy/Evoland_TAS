@@ -1,7 +1,7 @@
 # Current
 
 0.0.4:
-*
+* Battle stats and damage prediction
 
 # Older changelogs
 

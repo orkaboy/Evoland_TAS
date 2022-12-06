@@ -18,20 +18,6 @@ class GameFeatures(Flag):
 _LIBHL_OFFSET = 0x0004914C
 
 
-
-# TODO RNG Calculations
-# Evoland1 specific stuff
-
-# Clinks attack in ATB combat
-# Att + (0.5 * Att * random_float) - enemy_def
-
-# Maybe correct formulas for stats. Should be readable in memory while in combat
-# Att: 8 + round(level / 3) + modifiers
-# Def:  0 + floor(level / 3) + modifiers
-# HP: 100 + (ceil(level / 3) * 5 - 5)
-
-
-
 class MapID(Enum):
     EDEL_VALE = 0
     OVERWORLD = 1

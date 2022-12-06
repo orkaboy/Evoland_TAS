@@ -153,6 +153,26 @@ class SeqATBCombat(SeqBase):
             return False
         return True
 
+    # TODO RNG Calculations
+    # Evoland1 specific stuff
+
+    # Clinks attack in ATB combat
+
+    # Maybe correct formulas for stats. Should be readable in memory while in combat
+    # Att: 8 + round(level / 3) + modifiers
+    # Def:  0 + floor(level / 3) + modifiers
+    # HP: 100 + (ceil(level / 3) * 5 - 5)
+
+
+    # Att + (0.5 * Att * random_float) - enemy_def
+    def predict_damage(self, attacker: BattleEntity, defender: BattleEntity) -> int:
+        # TODO: Modifiers
+        rng = EvolandRNG().get_rng()
+        rand_float = rng.rand_float()
+        attack = attacker.attack
+        defense = defender.defense
+        return int(attack + (0.5 * attack * rand_float) - defense + 0.5)
+
     # TODO: Actual combat logic
     # TODO: Overload with more complex
     def handle_combat(self):
@@ -161,6 +181,8 @@ class SeqATBCombat(SeqBase):
 
     # TODO: Render combat state
     def render(self, window: WindowLayout, blackboard: dict) -> None:
+        if not self.active:
+            return
         window.stats.erase()
         window.write_stats_centered(line=1, text="Evoland 1 TAS")
         window.write_stats_centered(line=2, text="ATB Combat")
@@ -171,6 +193,11 @@ class SeqATBCombat(SeqBase):
         self._print_group(window=window, group=self.mem.enemies, y_offset=9)
 
         # TODO: Hit/Damage prediction
+        # TODO: Who is acting?
+        if not self.mem.ended:
+            dmg = self.predict_damage(self.mem.allies[0], self.mem.enemies[0])
+            window.stats.addstr(13, 1, "Damage prediction:")
+            window.stats.addstr(14, 2, f"Clink: {dmg}")
 
         # TODO: map representation
 
@@ -190,7 +217,7 @@ class SeqATBCombat(SeqBase):
 
 
 # Dummy class for ATB combat testing; requires manual control
-class SeqATBManualCombat(SeqATBCombat):
+class SeqATBCombatManual(SeqATBCombat):
     def __init__(self, name: str = "Generic", wait_for_battle: bool = False) -> None:
         super().__init__(name=name, wait_for_battle=wait_for_battle)
 
