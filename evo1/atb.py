@@ -164,27 +164,38 @@ class SeqATBCombat(SeqBase):
         window.stats.erase()
         window.write_stats_centered(line=1, text="Evoland 1 TAS")
         window.write_stats_centered(line=2, text="ATB Combat")
-        # TODO: stats
+
         window.stats.addstr(4, 1, "Party:")
         self._print_group(window=window, group=self.mem.allies, y_offset=5)
-
         window.stats.addstr(8, 1, "Enemies:")
         self._print_group(window=window, group=self.mem.enemies, y_offset=9)
+
+        # TODO: Hit/Damage prediction
 
         # TODO: map representation
 
     def _print_group(self, window: WindowLayout, group: List[BattleEntity], y_offset: int) -> None:
         for i, entity in enumerate(group):
             y_pos = y_offset + i
-            window.stats.addstr(y_pos, 2, f"{entity.cur_hp}/{entity.max_hp}")
+            window.stats.addstr(y_pos, 2, f"{entity.cur_hp}/{entity.max_hp} [{entity.turn_gauge:.02f}]")
 
-    # TODO: Gamestate string
     def __repr__(self) -> str:
-        return f"In battle ({self.name})" if self.active else f"Waiting for battle to start ({self.name})"
+        if self.active:
+            return f"Battle ended ({self.name})" if self.mem.ended else f"In battle ({self.name})"
+        return f"Waiting for battle to start ({self.name})"
 
     @property
     def active(self):
         return self.mem is not None and self.mem.battle_active
+
+
+# Dummy class for ATB combat testing; requires manual control
+class SeqATBManualCombat(SeqATBCombat):
+    def __init__(self, name: str = "Generic", wait_for_battle: bool = False) -> None:
+        super().__init__(name=name, wait_for_battle=wait_for_battle)
+
+    def handle_combat(self):
+        pass
 
 
 class SeqATBmove2D(SeqMove2D):
