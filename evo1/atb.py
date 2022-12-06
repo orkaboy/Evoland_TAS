@@ -1,10 +1,10 @@
 import logging
-import time
 
+from engine.seq import SeqBase
 from engine.mathlib import Vec2, is_close
 import evo1.control
 from evo1.move2d import SeqMove2D, move_to
-from evo1.memory import get_memory, get_zelda_memory, MapID
+from evo1.memory import get_memory, get_zelda_memory, MapID, BattleMemory, BattleEntity
 from memory.rng import EvolandRNG
 from enum import Enum, auto
 from term.curses import WindowLayout
@@ -106,60 +106,150 @@ class FarmingGoal:
         return f"Farming goal:{gli_goal}{lvl_goal}"
 
 
+def _tap_confirm() -> None:
+    ctrl = evo1.control.handle()
+    ctrl.dpad.none()
+    ctrl.confirm(tapping=True)
+
+
+# Handling of the actual battle logic itself (base class, replace with more complex logic)
+class SeqATBCombat(SeqBase):
+    def __init__(self, name: str = "Generic", wait_for_battle: bool = False) -> None:
+        self.mem: BattleMemory = None
+        self.wait_for_battle = wait_for_battle
+        # Triggered is used together with wait_for_battle to handle boss sequences
+        self.triggered = False
+        super().__init__(name=name)
+
+    def reset(self) -> None:
+        self.triggered = False
+
+    def execute(self, delta: float, blackboard: dict) -> bool:
+        if not self.update_mem():
+            if not self.wait_for_battle or self.triggered:
+                return True
+            # Tap confirm until battle starts
+            _tap_confirm()
+            return False
+        self.triggered = True
+
+        # Tap past win screen/cutscenes
+        if self.mem.ended:
+            _tap_confirm()
+        else:
+            self.handle_combat()
+
+        return not self.active
+
+    def update_mem(self) -> bool:
+        # Check if we need to create a new ATB battle structure, or update the old one
+        if self.mem is None:
+            self.mem = BattleMemory()
+        else:
+            self.mem.update()
+        # Clear unused memory; we need to try to recreate it next frame
+        if not self.active:
+            self.mem = None
+            return False
+        return True
+
+    # TODO: Actual combat logic
+    # TODO: Overload with more complex
+    def handle_combat(self):
+        # TODO: Very, very dumb combat.
+        _tap_confirm()
+
+    # TODO: Render combat state
+    def render(self, window: WindowLayout, blackboard: dict) -> None:
+        window.stats.erase()
+        window.write_stats_centered(line=1, text="Evoland 1 TAS")
+        window.write_stats_centered(line=2, text="ATB Combat")
+        # TODO: stats
+        window.stats.addstr(4, 1, "Party:")
+        self._print_group(window=window, group=self.mem.allies, y_offset=5)
+
+        window.stats.addstr(8, 1, "Enemies:")
+        self._print_group(window=window, group=self.mem.enemies, y_offset=9)
+
+        # TODO: map representation
+
+    def _print_group(self, window: WindowLayout, group: List[BattleEntity], y_offset: int) -> None:
+        for i, entity in enumerate(group):
+            y_pos = y_offset + i
+            window.stats.addstr(y_pos, 2, f"{entity.cur_hp}/{entity.max_hp}")
+
+    # TODO: Gamestate string
+    def __repr__(self) -> str:
+        return f"In battle ({self.name})" if self.active else f"Waiting for battle to start ({self.name})"
+
+    @property
+    def active(self):
+        return self.mem is not None and self.mem.battle_active
+
+
 class SeqATBmove2D(SeqMove2D):
-    def __init__(self, name: str, coords: List[Vec2], goal: FarmingGoal = None, precision: float = 0.2):
+    def __init__(self, name: str, coords: List[Vec2], battle_handler: SeqATBCombat = SeqATBCombat(), goal: FarmingGoal = None, precision: float = 0.2):
         self.goal = goal
         self.next_enc: EncounterID = None
+        self.battle_handler = battle_handler
         super().__init__(name, coords, precision)
 
     def reset(self) -> None:
         if self.goal:
             self.goal.reset()
+        self.battle_handler.reset()
 
     def _farm_done(self) -> bool:
         return self.goal.is_done() if self.goal else True
-
-    # TODO: Very, very dumb combat.
-    def _handle_combat(self) -> None:
-        ctrl = evo1.control.handle()
-        ctrl.dpad.none()
-        ctrl.confirm(tapping=True)
 
     def execute(self, delta: float, blackboard: dict) -> bool:
         mem = get_zelda_memory()
         # For some reason, this flag is set when in ATB combat
         if mem.player.not_in_control:
-            self._handle_combat()
+            # Check for active battle (returns True on completion/non-execution)
+            if self.battle_handler.execute(delta=delta, blackboard=blackboard):
+                # Handle non-battle reasons for losing control
+                # TODO: Just cutscenes for now, might need logic for skips here
+                _tap_confirm()
             return False
-        else:
-            self.next_enc = calc_next_encounter(has_3d_monsters=False)  # TODO: Check for chest
-            self._navigate_to_checkpoint(blackboard=blackboard)
 
-            nav_done = self._nav_done()
-            farm_done = self._farm_done()
+        # Else navigate the world, checking for farming goals
+        self.next_enc = calc_next_encounter(has_3d_monsters=False)  # TODO: Check for manips
+        self._navigate_to_checkpoint(blackboard=blackboard)
 
-            if nav_done and not farm_done:
-                self.goal.farm(blackboard=blackboard)
+        nav_done = self._nav_done()
+        farm_done = self._farm_done()
 
-            done = nav_done and farm_done
-            if done:
-                logger.debug(f"Finished moved2D section: {self.name}")
-            return done
+        if nav_done and not farm_done:
+            self.goal.farm(blackboard=blackboard)
+
+        done = nav_done and farm_done
+        if done:
+            logger.debug(f"Finished moved2D section: {self.name}")
+        return done
 
     def render(self, window: WindowLayout, blackboard: dict) -> None:
+        # Check for acvite battle
+        if self.battle_handler.active:
+            self.battle_handler.render(window=window, blackboard=blackboard)
+            return
+
         super().render(window, blackboard)
 
         if self.next_enc:
             mem = get_zelda_memory()
             enc_timer = mem.player.encounter_timer
-            window.stats.addstr(12, 1, f" Next encounter ({enc_timer:.3f}):")
+            window.stats.addstr(12, 1, f" Next enc ({enc_timer:.3f}):")
             window.stats.addstr(13, 1, f"  {self.next_enc.name}")
 
     def __repr__(self) -> str:
+        # Check for active battle
+        battle = f"\n    {self.battle_handler}" if self.battle_handler.active else ""
+        # TODO: Active battle
         num_coords = len(self.coords)
         farm = f"\n    {self.goal}" if self.goal else ""
         if self.step >= num_coords:
-            return f"{self.name}[{num_coords}/{num_coords}]: {farm}"
+            return f"{self.name}[{num_coords}/{num_coords}]: {farm}{battle}"
         target = self.coords[self.step]
         step = self.step + 1
-        return f"{self.name}[{step}/{num_coords}]: {target}{farm}"
+        return f"{self.name}[{step}/{num_coords}]: {target}{farm}{battle}"

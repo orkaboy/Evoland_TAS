@@ -109,6 +109,9 @@ class BattleEntity:
 
 
 class BattleMemory:
+    # Pointer to the last/current battle
+    last_battle_ptr = 0
+
     # All battle data is stored here
     _BATTLE_BASE_PTR = [0x860, 0x0, 0x244]
     # All allies are listed here
@@ -126,17 +129,38 @@ class BattleMemory:
     _PLAYER_ATB_MENU_CURSOR_PTR = [0x48, 0x8C]
 
     def __init__(self):
+        # Check if we are in battle
+        self.active = False
+        mem = get_zelda_memory()
+        in_control = mem.player.in_control
+        if in_control:
+            return
+
+        # Set up memory access, get the base pointer to the battle structure
         mem_handle = memory.core.handle()
         self.process = mem_handle.process
-        self.base_addr = mem_handle.base_addr
-        # logger.debug(f"Zelda base address: {hex(self.base_addr)}")
-        # TODO: Need a check here... we will get into trouble if we start reading these when battle isn't active
+        base_addr = mem_handle.base_addr
         self.base_offset = self.process.get_pointer(
-            self.base_addr + _LIBHL_OFFSET, offsets=self._BATTLE_BASE_PTR
+            base_addr + _LIBHL_OFFSET, offsets=self._BATTLE_BASE_PTR
         )
-        self.allies = self._init_entities(array_size_ptr=self._ALLIES_ARR_SIZE_PTR, array_base_ptr=self._ALLIES_ARR_BASE_PTR)
-        self.enemies = self._init_entities(array_size_ptr=self._ENEMIES_ARR_SIZE_PTR, array_base_ptr=self._ENEMIES_ARR_BASE_PTR)
-        # TODO: Other battle related data?
+
+        # Check if we have triggered a new battle
+        if self.base_offset == BattleMemory.last_battle_ptr:
+            return
+
+        self.active = True
+        self.update()
+
+        if self.active:
+            BattleMemory.last_battle_ptr = self.base_offset
+
+    def update(self):
+        try:
+            self.allies = self._init_entities(array_size_ptr=self._ALLIES_ARR_SIZE_PTR, array_base_ptr=self._ALLIES_ARR_BASE_PTR)
+            self.enemies = self._init_entities(array_size_ptr=self._ENEMIES_ARR_SIZE_PTR, array_base_ptr=self._ENEMIES_ARR_BASE_PTR)
+            # TODO: Other battle related data? Cursors gui etc.
+        except ReferenceError:
+            self.active = False
 
     def _init_entities(self, array_size_ptr: List[int], array_base_ptr: List[int]) -> List[BattleEntity]:
         entities: List[BattleEntity] = []
@@ -154,8 +178,21 @@ class BattleMemory:
             entities.append(BattleEntity(self.process, entity_ptr))
         return entities
 
+    @property
+    def ended(self) -> bool:
+        # Check if every enemy is defeated, if so, battle has ended
+        if len(self.enemies) == 0:
+            return True
+        # Check if every ally has fallen, if so, battle has ended
+        return all(ally.cur_hp <= 0 for ally in self.allies)
 
-# TODO: Apply Python @property for getters/setters
+    @property
+    def battle_active(self) -> bool:
+        mem = get_zelda_memory()
+        in_control = mem.player.in_control
+        return False if in_control else self.active
+
+
 # TODO: Refactor (currently only used in very specific cases)
 class Evoland1Memory:
 
