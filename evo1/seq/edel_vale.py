@@ -107,7 +107,7 @@ class Edel1(SeqList):
                 SeqKnight2D(
                     "Killing two knights",
                     arena=Box2(pos=Vec2(53, 32), w=5, h=4), # Valid arena to fight inside (should be clear of obstacles)
-                    targets=[Vec2(54, 33), Vec2(56, 33)], # Positions of enemies (known from start)
+                    num_targets=2,
                 ),
                 SeqMove2D(
                     "Grabbing inv",

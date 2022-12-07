@@ -14,10 +14,9 @@ logger = logging.getLogger(__name__)
 class SeqKnight2D(SeqSection2D):
 
     class _Plan:
-        def __init__(self, mem: ZeldaMemory, targets: List[Vec2], track_size: float) -> None:
+        def __init__(self, mem: ZeldaMemory, arena: Box2, num_targets: int) -> None:
             self.targets: List[GameEntity2D] = []
             self.next_target: Optional[GameEntity2D] = None
-            targets_copy = targets.copy()
             # Map start positions to array of GameEntity2D to track
             with contextlib.suppress(
                     ReferenceError
@@ -26,13 +25,11 @@ class SeqKnight2D(SeqSection2D):
                     if actor.kind != GameEntity2D.EKind.ENEMY:
                         continue
                     enemy_pos = actor.pos
-                    search_box = get_box_with_size(center=enemy_pos, half_size=track_size)
-                    for target in targets_copy:
-                        # Check if target is found. If so, initialize the tracking entity
-                        if search_box.contains(target):
-                            self.targets.append(actor)
-            if len(targets) != len(self.targets):
-                logger.error(f"Couldn't track all entities! Found {len(self.targets)}/{len(targets)} enemies")
+                    # Check if target is found. If so, initialize the tracking entity
+                    if arena.contains(enemy_pos):
+                        self.targets.append(actor)
+            if num_targets != len(self.targets):
+                logger.error(f"Couldn't track all entities! Found {len(self.targets)}/{num_targets} enemies")
 
         def done(self) -> bool:
             return len(self.targets) == 0
@@ -61,13 +58,11 @@ class SeqKnight2D(SeqSection2D):
             return len(self.targets)
 
     # TODO: Change List[Vec2] to some kind of ID or monster structure instead to make tracking easier
-    def __init__(self, name: str, arena: Box2, targets: List[Vec2], track_size: float = 1.2, precision: float = 0.2) -> None:
+    def __init__(self, name: str, arena: Box2, num_targets: int, precision: float = 0.2) -> None:
         self.plan = None
         self.arena = arena
-        self.target_coords = targets
-        self.track_size = track_size
         self.precision = precision
-        self.num_targets = len(targets)
+        self.num_targets = num_targets
         super().__init__(name)
 
     def reset(self) -> None:
@@ -77,7 +72,7 @@ class SeqKnight2D(SeqSection2D):
         mem = get_zelda_memory()
 
         if self.plan is None:
-            self.plan = SeqKnight2D._Plan(mem=mem, targets=self.target_coords, track_size=self.track_size)
+            self.plan = SeqKnight2D._Plan(mem=mem, arena=self.arena, num_targets=self.num_targets)
 
         with contextlib.suppress(
             ReferenceError
