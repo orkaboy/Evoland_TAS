@@ -1,8 +1,9 @@
 import contextlib
 import logging
+import math
 from typing import List, Optional
 
-from engine.mathlib import Facing, Vec2, Box2, get_box_with_size, grow_box, get_2d_facing_from_dir, dist
+from engine.mathlib import Facing, Vec2, Box2, get_box_with_size, grow_box, get_2d_facing_from_dir, dist, angle_between
 from evo1.memory import GameEntity2D, ZeldaMemory, get_zelda_memory
 from evo1.move2d import SeqSection2D, move_to
 import evo1.control
@@ -167,18 +168,32 @@ class SeqCombat3D(SeqCombat):
         mem = get_zelda_memory()
         player_pos = mem.player.pos
         box = get_box_with_size(center=player_pos, half_size=self.precision)
-        # Check angle to enemy
-        enemy_pos = target.pos
-        angle_to_enemy = (enemy_pos - player_pos).angle
         # Check position (must be in range, in a weak spot)
         if box.contains(weak_spot):
-            # TODO: Compare player rotation to angle_to_enemy
-            if True:
+            # Check angle to enemy
+            enemy_pos = target.pos
+            angle_to_enemy = (enemy_pos - player_pos).angle
+            player_angle = mem.player.rotation
+            # Compare player rotation to angle_to_enemy
+            angle = angle_between(angle_to_enemy, player_angle)
+            if angle < math.pi / 3: # Roughly turned in the right direction
                 # We are aligned and in position. Attack!
                 ctrl.dpad.none()
                 ctrl.attack()
                 return True
             else:
+                # Turn to the correct direction, facing the enemy
+                # Split into 8 directions. 0 is to the right
+                # Horizontal axis
+                if abs(angle_to_enemy) < 3 * math.pi / 8:
+                    ctrl.dpad.right()
+                elif abs(angle_to_enemy) > 5 * math.pi / 8:
+                    ctrl.dpad.left()
+                # Vertical axis
+                if angle_to_enemy > math.pi / 8 and angle_to_enemy < 5 * math.pi / 8:
+                    ctrl.dpad.down()
+                elif angle_to_enemy < -math.pi / 8 and angle_to_enemy > -5 * math.pi / 8:
+                    ctrl.dpad.up()
                 return False
         return False
 
@@ -200,6 +215,7 @@ class SeqCombat3D(SeqCombat):
         move_to(player=player_pos, target=closest_weak_spot, precision=self.precision)
         # Attempt to attack if in range
         return self._try_attack(target=target, weak_spot=closest_weak_spot)
+
 
 class SeqKnight2D(SeqCombat):
 

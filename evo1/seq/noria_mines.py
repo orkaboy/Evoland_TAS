@@ -1,8 +1,9 @@
 from engine.seq import SeqList
-from engine.mathlib import Facing, Vec2
+from engine.mathlib import Facing, Vec2, Box2
 from evo1.move2d import SeqZoneTransition, SeqGrabChest, SeqGrabChestKeyItem, SeqMove2D, SeqMove2DClunkyCombat, SeqMove2DConfirm, SeqHoldInPlace, SeqManualUntilClose
 from evo1.maps import GetAStar
 from evo1.memory import MapID
+from evo1.combat import SeqCombat3D
 
 _noria_astar = GetAStar(MapID.NORIA)
 _noria_start_astar = GetAStar(MapID.NORIA_CLOSED)
@@ -39,8 +40,10 @@ class NoriaMines(SeqList):
                 SeqMove2D("Move to chest", coords=[Vec2(35, 40.6)]),
                 # TODO: Trigger menu bug
                 SeqGrabChest("Trap room", direction=Facing.UP),
-                SeqMove2DClunkyCombat("Move to chest", coords=_noria_astar.calculate(start=Vec2(35, 41), goal=Vec2(34, 41))),
+                # TODO: Test killing bat
                 # TODO: Kill bats if needed (can reuse knight logic, simplify)
+                SeqCombat3D("Killing bats", arena=Box2(Vec2(33, 41), w=5, h=6), num_targets=3),
+                SeqMove2DClunkyCombat("Move to chest", coords=[Vec2(34, 41)]),
                 # Get in position for chest
                 SeqMove2D("Move to chest", coords=[Vec2(33.6, 41)]),
                 SeqGrabChest("Key", direction=Facing.LEFT),

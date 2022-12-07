@@ -60,6 +60,14 @@ def is_close(a: Vec2, b: Vec2, precision: float) -> bool:
     return dist(a, b) <= precision
 
 
+# Compare two angles and return the angle between the two. Accounts for -PI/+PI
+def angle_between(alpha: float, beta: float) -> float:
+    angle = abs(alpha - beta)
+    if angle > 2 * math.pi:
+        angle = angle - 2 * math.pi
+    return angle
+
+
 class Box2(NamedTuple):
     pos: Vec2
     w: float
