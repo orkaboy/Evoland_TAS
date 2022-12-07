@@ -10,9 +10,9 @@ logger = logging.getLogger(__name__)
 
 
 class SeqObserver2D(SeqSection2D):
-    def __init__(self, name: str, annotations: dict = None, func=None):
+    def __init__(self, name: str, func=None):
         self.tracked: set[Vec2] = set()
-        super().__init__(name, annotations=annotations, func=func)
+        super().__init__(name, func=func)
 
     def reset(self) -> None:
         self.tracked = set()

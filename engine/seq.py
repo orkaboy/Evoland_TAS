@@ -10,11 +10,8 @@ logger = logging.getLogger(__name__)
 
 
 class SeqBase(object):
-    def __init__(self, name: str = "", annotations: dict = None, func=None):
+    def __init__(self, name: str = "", func=None):
         self.name = name
-        if annotations is None:
-            annotations = {}
-        self.annotations = annotations
         self.func = func
 
     def reset(self) -> None:
@@ -79,11 +76,11 @@ class SeqDelay(SeqBase):
 
 
 class SeqList(SeqBase):
-    def __init__(self, name: str, children: List[SeqBase], annotations: dict = None, func=None, shadow: str = False):
+    def __init__(self, name: str, children: List[SeqBase], func=None, shadow: str = False):
         self.step = 0
         self.children = children
         self.shadow = shadow
-        super().__init__(name, annotations=annotations, func=func)
+        super().__init__(name, func=func)
 
     def reset(self) -> None:
         self.step = 0

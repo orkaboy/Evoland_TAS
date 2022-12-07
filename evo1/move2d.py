@@ -151,10 +151,10 @@ class SeqAttack(SeqBase):
 
 # Temp testing
 class SeqManualUntilClose(SeqBase):
-    def __init__(self, name: str, target: Vec2, precision: float = 0.2, annotations: dict = None, func=None):
+    def __init__(self, name: str, target: Vec2, precision: float = 0.2, func=None):
         self.target = target
         self.precision = precision
-        super().__init__(name, annotations, func)
+        super().__init__(name, func)
 
     def execute(self, delta: float) -> bool:
         super().execute(delta)
@@ -200,8 +200,8 @@ class SeqHoldInPlace(SeqDelay):
 
 # Base class for 2D movement areas
 class SeqSection2D(SeqBase):
-    def __init__(self, name: str, annotations: dict = None, func=None):
-        super().__init__(name, annotations=annotations, func=func)
+    def __init__(self, name: str, func=None):
+        super().__init__(name, func=func)
 
     # Map starts at line 2 and fills the rest of the map window
     _map_start_y = 2
