@@ -1,9 +1,9 @@
 from typing import Optional
 import memory.core as core
 from memory.rng import EvolandRNG
+from engine.mathlib import Vec2
 from engine.seq import SeqBase, SequencerEngine
-from term.curses import WindowLayout
-import curses
+from term.window import WindowLayout
 import logging
 
 logger = logging.getLogger("RNG")
@@ -108,50 +108,50 @@ class SeqRngObserver(SeqBase):
         return False # Never completes
 
     def _render_rng_table(self, window: WindowLayout, title: str, rng: EvolandRNG.RNGStruct, y_offset) -> None:
-        window.main.addstr(y_offset, 0, f"{title} buffer. Cursor: {rng.cursor}")
+        window.main.addstr(Vec2(0, y_offset), f"{title} buffer. Cursor: {rng.cursor}")
         for i in range(EvolandRNG.RNG_VALS):
             y = y_offset + 1 + i // self.COLUMNS
             x = 2 + (i % self.COLUMNS) * self.VAL_WIDTH
             if i == (rng.cursor % EvolandRNG.RNG_VALS):
-                window.main.addstr(y, x-1, f"<{rng.values[i]:#010x}>")
+                window.main.addstr(Vec2(x-1, y), f"<{rng.values[i]:#010x}>")
             else:
-                window.main.addstr(y, x, f"{rng.values[i]:#010x}")
+                window.main.addstr(Vec2(x, y), f"{rng.values[i]:#010x}")
 
     def _render_modulo_text(self, window: WindowLayout) -> None:
-        y, _ = window.stats.getmaxyx()
+        size = window.stats.size
         if self.modulo:
-            window.stats.addstr(y-1, 0, f"Modulo: {self.modulo}")
+            window.stats.addstr(Vec2(0, size.y-1), f"Modulo: {self.modulo}")
         else:
-            window.stats.addstr(y-1, 0, f"Setting modulo: {self.setting_modulo}")
-        window.stats.addstr(y-2, 0, f"Mask: {self.mask:#10x}")
-        self.max_cap_values = y-3
-        while len(self.last_values) > self.max_cap_values:
+            window.stats.addstr(Vec2(0, size.y-1), f"Setting modulo: {self.setting_modulo}")
+        window.stats.addstr(Vec2(0, size.y-2), f"Mask: {self.mask:#10x}")
+        max_cap_values = size.y-3
+        while len(self.last_values) > max_cap_values:
             self.last_values.pop(0)
 
     def _render_calculated_values(self, window: WindowLayout) -> None:
-        window.stats.addstr(0, 0, "Last values:")
+        window.stats.addstr(Vec2(0, 0), "Last values:")
         for i, value in enumerate(self.last_values):
             y = i + 1
             value = value & self.mask
             if isinstance(value, int):
                 if self.modulo:
-                    window.stats.addstr(y, 2, f"{value % self.modulo}")
+                    window.stats.addstr(Vec2(2, y), f"{value % self.modulo}")
                 else:
-                    window.stats.addstr(y, 2, f"{value}")
+                    window.stats.addstr(Vec2(2, y), f"{value}")
             elif isinstance(value, float):
-                window.stats.addstr(y, 2, f"{value:.9f}")
+                window.stats.addstr(Vec2(2, y), f"{value:.9f}")
 
     def render(self,  window: WindowLayout, blackboard: dict) -> None:
-        window.main.clear()
-        window.stats.clear()
+        window.main.erase()
+        window.stats.erase()
         self._render_rng_table(window, title="Current", rng=self.rng, y_offset=0)
         self._render_rng_table(window, title="Captured", rng=self.captured_rng, y_offset=self.ROWS + 2)
         self._render_modulo_text(window=window)
         self._render_calculated_values(window=window)
 
         if self.tracking:
-            maxy, _ = window.main.getmaxyx()
-            window.main.addstr(maxy-1, 1, f"Tracking rng changes. Cursor has advanced by: {self.tracking_offset}")
+            size = window.main.size
+            window.main.addstr(Vec2(1, size.y-1), f"Tracking rng changes. Cursor has advanced by: {self.tracking_offset}")
 
 
 def rng_observer(window: WindowLayout):
@@ -164,9 +164,9 @@ def rng_observer(window: WindowLayout):
         root=observer,
     )
 
-    window.main.clear()
-    window.stats.clear()
-    curses.doupdate()
+    window.main.erase()
+    window.stats.erase()
+    window.update()
 
     while engine.active():
         engine.run()

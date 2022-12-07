@@ -7,7 +7,7 @@ from engine.mathlib import Facing, Vec2, Box2, get_box_with_size, grow_box, get_
 from evo1.memory import GameEntity2D, ZeldaMemory, get_zelda_memory
 from evo1.move2d import SeqSection2D, move_to
 import evo1.control
-from term.curses import WindowLayout
+from term.window import WindowLayout, SubWindow
 
 logger = logging.getLogger(__name__)
 
@@ -189,7 +189,7 @@ class SeqKnight2D(SeqSection2D):
         self._print_arena(map_win=window.map, blackboard=blackboard)
         self._print_actors(map_win=window.map, blackboard=blackboard)
 
-    def _print_arena(self, map_win, blackboard: dict) -> None:
+    def _print_arena(self, map_win: SubWindow, blackboard: dict) -> None:
         # Draw a box representing the arena on the map. The representation is one tile
         # bigger so no entities inside the actual arena are overwritten.
         mem = get_zelda_memory()

@@ -3,7 +3,8 @@ import logging
 import time
 import datetime
 from typing import Any, Callable, List
-from term.curses import WindowLayout
+from term.window import WindowLayout
+from engine.mathlib import Vec2
 
 logger = logging.getLogger(__name__)
 
@@ -242,7 +243,7 @@ class SequencerEngine(object):
         duration = datetime.datetime.utcfromtimestamp(elapsed)
         timestamp = f"{duration.strftime('%H:%M:%S')}.{int(duration.strftime('%f')) // 1000:03d}"
         pause_str = " == PAUSED ==" if self.paused else ""
-        self.window.main.addstr(0, 0, f"[{timestamp}]{pause_str}")
+        self.window.main.addstr(Vec2(0, 0), f"[{timestamp}]{pause_str}")
 
     def _render(self) -> None:
         # Clear display windows
@@ -250,7 +251,7 @@ class SequencerEngine(object):
 
         # Render timer and gamestate tree
         self._print_timer()
-        self.window.main.addstr(1, 0, f"Gamestate:\n  {self.root}")
+        self.window.main.addstr(Vec2(0, 1), f"Gamestate:\n  {self.root}")
         # Render the current gamestate
         self.root.render(
             window=self.window, blackboard=self.blackboard

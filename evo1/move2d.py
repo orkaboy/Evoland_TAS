@@ -6,7 +6,7 @@ from typing import List
 import evo1.control
 from engine.seq import SeqBase, SeqDelay
 from evo1.memory import GameFeatures, GameEntity2D, get_zelda_memory, get_memory, MapID
-from term.curses import WindowLayout
+from term.window import WindowLayout, SubWindow
 from engine.mathlib import Facing, facing_str, Vec2, is_close, dist, get_angle
 from evo1.maps import CurrentTilemap
 
@@ -209,37 +209,37 @@ class SeqSection2D(SeqBase):
     _map_start_y = 2
 
     def _print_player_stats(self, window: WindowLayout, blackboard: dict) -> None:
-        window.write_stats_centered(line=1, text="Evoland 1 TAS")
-        window.write_stats_centered(line=2, text="2D section")
+        window.stats.write_centered(line=1, text="Evoland 1 TAS")
+        window.stats.write_centered(line=2, text="2D section")
         mem = get_zelda_memory()
         pos = mem.player.pos
-        window.stats.addstr(4, 1, f" Player X: {pos.x:.3f}")
-        window.stats.addstr(5, 1, f" Player Y: {pos.y:.3f}")
-        window.stats.addstr(6, 1, f"  Facing: {facing_str(mem.player.facing)}")
+        window.stats.addstr(Vec2(1, 4), f" Player X: {pos.x:.3f}")
+        window.stats.addstr(Vec2(1, 5), f" Player Y: {pos.y:.3f}")
+        window.stats.addstr(Vec2(1, 6), f"  Facing: {facing_str(mem.player.facing)}")
         # Draw the player at the center for reference
         self._print_ch_in_map(map_win=window.map, pos=Vec2(0, 0), ch="@")
 
     # (0,0) is at center of map. Y-axis increases going down the screen.
-    def _print_ch_in_map(self, map_win, pos: Vec2, ch: str):
-        maxy, maxx = map_win.getmaxyx()
-        centerx, centery = maxx / 2, self._map_start_y + (maxy - self._map_start_y) / 2
+    def _print_ch_in_map(self, map_win: SubWindow, pos: Vec2, ch: str):
+        size = map_win.size
+        centerx, centery = size.x / 2, self._map_start_y + (size.y - self._map_start_y) / 2
         draw_x, draw_y = int(centerx + pos.x), int(centery + pos.y)
         with contextlib.suppress(Exception):
-            if draw_x in range(maxx) and draw_y in range(self._map_start_y, maxy):
-                map_win.addch(draw_y, draw_x, ch)
+            if draw_x in range(size.x) and draw_y in range(self._map_start_y, size.y):
+                map_win.addch(Vec2(draw_x, draw_y), ch)
 
-    def _print_env(self, map_win, blackboard: dict) -> None:
-        maxy, maxx = map_win.getmaxyx()
+    def _print_env(self, map_win: SubWindow, blackboard: dict) -> None:
+        size = map_win.size
         # Fill box with .
-        for y in range(self._map_start_y, maxy):
-            map_win.hline(y, 0, " ", maxx)
+        for y in range(self._map_start_y, size.y):
+            map_win.hline(Vec2(0, y), " ", size.x)
 
     def _print_map(self, window: WindowLayout, blackboard: dict) -> None:
         if tilemap := CurrentTilemap():
             mem = get_zelda_memory()
             center = mem.player.pos
             # Render map
-            window.write_map_centered(0, tilemap.name)
+            window.map.write_centered(0, tilemap.name)
             for i, line in enumerate(tilemap.tiles):
                 y_pos = i + tilemap.origin.y
                 for j, tile in enumerate(line):
@@ -247,7 +247,7 @@ class SeqSection2D(SeqBase):
                     draw_pos = Vec2(x_pos, y_pos) - center
                     self._print_ch_in_map(window.map, pos=draw_pos, ch=tile)
 
-    def _print_actors(self, map_win, blackboard: dict) -> None:
+    def _print_actors(self, map_win: SubWindow, blackboard: dict) -> None:
         mem = get_zelda_memory()
         center = mem.player.pos
 
@@ -322,11 +322,11 @@ class SeqMove2D(SeqSection2D):
 
         target = self.coords[self.step]
         step = self.step + 1
-        window.write_stats_centered(
+        window.stats.write_centered(
             line=8, text=f"Moving to [{step}/{num_coords}]"
         )
-        window.stats.addstr(9, 1, f" Target X: {target.x:.3f}")
-        window.stats.addstr(10, 1, f" Target Y: {target.y:.3f}")
+        window.stats.addstr(Vec2(1, 9), f" Target X: {target.x:.3f}")
+        window.stats.addstr(Vec2(1, 10), f" Target Y: {target.y:.3f}")
 
         # Draw target in relation to player
         mem = get_zelda_memory()

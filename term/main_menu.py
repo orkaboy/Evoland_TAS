@@ -3,7 +3,8 @@ import curses
 import evo1
 import evo2
 from app import TAS_VERSION_STRING
-from term.curses import WindowLayout
+from term.window import WindowLayout
+from engine.mathlib import Vec2
 
 from memory.seq_rng_observer import rng_observer
 
@@ -35,28 +36,27 @@ def main_menu(window: WindowLayout):
         ]
 
         # Update side window
-        window.stats.clear()
-        window.write_stats_centered(line=1, text="+ Evoland TAS +")
-        window.write_stats_centered(line=2, text=TAS_VERSION_STRING)
-        window.write_stats_centered(line=4, text="author:")
-        window.write_stats_centered(line=5, text="orkaboy")
-        window.stats.noutrefresh()
+        window.stats.erase()
+        window.stats.write_centered(line=1, text="+ Evoland TAS +")
+        window.stats.write_centered(line=2, text=TAS_VERSION_STRING)
+        window.stats.write_centered(line=4, text="author:")
+        window.stats.write_centered(line=5, text="orkaboy")
+        window.stats.update()
 
         # Update main window
-        window.main.clear()
+        window.main.erase()
         line = 1
         for opt in options:
             key = opt.get("key", "x")
             text = opt.get("name", "ERROR")
-            window.main.addstr(line, 1, f"({key}) {text}")
+            window.main.addstr(Vec2(1, line), f"({key}) {text}")
             line = line + 1
         line = line + 1
-        window.main.addstr(line, 1, "(q) Quit")
-        window.main.noutrefresh()
+        window.main.addstr(Vec2(1, line), "(q) Quit")
 
         # Update screen
-        curses.doupdate()
-        window.main.nodelay(0)
+        window.update()
+        window.main.nodelay(False)
 
         do_refresh = True
         # Get user input
@@ -70,7 +70,7 @@ def main_menu(window: WindowLayout):
                 key = opt.get("key", "x")
                 func = opt.get("func", None)
                 if c == ord(key) and func != None:
-                    window.main.nodelay(1)
+                    window.main.nodelay(True)
                     # Call subfunction
                     func(window=window)
                     # Break loop to refresh screen
