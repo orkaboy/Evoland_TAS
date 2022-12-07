@@ -1,5 +1,3 @@
-import curses
-
 import evo1
 import evo2
 from app import TAS_VERSION_STRING

@@ -1,6 +1,5 @@
 # Libraries and Core Files
 import contextlib
-import curses
 import logging
 
 import memory.core as core
