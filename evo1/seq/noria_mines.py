@@ -43,7 +43,7 @@ class NoriaMines(SeqList):
                 # TODO: Kill bats if needed (can reuse knight logic, simplify)
                 # Get in position for chest
                 SeqMove2D("Move to chest", coords=[Vec2(33.6, 41)]),
-                SeqGrabChestKeyItem("Key", direction=Facing.LEFT),
+                SeqGrabChest("Key", direction=Facing.LEFT),
                 SeqMove2DClunkyCombat("Move to door", coords=_noria_astar.calculate(start=Vec2(37, 44), goal=Vec2(41, 42))),
                 # TODO: Open door(N)
                 SeqMove2DClunkyCombat("Move to chest", coords=_noria_astar.calculate(start=Vec2(41, 41), goal=Vec2(41, 40))),
