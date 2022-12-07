@@ -33,6 +33,19 @@ class Vec2(NamedTuple):
         # Translate point back
         return Vec2(xnew, ynew) + center
 
+    @property
+    def norm(self) -> float:
+        return math.sqrt(self.x * self.x + self.y * self.y)
+
+    @property
+    def normalized(self):
+        norm = self.norm
+        return Vec2(self.x / norm, self.y / norm)
+
+    @property
+    def angle(self) -> float:
+        return math.atan2(self.y, self.x)
+
     def __repr__(self) -> str:
         return f"Vec2({self.x:0.3f}, {self.y:0.3f})"
 
@@ -45,11 +58,6 @@ def dist(a: Vec2, b: Vec2) -> float:
 
 def is_close(a: Vec2, b: Vec2, precision: float) -> bool:
     return dist(a, b) <= precision
-
-
-def get_angle(a: Vec2, b: Vec2) -> float:
-    direction = a - b
-    return math.atan2(direction.y, direction.x)
 
 
 class Box2(NamedTuple):

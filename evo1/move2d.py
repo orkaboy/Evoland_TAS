@@ -5,9 +5,9 @@ from typing import List
 
 import evo1.control
 from engine.seq import SeqBase, SeqDelay
-from evo1.memory import GameFeatures, GameEntity2D, get_zelda_memory, get_memory, MapID
+from evo1.memory import GameEntity2D, get_zelda_memory, get_memory, MapID
 from term.window import WindowLayout, SubWindow
-from engine.mathlib import Facing, facing_str, Vec2, is_close, dist, get_angle
+from engine.mathlib import Facing, facing_str, Vec2, is_close, dist
 from evo1.maps import CurrentTilemap
 
 logger = logging.getLogger(__name__)
@@ -387,7 +387,7 @@ class SeqMove2DClunkyCombat(SeqMove2D):
     def _clunky_combat2d(self, target: Vec2) -> None:
         mem = get_zelda_memory()
         player_pos = mem.player.pos
-        player_angle = get_angle(target, player_pos)
+        player_angle = (target-player_pos).angle
         with contextlib.suppress(
             ReferenceError
         ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
@@ -397,8 +397,8 @@ class SeqMove2DClunkyCombat(SeqMove2D):
                 enemy_pos = actor.pos
                 dist_to_player = dist(player_pos, enemy_pos)
                 if dist_to_player < 1.5:  # TODO Arbitrary magic number, distance to enemy
-                    enemy_angle = get_angle(enemy_pos, player_pos)
-                    angle = enemy_angle - player_angle
+                    enemy_angle = (enemy_pos-player_pos).angle
+                    angle = enemy_angle - player_angle # TODO: could this cause issues?
                     # logger.debug(f"Enemy {i} dist: {dist_to_player}, angle_to_e: {enemy_angle}. angle: {angle}")
                     self._clunky_counter_with_sword(angle=angle, enemy_angle=enemy_angle)
 

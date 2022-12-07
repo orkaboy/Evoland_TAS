@@ -148,16 +148,38 @@ class SeqCombat(SeqSection2D):
 class SeqCombat3D(SeqCombat):
 
     # TODO: Implement combat using rotation instead of facing
+    # TODO: This isn't going to work for the skeletons (need to attack them from the sides/behind, just like the knights)
     def _get_attack_vectors(self, target: GameEntity2D) -> List[Vec2]:
-        # TODO:
-        return []
+        mem = get_zelda_memory()
+        player_pos = mem.player.pos
+        enemy_pos = target.pos
+        # Calculate direction from enemy to player
+        direction = (player_pos - enemy_pos).normalized()
+        # TODO: Make this more intelligent/give more options
+        # For the time being, beeline for the enemy
+        distance_to_enemy = 1.2 # TODO: Test if this is a good distance or if we should be closer/farther away
+        attack_vector = enemy_pos + (direction * distance_to_enemy)
+        return [attack_vector]
 
     # TODO: Implement combat using rotation instead of facing
     def _try_attack(self, target: GameEntity2D, weak_spot: Vec2) -> bool:
         ctrl = evo1.control.handle()
         mem = get_zelda_memory()
         player_pos = mem.player.pos
-        # TODO:
+        box = get_box_with_size(center=player_pos, half_size=self.precision)
+        # Check angle to enemy
+        enemy_pos = target.pos
+        angle_to_enemy = (enemy_pos - player_pos).angle
+        # Check position (must be in range, in a weak spot)
+        if box.contains(weak_spot):
+            # TODO: Compare player rotation to angle_to_enemy
+            if True:
+                # We are aligned and in position. Attack!
+                ctrl.dpad.none()
+                ctrl.attack()
+                return True
+            else:
+                return False
         return False
 
     def try_move_into_position_and_attack(self, target: GameEntity2D) -> bool:
