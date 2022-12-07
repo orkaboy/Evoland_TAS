@@ -15,7 +15,6 @@
 * Cavern
     - Fix smarter ATB combat
         + Set up ATB combat handler for combat
-    - Track enemy hp, stats
     - Smart RNG manip to get favorable encounters
     - Defeat Kefka's Ghost
 * Do more memory hunting
