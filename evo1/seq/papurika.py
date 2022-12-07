@@ -1,6 +1,6 @@
 from engine.seq import SeqList, SeqOptional, SeqLog
 from engine.mathlib import Facing, Vec2, Box2
-from evo1.knights import SeqKnight2D
+from evo1.combat import SeqKnight2D
 from evo1.move2d import SeqGrabChest, SeqMove2D, SeqZoneTransition
 from evo1.interact import SeqShopBuy, SeqInteract
 from evo1.memory import get_memory, MapID

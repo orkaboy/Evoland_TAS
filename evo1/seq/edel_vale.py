@@ -1,7 +1,7 @@
 from engine.seq import SeqList
 from engine.mathlib import Facing, Vec2, Box2
 from evo1.move2d import SeqAttack, SeqGrabChest, SeqGrabChestKeyItem, SeqMove2D, SeqMove2DClunkyCombat, SeqZoneTransition, SeqMove2DConfirm
-from evo1.knights import SeqKnight2D
+from evo1.combat import SeqKnight2D
 from evo1.memory import MapID
 from evo1.maps import GetAStar
 
