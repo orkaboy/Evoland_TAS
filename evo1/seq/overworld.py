@@ -66,7 +66,7 @@ class OverworldGliFarm(SeqATBmove2D):
             return manip_gli > next_gli
 
     # Returning true means we seize control instead of moving on
-    def do_encounter_manip(self, blackboard: dict) -> bool:
+    def do_encounter_manip(self) -> bool:
         # Check if we've already picked up the chest
         if not self.can_manip:
             return False
@@ -101,12 +101,12 @@ class OverworldGliFarm(SeqATBmove2D):
             self.started_manip = True
 
         # Move towards chest to manip
-        move_to(player=player.pos, target=self._CHEST_LOCATION, precision=self.precision, blackboard=blackboard)
+        move_to(player=player.pos, target=self._CHEST_LOCATION, precision=self.precision)
 
         return True
 
-    def render(self, window: WindowLayout, blackboard: dict) -> None:
-        super().render(window, blackboard)
+    def render(self, window: WindowLayout) -> None:
+        super().render(window=window)
         if self.can_manip and self.manipulated_enc:
             window.stats.addstr(Vec2(1, 15), f"  Manip: {self.manipulated_enc.name}")
 

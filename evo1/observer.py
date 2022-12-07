@@ -17,8 +17,8 @@ class SeqObserver2D(SeqSection2D):
     def reset(self) -> None:
         self.tracked = set()
 
-    def execute(self, delta: float, blackboard: dict) -> bool:
-        super().execute(delta=delta, blackboard=blackboard)
+    def execute(self, delta: float) -> bool:
+        super().execute(delta=delta)
         mem = get_zelda_memory()
         player_pos = mem.player.pos
         with contextlib.suppress(
@@ -34,9 +34,9 @@ class SeqObserver2D(SeqSection2D):
                     self.tracked.add(actor_pos)
         return False # Never finishes
 
-    def render(self, window: WindowLayout, blackboard: dict) -> None:
-        super().render(window, blackboard)
-        self._print_actors(map_win=window.map, blackboard=blackboard)
+    def render(self, window: WindowLayout) -> None:
+        super().render(window)
+        self._print_actors(map_win=window.map)
 
         mem = get_zelda_memory()
 

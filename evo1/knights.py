@@ -73,7 +73,7 @@ class SeqKnight2D(SeqSection2D):
     def reset(self) -> None:
         self.plan = None
 
-    def execute(self, delta: float, blackboard: dict) -> bool:
+    def execute(self, delta: float) -> bool:
         mem = get_zelda_memory()
 
         if self.plan is None:
@@ -86,9 +86,9 @@ class SeqKnight2D(SeqSection2D):
             target = self.plan.get_next_target()
 
             if target:
-                self._try_move_into_position_and_attack(target=target, blackboard=blackboard)
+                self._try_move_into_position_and_attack(target=target)
             # for target in self.plan.targets:
-            #     if self._try_move_into_position_and_attack(target=target, blackboard=blackboard):
+            #     if self._try_move_into_position_and_attack(target=target):
             #         continue
 
         # Remove dead enemies from tracking
@@ -161,7 +161,7 @@ class SeqKnight2D(SeqSection2D):
                 closest_point = point
         return closest_point
 
-    def _try_move_into_position_and_attack(self, target: GameEntity2D, blackboard: dict) -> bool:
+    def _try_move_into_position_and_attack(self, target: GameEntity2D) -> bool:
         # Find all the ways that the knight is vulnerable
         attack_vectors = self._get_attack_vectors(target=target)
         # TODO: Filter out invalid positions due to pathing
@@ -178,17 +178,17 @@ class SeqKnight2D(SeqSection2D):
         player_pos = mem.player.pos
         closest_weak_spot = self._find_closest_point(origin=player_pos, points=attack_vectors)
         # Move towards target weak point
-        move_to(player=player_pos, target=closest_weak_spot, precision=self.precision, blackboard=blackboard)
+        move_to(player=player_pos, target=closest_weak_spot, precision=self.precision)
         # Attempt to attack if in range
         return self._try_attack(target=target, weak_spot=closest_weak_spot)
 
-    def render(self, window: WindowLayout, blackboard: dict) -> None:
+    def render(self, window: WindowLayout) -> None:
         # Update stats window
-        super().render(window=window, blackboard=blackboard)
-        self._print_arena(map_win=window.map, blackboard=blackboard)
-        self._print_actors(map_win=window.map, blackboard=blackboard)
+        super().render(window=window)
+        self._print_arena(map_win=window.map)
+        self._print_actors(map_win=window.map)
 
-    def _print_arena(self, map_win: SubWindow, blackboard: dict) -> None:
+    def _print_arena(self, map_win: SubWindow) -> None:
         # Draw a box representing the arena on the map. The representation is one tile
         # bigger so no entities inside the actual arena are overwritten.
         mem = get_zelda_memory()

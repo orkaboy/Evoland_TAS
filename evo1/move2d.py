@@ -13,9 +13,7 @@ from evo1.maps import CurrentTilemap
 logger = logging.getLogger(__name__)
 
 
-def move_to(player: Vec2, target: Vec2, precision: float, blackboard: dict) -> None:
-    # TODO: Different behavior depending on if certain game features are acquired
-    features: GameFeatures = blackboard.get("features", {})
+def move_to(player: Vec2, target: Vec2, precision: float) -> None:
     ctrl = evo1.control.handle()
     ctrl.dpad.none()
     # Very dumb
@@ -45,7 +43,7 @@ class SeqGrabChest(SeqBase):
     def reset(self) -> None:
         self.tapped = False
 
-    def execute(self, delta: float, blackboard: dict) -> bool:
+    def execute(self, delta: float) -> bool:
         if not self.tapped:
             logger.info(f"Picking up {self.name}!")
             self.tapped = True
@@ -77,7 +75,7 @@ class SeqGrabChestKeyItem(SeqBase):
     def reset(self) -> None:
         self.grabbed = False
 
-    def execute(self, delta: float, blackboard: dict) -> bool:
+    def execute(self, delta: float) -> bool:
         ctrl = evo1.control.handle()
         mem = get_zelda_memory()
         if not self.grabbed:
@@ -113,7 +111,7 @@ class SeqZoneTransition(SeqBase):
         self.target_zone = target_zone
         super().__init__(name)
 
-    def execute(self, delta: float, blackboard: dict) -> bool:
+    def execute(self, delta: float) -> bool:
         ctrl = evo1.control.handle()
         ctrl.dpad.none()
         match self.direction:
@@ -141,7 +139,7 @@ class SeqAttack(SeqBase):
     def __init__(self, name: str):
         super().__init__(name)
 
-    def execute(self, delta: float, blackboard: dict) -> bool:
+    def execute(self, delta: float) -> bool:
         ctrl = evo1.control.handle()
         ctrl.attack(tapping=False)
         # TODO: Await control?
@@ -158,8 +156,8 @@ class SeqManualUntilClose(SeqBase):
         self.precision = precision
         super().__init__(name, annotations, func)
 
-    def execute(self, delta: float, blackboard: dict) -> bool:
-        super().execute(delta, blackboard)
+    def execute(self, delta: float) -> bool:
+        super().execute(delta)
         # Stay still
         ctrl = evo1.control.handle()
         ctrl.dpad.none()
@@ -179,12 +177,12 @@ class SeqHoldInPlace(SeqDelay):
         self.timer = 0
         super().__init__(name=name, timeout_in_s=timeout_in_s)
 
-    def execute(self, delta: float, blackboard: dict) -> bool:
+    def execute(self, delta: float) -> bool:
         mem = get_zelda_memory()
         player_pos = mem.player.pos
         # If arrived, go to next coordinate in the list
         if not is_close(player_pos, self.target, precision=self.precision):
-            move_to(player=player_pos, target=self.target, precision=self.precision, blackboard=blackboard)
+            move_to(player=player_pos, target=self.target, precision=self.precision)
             return False
         # Stay still
         ctrl = evo1.control.handle()
@@ -208,7 +206,7 @@ class SeqSection2D(SeqBase):
     # Map starts at line 2 and fills the rest of the map window
     _map_start_y = 2
 
-    def _print_player_stats(self, window: WindowLayout, blackboard: dict) -> None:
+    def _print_player_stats(self, window: WindowLayout) -> None:
         window.stats.write_centered(line=1, text="Evoland 1 TAS")
         window.stats.write_centered(line=2, text="2D section")
         mem = get_zelda_memory()
@@ -228,13 +226,13 @@ class SeqSection2D(SeqBase):
             if draw_x in range(size.x) and draw_y in range(self._map_start_y, size.y):
                 map_win.addch(Vec2(draw_x, draw_y), ch)
 
-    def _print_env(self, map_win: SubWindow, blackboard: dict) -> None:
+    def _print_env(self, map_win: SubWindow) -> None:
         size = map_win.size
         # Fill box with .
         for y in range(self._map_start_y, size.y):
             map_win.hline(Vec2(0, y), " ", size.x)
 
-    def _print_map(self, window: WindowLayout, blackboard: dict) -> None:
+    def _print_map(self, window: WindowLayout) -> None:
         if tilemap := CurrentTilemap():
             mem = get_zelda_memory()
             center = mem.player.pos
@@ -247,7 +245,7 @@ class SeqSection2D(SeqBase):
                     draw_pos = Vec2(x_pos, y_pos) - center
                     self._print_ch_in_map(window.map, pos=draw_pos, ch=tile)
 
-    def _print_actors(self, map_win: SubWindow, blackboard: dict) -> None:
+    def _print_actors(self, map_win: SubWindow) -> None:
         mem = get_zelda_memory()
         center = mem.player.pos
 
@@ -266,12 +264,12 @@ class SeqSection2D(SeqBase):
                 actor_pos = actor.pos
                 self._print_ch_in_map(map_win=map_win, pos=actor_pos-center, ch=ch)
 
-    def render(self, window: WindowLayout, blackboard: dict) -> None:
+    def render(self, window: WindowLayout) -> None:
         window.stats.erase()
         window.map.erase()
-        self._print_env(map_win=window.map, blackboard=blackboard)
-        self._print_map(window=window, blackboard=blackboard)
-        self._print_player_stats(window=window, blackboard=blackboard)
+        self._print_env(map_win=window.map)
+        self._print_map(window=window)
+        self._print_player_stats(window=window)
 
 
 class SeqMove2D(SeqSection2D):
@@ -289,7 +287,7 @@ class SeqMove2D(SeqSection2D):
         # If we are already done with the entire sequence, terminate early
         return self.step >= num_coords
 
-    def _navigate_to_checkpoint(self, blackboard: dict) -> None:
+    def _navigate_to_checkpoint(self) -> None:
         # Move towards target
         if self.step >= len(self.coords):
             return
@@ -297,7 +295,7 @@ class SeqMove2D(SeqSection2D):
         mem = get_zelda_memory()
         cur_pos = mem.player.pos
 
-        move_to(player=cur_pos, target=target, precision=self.precision, blackboard=blackboard)
+        move_to(player=cur_pos, target=target, precision=self.precision)
 
         # If arrived, go to next coordinate in the list
         if is_close(cur_pos, target, self.precision):
@@ -306,8 +304,8 @@ class SeqMove2D(SeqSection2D):
             )
             self.step = self.step + 1
 
-    def execute(self, delta: float, blackboard: dict) -> bool:
-        self._navigate_to_checkpoint(blackboard=blackboard)
+    def execute(self, delta: float) -> bool:
+        self._navigate_to_checkpoint()
 
         done = self._nav_done()
 
@@ -315,7 +313,7 @@ class SeqMove2D(SeqSection2D):
             logger.debug(f"Finished moved2D section: {self.name}")
         return done
 
-    def _print_target(self, window: WindowLayout, blackboard: dict) -> None:
+    def _print_target(self, window: WindowLayout) -> None:
         num_coords = len(self.coords)
         if self.step >= num_coords:
             return
@@ -333,11 +331,11 @@ class SeqMove2D(SeqSection2D):
         center = mem.player.pos
         self._print_ch_in_map(map_win=window.map, pos=target-center, ch="X")
 
-    def render(self, window: WindowLayout, blackboard: dict) -> None:
+    def render(self, window: WindowLayout) -> None:
         # Update stats window
-        super().render(window=window, blackboard=blackboard)
-        self._print_target(window=window, blackboard=blackboard)
-        self._print_actors(map_win=window.map, blackboard=blackboard)
+        super().render(window=window)
+        self._print_target(window=window)
+        self._print_actors(map_win=window.map)
 
     def __repr__(self) -> str:
         num_coords = len(self.coords)
@@ -353,19 +351,19 @@ class SeqMove2DConfirm(SeqMove2D):
     def __init__(self, name: str, coords: List[Vec2], precision: float = 0.2):
         super().__init__(name, coords, precision)
 
-    def execute(self, delta: float, blackboard: dict) -> bool:
-        done = super().execute(delta=delta, blackboard=blackboard)
+    def execute(self, delta: float) -> bool:
+        done = super().execute(delta=delta)
         ctrl = evo1.control.handle()
         ctrl.confirm(tapping=True)
         return done
 
 
 class SeqMove2DClunkyCombat(SeqMove2D):
-    def execute(self, delta: float, blackboard: dict) -> bool:
-        self._navigate_to_checkpoint(blackboard=blackboard)
+    def execute(self, delta: float) -> bool:
+        self._navigate_to_checkpoint()
 
         target = self.coords[self.step] if self.step < len(self.coords) else self.coords[-1]
-        self._clunky_combat2d(target=target, blackboard=blackboard)
+        self._clunky_combat2d(target=target)
 
         done = self._nav_done()
 
@@ -386,7 +384,7 @@ class SeqMove2DClunkyCombat(SeqMove2D):
     # * The goal is not to kill the enemy, but to get past them!
 
     # TODO: Handle some edge cases, like when the enemy is at a diagonal, moving into the target space
-    def _clunky_combat2d(self, target: Vec2, blackboard: dict) -> None:
+    def _clunky_combat2d(self, target: Vec2) -> None:
         mem = get_zelda_memory()
         player_pos = mem.player.pos
         player_angle = get_angle(target, player_pos)

@@ -96,7 +96,7 @@ class SeqRngObserver(SeqBase):
         else:
             self.setting_modulo = 10 * self.setting_modulo + digit
 
-    def execute(self, delta: float, blackboard: dict) -> bool:
+    def execute(self, delta: float) -> bool:
         self.rng = self.mem.get_rng()
         if self.tracking:
             # Frame-restricted to prevent softlocks if we lose the cursor
@@ -141,7 +141,7 @@ class SeqRngObserver(SeqBase):
             elif isinstance(value, float):
                 window.stats.addstr(Vec2(2, y), f"{value:.9f}")
 
-    def render(self,  window: WindowLayout, blackboard: dict) -> None:
+    def render(self,  window: WindowLayout) -> None:
         window.main.erase()
         window.stats.erase()
         self._render_rng_table(window, title="Current", rng=self.rng, y_offset=0)

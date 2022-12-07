@@ -16,7 +16,7 @@ class SeqInteract(SeqBase):
     def reset(self) -> None:
         self.timer = 0.0
 
-    def execute(self, delta: float, blackboard: dict) -> bool:
+    def execute(self, delta: float) -> bool:
         self.timer += delta
         ctrl = evo1.control.handle()
         ctrl.confirm(tapping=True)
@@ -26,7 +26,7 @@ class SeqInteract(SeqBase):
 
 
 class SeqWaitForControl(SeqBase):
-    def execute(self, delta: float, blackboard: dict) -> bool:
+    def execute(self, delta: float) -> bool:
         mem = get_zelda_memory()
         return mem.player.in_control
 
@@ -45,7 +45,7 @@ class SeqShopBuy(SeqBase):
         self.cur_slot = 0
         self.step = 0
 
-    def execute(self, delta: float, blackboard: dict) -> bool:
+    def execute(self, delta: float) -> bool:
         ctrl = evo1.control.handle()
         ctrl.dpad.none()
 

@@ -75,13 +75,13 @@ class FarmingGoal:
     def reset(self) -> None:
         self.step = 0
 
-    def farm(self, blackboard: dict) -> None:
+    def farm(self) -> None:
         # Move towards target
         target = self.farm_coords[self.step]
         mem = get_zelda_memory()
         cur_pos = mem.player.pos
 
-        move_to(player=cur_pos, target=target, precision=self.precision, blackboard=blackboard)
+        move_to(player=cur_pos, target=target, precision=self.precision)
 
         # If arrived, go to next coordinate in the list
         if is_close(cur_pos, target, self.precision):
@@ -124,7 +124,7 @@ class SeqATBCombat(SeqBase):
     def reset(self) -> None:
         self.triggered = False
 
-    def execute(self, delta: float, blackboard: dict) -> bool:
+    def execute(self, delta: float) -> bool:
         if not self.update_mem():
             if not self.wait_for_battle or self.triggered:
                 return True
@@ -178,7 +178,7 @@ class SeqATBCombat(SeqBase):
         _tap_confirm()
 
     # TODO: Render combat state
-    def render(self, window: WindowLayout, blackboard: dict) -> None:
+    def render(self, window: WindowLayout) -> None:
         if not self.active:
             return
         window.stats.erase()
@@ -240,52 +240,52 @@ class SeqATBmove2D(SeqMove2D):
         return self.goal.is_done() if self.goal else True
 
     # Override
-    def do_encounter_manip(self, blackboard: dict) -> bool:
+    def do_encounter_manip(self) -> bool:
         return False
 
-    def navigate_to_goal(self, blackboard: dict) -> bool:
+    def navigate_to_goal(self) -> bool:
         rng = EvolandRNG().get_rng()
         self.next_enc = calc_next_encounter(rng=rng, has_3d_monsters=False)  # TODO: Check for manips
-        if self.do_encounter_manip(blackboard=blackboard):
+        if self.do_encounter_manip():
             return True
-        self._navigate_to_checkpoint(blackboard=blackboard)
+        self._navigate_to_checkpoint()
         return False
 
-    def check_farming_goals(self, blackboard: dict) -> bool:
+    def check_farming_goals(self) -> bool:
         nav_done = self._nav_done()
         farm_done = self._farm_done()
 
         if nav_done and not farm_done:
-            self.goal.farm(blackboard=blackboard)
+            self.goal.farm()
 
         return nav_done and farm_done
 
-    def execute(self, delta: float, blackboard: dict) -> bool:
+    def execute(self, delta: float) -> bool:
         mem = get_zelda_memory()
         # For some reason, this flag is set when in ATB combat
         if mem.player.not_in_control:
             # Check for active battle (returns True on completion/non-execution)
-            if self.battle_handler.execute(delta=delta, blackboard=blackboard):
+            if self.battle_handler.execute(delta=delta):
                 # Handle non-battle reasons for losing control
                 # TODO: Just cutscenes for now, might need logic for skips here
                 _tap_confirm()
             return False
 
         # Else navigate the world, checking for farming goals
-        if self.navigate_to_goal(blackboard=blackboard):
+        if self.navigate_to_goal():
             return False
 
-        if done := self.check_farming_goals(blackboard=blackboard):
+        if done := self.check_farming_goals():
             logger.debug(f"Finished moved2D section: {self.name}")
         return done
 
-    def render(self, window: WindowLayout, blackboard: dict) -> None:
+    def render(self, window: WindowLayout) -> None:
         # Check for acvite battle
         if self.battle_handler.active:
-            self.battle_handler.render(window=window, blackboard=blackboard)
+            self.battle_handler.render(window=window)
             return
 
-        super().render(window, blackboard)
+        super().render(window=window)
 
         if self.next_enc:
             mem = get_zelda_memory()

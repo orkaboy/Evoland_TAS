@@ -24,13 +24,12 @@ class SeqBase(object):
         pass
 
     # Return true if the sequence is done with, or False if we should remain in this state
-    def execute(self, delta: float, blackboard: dict) -> bool:
-        blackboard |= self.annotations  # Apply the annotations to the blackboard
+    def execute(self, delta: float) -> bool:
         if self.func:
             self.func()
         return True
 
-    def render(self, window: WindowLayout, blackboard: dict) -> None:
+    def render(self, window: WindowLayout) -> None:
         pass
 
     # Should be overloaded
@@ -43,7 +42,7 @@ class SeqLog(SeqBase):
         self.text = text
         super().__init__(name)
 
-    def execute(self, delta: float, blackboard: dict) -> bool:
+    def execute(self, delta: float) -> bool:
         logging.getLogger(self.name).info(self.text)
         return True
 
@@ -53,7 +52,7 @@ class SeqDebug(SeqBase):
         self.text = text
         super().__init__(name)
 
-    def execute(self, delta: float, blackboard: dict) -> bool:
+    def execute(self, delta: float) -> bool:
         logging.getLogger(self.name).debug(self.text)
         return True
 
@@ -68,7 +67,7 @@ class SeqDelay(SeqBase):
         self.timer = 0.0
         return super().reset()
 
-    def execute(self, delta: float, blackboard: dict) -> bool:
+    def execute(self, delta: float) -> bool:
         self.timer = self.timer + delta
         if self.timer >= self.timeout:
             self.timer = self.timeout
@@ -91,24 +90,24 @@ class SeqList(SeqBase):
         return super().reset()
 
     # Return true if the sequence is done with, or False if we should remain in this state
-    def execute(self, delta: float, blackboard: dict) -> bool:
-        super().execute(delta, blackboard)
+    def execute(self, delta: float) -> bool:
+        super().execute(delta)
         num_children = len(self.children)
         if self.step >= num_children:
             return True
         cur_child = self.children[self.step]
         # Peform logic of current child step
-        ret = cur_child.execute(delta=delta, blackboard=blackboard)
+        ret = cur_child.execute(delta=delta)
         if ret == True:  # If current child is done
             self.step = self.step + 1
         return False
 
-    def render(self, window: WindowLayout, blackboard: dict) -> None:
+    def render(self, window: WindowLayout) -> None:
         num_children = len(self.children)
         if self.step >= num_children:
             return
         cur_child = self.children[self.step]
-        cur_child.render(window=window, blackboard=blackboard)
+        cur_child.render(window=window)
 
     def __repr__(self) -> str:
         num_children = len(self.children)
@@ -143,26 +142,26 @@ class SeqOptional(SeqBase):
         self.selected = False
         self.selection = None
 
-    def execute(self, delta: float, blackboard: dict) -> bool:
+    def execute(self, delta: float) -> bool:
         if not self.selected:
             self.selector_repr = self.selector() if callable(self.selector) else self.selector
             self.selection = self.cases.get(self.selector_repr)
             self.selected = True
 
         if self.selection:
-            return self.selection.execute(delta=delta, blackboard=blackboard)
+            return self.selection.execute(delta=delta)
         if self.fallback:
-            return self.fallback.execute(delta=delta, blackboard=blackboard)
+            return self.fallback.execute(delta=delta)
         logging.getLogger(self.name).warning(
             f"Missing case {self.selector_repr} and no fallback, skipping!"
         )
         return True
 
-    def render(self, window: WindowLayout, blackboard: dict) -> None:
+    def render(self, window: WindowLayout) -> None:
         if self.selection:
-            self.selection.render(window, blackboard)
+            self.selection.render(window=window)
         elif self.fallback:
-            self.fallback.render(window, blackboard)
+            self.fallback.render(window=window)
 
     def __repr__(self) -> str:
         if self.selection:
@@ -189,12 +188,10 @@ class SequencerEngine(object):
         self.config = window.config_data
         self.paused = False
         self.timestamp = time.time()
-        self.blackboard = {"config": window.config_data}
 
     def reset(self) -> None:
         self.paused = False
         self.done = False
-        self.blackboard = {"config": self.config}
         self.root.reset()
 
     def pause(self) -> None:
@@ -233,7 +230,7 @@ class SequencerEngine(object):
         # Execute current gamestate logic
         if not self.paused and not self.done:
             delta = self._get_deltatime()
-            self.done = self.root.execute(delta=delta, blackboard=self.blackboard)
+            self.done = self.root.execute(delta=delta)
 
     def _print_timer(self) -> None:
         # Timestamp
@@ -254,7 +251,7 @@ class SequencerEngine(object):
         self.window.main.addstr(Vec2(0, 1), f"Gamestate:\n  {self.root}")
         # Render the current gamestate
         self.root.render(
-            window=self.window, blackboard=self.blackboard
+            window=self.window
         )
 
         self.window.update()
