@@ -1,7 +1,6 @@
 import contextlib
 import logging
 from typing import List, Optional
-import functools
 
 from engine.mathlib import Facing, Vec2, Box2, get_box_with_size, grow_box, get_2d_facing_from_dir, dist
 from evo1.memory import GameEntity2D, ZeldaMemory, get_zelda_memory
