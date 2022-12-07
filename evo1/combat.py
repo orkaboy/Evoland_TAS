@@ -141,36 +141,7 @@ class SeqCombat(SeqSection2D):
         return f"{self.name}[{dead_targets}/{self.num_targets}] in arena: {self.arena}.{tracking}"
 
 
-class SeqCombat2D(SeqCombat):
-    def _try_attack(self, target: GameEntity2D, weak_spot: Vec2) -> bool:
-        ctrl = evo1.control.handle()
-        mem = get_zelda_memory()
-        player_pos = mem.player.pos
-        box = get_box_with_size(center=player_pos, half_size=self.precision)
-        # Check facing (are we facing enemy)
-        dir_to_enemy = target.pos - player_pos
-        facing_to_enemy = get_2d_facing_from_dir(dir_to_enemy)
-        player_facing = mem.player.facing
-        # Check position (must be in range, in a weak spot)
-        if box.contains(weak_spot):
-            if player_facing == facing_to_enemy:
-                # We are aligned and in position. Attack!
-                ctrl.dpad.none()
-                ctrl.attack()
-                return True
-            else: # Not currently facing the enemy. Turn towards enemy
-                ctrl.dpad.none()
-                match facing_to_enemy:
-                    case Facing.UP: ctrl.dpad.up()
-                    case Facing.DOWN: ctrl.dpad.down()
-                    case Facing.LEFT: ctrl.dpad.left()
-                    case Facing.RIGHT: ctrl.dpad.right()
-                return False
-        return False # Couldn't attack this target right now
-
-
-
-class SeqKnight2D(SeqCombat2D):
+class SeqKnight2D(SeqCombat):
 
     def _get_attack_vectors(self, target: GameEntity2D) -> List[Vec2]:
         enemy_facing = target.facing
@@ -196,6 +167,32 @@ class SeqKnight2D(SeqCombat2D):
             enemy_pos + right, # To the right of enemy
             enemy_pos - right, # To the left of enemy
         ]
+
+    def _try_attack(self, target: GameEntity2D, weak_spot: Vec2) -> bool:
+        ctrl = evo1.control.handle()
+        mem = get_zelda_memory()
+        player_pos = mem.player.pos
+        box = get_box_with_size(center=player_pos, half_size=self.precision)
+        # Check facing (are we facing enemy)
+        dir_to_enemy = target.pos - player_pos
+        facing_to_enemy = get_2d_facing_from_dir(dir_to_enemy)
+        player_facing = mem.player.facing
+        # Check position (must be in range, in a weak spot)
+        if box.contains(weak_spot):
+            if player_facing == facing_to_enemy:
+                # We are aligned and in position. Attack!
+                ctrl.dpad.none()
+                ctrl.attack()
+                return True
+            else: # Not currently facing the enemy. Turn towards enemy
+                ctrl.dpad.none()
+                match facing_to_enemy:
+                    case Facing.UP: ctrl.dpad.up()
+                    case Facing.DOWN: ctrl.dpad.down()
+                    case Facing.LEFT: ctrl.dpad.left()
+                    case Facing.RIGHT: ctrl.dpad.right()
+                return False
+        return False # Couldn't attack this target right now
 
     def _try_move_into_position_and_attack(self, target: GameEntity2D) -> bool:
         # Find all the ways that the knight is vulnerable
