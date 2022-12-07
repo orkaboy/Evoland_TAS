@@ -66,6 +66,8 @@ def find_closest_point(origin: Vec2, points: List[Vec2]) -> Vec2:
             closest_point = point
     return closest_point
 
+
+# Base class for combat. Mostly handles target selection and rendering
 class SeqCombat(SeqSection2D):
     def __init__(self, name: str, arena: Box2, num_targets: int, precision: float = 0.2) -> None:
         self.plan = None
@@ -76,6 +78,10 @@ class SeqCombat(SeqSection2D):
 
     def reset(self) -> None:
         self.plan = None
+
+    # Should be overloaded by inherited classes
+    def try_move_into_position_and_attack(self, target: GameEntity2D) -> bool:
+        return True
 
     def execute(self, delta: float) -> bool:
         mem = get_zelda_memory()
@@ -90,9 +96,9 @@ class SeqCombat(SeqSection2D):
             target = self.plan.get_next_target()
 
             if target:
-                self._try_move_into_position_and_attack(target=target)
+                self.try_move_into_position_and_attack(target=target)
             # for target in self.plan.targets:
-            #     if self._try_move_into_position_and_attack(target=target):
+            #     if self.try_move_into_position_and_attack(target=target):
             #         continue
 
         # Remove dead enemies from tracking
@@ -103,10 +109,6 @@ class SeqCombat(SeqSection2D):
             logger.info(f"Finished battle section: {self.name}")
             return True
         return False
-
-    # Should be overwritten
-    def _try_move_into_position_and_attack(self, target: GameEntity2D) -> bool:
-        return True
 
     def render(self, window: WindowLayout) -> None:
         # Update stats window
@@ -140,6 +142,42 @@ class SeqCombat(SeqSection2D):
         tracking = f" Tracking: {self.plan.targets}" if self.plan else ""
         return f"{self.name}[{dead_targets}/{self.num_targets}] in arena: {self.arena}.{tracking}"
 
+
+# TODO: WIP base
+# TODO: This class can be used as the base of 3D combat, both for killing bats, skeletons/mages and even Dark Clink
+class SeqCombat3D(SeqCombat):
+
+    # TODO: Implement combat using rotation instead of facing
+    def _get_attack_vectors(self, target: GameEntity2D) -> List[Vec2]:
+        # TODO:
+        return []
+
+    # TODO: Implement combat using rotation instead of facing
+    def _try_attack(self, target: GameEntity2D, weak_spot: Vec2) -> bool:
+        ctrl = evo1.control.handle()
+        mem = get_zelda_memory()
+        player_pos = mem.player.pos
+        # TODO:
+        return False
+
+    def try_move_into_position_and_attack(self, target: GameEntity2D) -> bool:
+        # Find all the ways that the enemy is vulnerable
+        # TODO: For 3D, we don't need to work with static positions, but rather, we should use angles.
+        # TODO: This is true for the skeletons as well; we just need to be behind/to the sides of them.
+        attack_vectors = self._get_attack_vectors(target=target)
+
+        # TODO: Filter out invalid/threatened?
+
+        if len(attack_vectors) == 0:
+            return False
+        # Find the closest point to attack
+        mem = get_zelda_memory()
+        player_pos = mem.player.pos
+        closest_weak_spot = find_closest_point(origin=player_pos, points=attack_vectors)
+        # Move towards target weak point
+        move_to(player=player_pos, target=closest_weak_spot, precision=self.precision)
+        # Attempt to attack if in range
+        return self._try_attack(target=target, weak_spot=closest_weak_spot)
 
 class SeqKnight2D(SeqCombat):
 
@@ -194,14 +232,15 @@ class SeqKnight2D(SeqCombat):
                 return False
         return False # Couldn't attack this target right now
 
-    def _try_move_into_position_and_attack(self, target: GameEntity2D) -> bool:
+    # TODO: Possibly refactor this so parts of it can be reused for SeqCombat3D
+    def try_move_into_position_and_attack(self, target: GameEntity2D) -> bool:
         # Find all the ways that the knight is vulnerable
         attack_vectors = self._get_attack_vectors(target=target)
-        # TODO: Filter out invalid positions due to pathing
+        # TODO: Filter out invalid positions due to pathing (blocked by terrain)
         # Filter out threatened positions so we don't walk into another enemy
         for enemy in self.plan.targets:
             # For each enemy get a hitbox around them
-            enemy_hitbox = get_box_with_size(center=enemy.pos, half_size=0.3) # TODO: enemy collision magic number. Get bounds
+            enemy_hitbox = get_box_with_size(center=enemy.pos, half_size=0.3) # TODO: enemy collision magic number. Get bounding box?
             # Remove any weak points that fall inside the enemy hitbox
             attack_vectors = [wp for wp in attack_vectors if not enemy_hitbox.contains(wp)]
         if len(attack_vectors) == 0:
