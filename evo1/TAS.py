@@ -1,14 +1,14 @@
 # Libraries and Core Files
 import contextlib
-import curses
 import logging
 
 import memory.core as core
+from engine.mathlib import Vec2
 from engine.seq import SeqList, SeqOptional, SequencerEngine
 from evo1.checkpoints import Checkpoints
 from evo1.memory import load_memory, load_zelda_memory
 from evo1.seq import Edel1, Evoland1StartGame, OverworldToMeadow, MeadowFight, PapurikaVillage, OverworldToCavern, CrystalCavern, Edel2, OverworldToNoria, NoriaMines, OverworldToAogai
-from term.curses import WindowLayout
+from term.window import WindowLayout
 from evo1.observer import SeqObserver2D
 
 
@@ -31,9 +31,9 @@ def observer(window: WindowLayout):
         root=observer,
     )
 
-    window.main.clear()
-    window.stats.clear()
-    curses.doupdate()
+    window.main.erase()
+    window.stats.erase()
+    window.update()
 
     while engine.active():
         engine.run()
@@ -44,14 +44,14 @@ def observer(window: WindowLayout):
 def perform_TAS(window: WindowLayout):
 
     # Print loading
-    window.main.clear()
-    window.stats.clear()
+    window.main.erase()
+    window.stats.erase()
 
     text = "Preparing TAS"
-    maxy, maxx = window.main.getmaxyx()
+    size = window.main.size
     text_len = len(text)
-    x_off = int(maxx / 2 - text_len / 2)
-    window.main.addstr(int(maxy / 2), x_off, text)
+    x_off = int(size.x / 2 - text_len / 2)
+    window.main.addstr(Vec2(x_off, int(size.y / 2)), text)
     window.update()
 
     logger.info("Evoland1 TAS selected")
@@ -128,9 +128,9 @@ def perform_TAS(window: WindowLayout):
     )
 
     # Clear screen
-    window.main.clear()
-    window.stats.clear()
-    curses.doupdate()
+    window.main.erase()
+    window.stats.erase()
+    window.update()
 
     # Run sequence
     while engine.active():

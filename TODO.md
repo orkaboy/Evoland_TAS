@@ -29,7 +29,6 @@
     - Route Noria mines
 
 * Terminal improvements
-    - Move WindowLayout into abstract class with exposed methods to abstract away all curses code from TAS
     - Experiment more with Textual/Rich
 * Write a sequence capture script that reads the memory and saves it, but doesn't control the game. Could possibly be used to "record" maps.
 

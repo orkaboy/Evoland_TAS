@@ -6,7 +6,7 @@ from evo1.move2d import SeqZoneTransition, SeqGrabChest, SeqMove2D, move_to
 from evo1.memory import MapID, get_zelda_memory, get_memory
 from evo1.maps import GetAStar
 from typing import List, Optional
-from term.curses import WindowLayout
+from term.window import WindowLayout
 import logging
 
 _overworld_astar = GetAStar(MapID.OVERWORLD)
@@ -108,7 +108,7 @@ class OverworldGliFarm(SeqATBmove2D):
     def render(self, window: WindowLayout, blackboard: dict) -> None:
         super().render(window, blackboard)
         if self.can_manip and self.manipulated_enc:
-            window.stats.addstr(15, 1, f"  Manip: {self.manipulated_enc.name}")
+            window.stats.addstr(Vec2(1, 15), f"  Manip: {self.manipulated_enc.name}")
 
 class OverworldToMeadow(SeqList):
     def __init__(self):

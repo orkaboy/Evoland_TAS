@@ -7,7 +7,7 @@ from evo1.move2d import SeqMove2D, move_to
 from evo1.memory import get_memory, get_zelda_memory, MapID, BattleMemory, BattleEntity
 from memory.rng import EvolandRNG
 from enum import Enum, auto
-from term.curses import WindowLayout
+from term.window import WindowLayout
 
 from typing import List
 
@@ -182,12 +182,12 @@ class SeqATBCombat(SeqBase):
         if not self.active:
             return
         window.stats.erase()
-        window.write_stats_centered(line=1, text="Evoland 1 TAS")
-        window.write_stats_centered(line=2, text="ATB Combat")
+        window.stats.write_centered(line=1, text="Evoland 1 TAS")
+        window.stats.write_centered(line=2, text="ATB Combat")
 
-        window.stats.addstr(4, 1, "Party:")
+        window.stats.addstr(Vec2(1, 4), "Party:")
         self._print_group(window=window, group=self.mem.allies, y_offset=5)
-        window.stats.addstr(8, 1, "Enemies:")
+        window.stats.addstr(Vec2(1, 8), "Enemies:")
         self._print_group(window=window, group=self.mem.enemies, y_offset=9)
 
         # TODO: Hit/Damage prediction
@@ -195,15 +195,15 @@ class SeqATBCombat(SeqBase):
         if not self.mem.ended:
             # TODO: Damage prediction for Kaeris
             dmg = self.predict_damage(self.mem.allies[0], self.mem.enemies[0])
-            window.stats.addstr(13, 1, "Damage prediction:")
-            window.stats.addstr(14, 2, f"Clink: {dmg}")
+            window.stats.addstr(Vec2(1, 13), "Damage prediction:")
+            window.stats.addstr(Vec2(2, 14), f"Clink: {dmg}")
 
         # TODO: map representation
 
     def _print_group(self, window: WindowLayout, group: List[BattleEntity], y_offset: int) -> None:
         for i, entity in enumerate(group):
             y_pos = y_offset + i
-            window.stats.addstr(y_pos, 2, f"{entity.cur_hp}/{entity.max_hp} [{entity.turn_gauge:.02f}]")
+            window.stats.addstr(Vec2(2, y_pos), f"{entity.cur_hp}/{entity.max_hp} [{entity.turn_gauge:.02f}]")
 
     def __repr__(self) -> str:
         if self.active:
@@ -290,8 +290,8 @@ class SeqATBmove2D(SeqMove2D):
         if self.next_enc:
             mem = get_zelda_memory()
             enc_timer = mem.player.encounter_timer
-            window.stats.addstr(12, 1, f" Next enc ({enc_timer:.3f}):")
-            window.stats.addstr(13, 1, f"  {self.next_enc.name}")
+            window.stats.addstr(Vec2(1, 12), f" Next enc ({enc_timer:.3f}):")
+            window.stats.addstr(Vec2(1, 13), f"  {self.next_enc.name}")
 
     def __repr__(self) -> str:
         # Check for active battle
