@@ -3,16 +3,28 @@ import logging
 from typing import List, Optional
 
 from engine.mathlib import Box2, dist
-from evo1.memory import GameEntity2D, ZeldaMemory, get_zelda_memory
+from evo1.memory import GameEntity2D, get_zelda_memory
 
 logger = logging.getLogger(__name__)
 
 
 class CombatPlan:
-    def __init__(self, mem: ZeldaMemory, arena: Box2, num_targets: int) -> None:
-        self.targets: List[GameEntity2D] = []
+    def __init__(self, arena: Box2, num_targets: int, retracking: bool = False) -> None:
         self.next_target: Optional[GameEntity2D] = None
-        # Map start positions to array of GameEntity2D to track
+        self.num_targets = num_targets
+        self.total_enemies: int = 0
+        self.arena = arena
+        self.retracking = retracking
+        self.targets = self.track_targets()
+        if self.num_targets != len(self.targets):
+            logger.error(
+                f"Couldn't track all entities! Found {len(self.targets)}/{self.num_targets} enemies"
+            )
+
+    def track_targets(self) -> List[GameEntity2D]:
+        ret = []
+        mem = get_zelda_memory()
+        # Map enemies in arena to array of GameEntity2D to track
         with contextlib.suppress(
             ReferenceError
         ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
@@ -21,12 +33,9 @@ class CombatPlan:
                     continue
                 enemy_pos = actor.pos
                 # Check if target is found. If so, initialize the tracking entity
-                if arena.contains(enemy_pos):
-                    self.targets.append(actor)
-        if num_targets != len(self.targets):
-            logger.error(
-                f"Couldn't track all entities! Found {len(self.targets)}/{num_targets} enemies"
-            )
+                if self.arena.contains(enemy_pos):
+                    ret.append(actor)
+        return ret
 
     def done(self) -> bool:
         return len(self.targets) == 0
@@ -46,8 +55,13 @@ class CombatPlan:
         else:
             return None
 
+    # TODO: This only works for the knights, not the bats that die in one hit
     def remove_dead(self) -> None:
-        self.targets = [enemy for enemy in self.targets if enemy.hp > 0]
+        if self.retracking:
+            scan = self.track_targets()
+            self.targets = [enemy for enemy in self.targets if enemy in scan]
+        else:
+            self.targets = [enemy for enemy in self.targets if enemy.hp > 0]
         if self.next_target not in self.targets:
             self.next_target = None
 

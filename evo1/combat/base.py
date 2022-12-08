@@ -13,11 +13,17 @@ logger = logging.getLogger(__name__)
 # Base class for combat. Mostly handles target selection and rendering
 class SeqCombat(SeqSection2D):
     def __init__(
-        self, name: str, arena: Box2, num_targets: int, precision: float = 0.2
+        self,
+        name: str,
+        arena: Box2,
+        num_targets: int,
+        precision: float = 0.2,
+        retracking: bool = False,
     ) -> None:
         self.plan = None
         self.arena = arena
         self.precision = precision
+        self.retracking = retracking
         self.num_targets = num_targets
         super().__init__(name)
 
@@ -29,11 +35,11 @@ class SeqCombat(SeqSection2D):
         return True
 
     def execute(self, delta: float) -> bool:
-        mem = get_zelda_memory()
-
         if self.plan is None:
             self.plan = CombatPlan(
-                mem=mem, arena=self.arena, num_targets=self.num_targets
+                arena=self.arena,
+                num_targets=self.num_targets,
+                retracking=self.retracking,
             )
 
         with contextlib.suppress(

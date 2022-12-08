@@ -36,6 +36,11 @@ class GameEntity2D:
         self.entity_ptr = entity_ptr
         self.setup_pointers()
 
+    def __eq__(self, other: object) -> bool:
+        kind_match = self.kind == other.kind
+        pos_match = self.pos == other.pos
+        return kind_match and pos_match
+
     def setup_pointers(self):
         self.ent_kind_ptr = self.process.get_pointer(
             self.entity_ptr, offsets=self._ENT_KIND_PTR

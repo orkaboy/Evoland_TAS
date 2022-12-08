@@ -90,7 +90,10 @@ class NoriaMines(SeqList):
                 # TODO: Test killing bat
                 # TODO: Kill bats if needed (can reuse knight logic, simplify)
                 SeqCombat3D(
-                    "Killing bats", arena=Box2(Vec2(33, 41), w=5, h=6), num_targets=3
+                    "Killing bats",
+                    arena=Box2(Vec2(32, 40), w=8, h=8),
+                    num_targets=3,
+                    retracking=True,
                 ),
                 SeqMove2DClunkyCombat("Move to chest", coords=[Vec2(34, 41)]),
                 # Get in position for chest
