@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 
 _LIBHL_OFFSET = 0x0004914C
 
+
 class EvolandRNG:
     # Evoland (or rather; HashLink) RNG works by generating a batch of 25 random values
     # A counter (the cursor) points to the current value. When the game extracts a
@@ -19,9 +20,9 @@ class EvolandRNG:
 
     RNG_VALS = 25
     RNG_MAX = 7
-    RNG_MAG01 = [0x0, 0x8ebfd028]
+    RNG_MAG01 = [0x0, 0x8EBFD028]
 
-    _RNG_VALUE_SIZE = 4 # 4 bytes
+    _RNG_VALUE_SIZE = 4  # 4 bytes
     _RNG_BASE_PTR = [0x7F4, 0x0, 0x18, 0x0]
     _RNG_CURSOR_PTR = [0x7F4, 0x0, 0x18, 0x64]
 
@@ -55,27 +56,42 @@ class EvolandRNG:
             return pos
 
         def _calc_next_rng(self):
-            for kk in range(EvolandRNG.RNG_VALS-EvolandRNG.RNG_MAX):
-                self.values[kk] = self.values[kk+EvolandRNG.RNG_MAX] ^ (self.values[kk] >> 1) ^ EvolandRNG.RNG_MAG01[self.values[kk] % 2]
-            for kk in range(EvolandRNG.RNG_VALS-EvolandRNG.RNG_MAX, EvolandRNG.RNG_VALS):
-                self.values[kk] = self.values[kk+(EvolandRNG.RNG_MAX-EvolandRNG.RNG_VALS)] ^ (self.values[kk] >> 1) ^ EvolandRNG.RNG_MAG01[self.values[kk] % 2]
+            for kk in range(EvolandRNG.RNG_VALS - EvolandRNG.RNG_MAX):
+                self.values[kk] = (
+                    self.values[kk + EvolandRNG.RNG_MAX]
+                    ^ (self.values[kk] >> 1)
+                    ^ EvolandRNG.RNG_MAG01[self.values[kk] % 2]
+                )
+            for kk in range(
+                EvolandRNG.RNG_VALS - EvolandRNG.RNG_MAX, EvolandRNG.RNG_VALS
+            ):
+                self.values[kk] = (
+                    self.values[kk + (EvolandRNG.RNG_MAX - EvolandRNG.RNG_VALS)]
+                    ^ (self.values[kk] >> 1)
+                    ^ EvolandRNG.RNG_MAG01[self.values[kk] % 2]
+                )
 
         # consumes one rng value and returns an int
         def rand_int(self) -> int:
             pos = self.advance_rng()
             ret = self.values[pos]
-            ret ^= (ret << 7) & 0x2b5b2500
-            ret ^= (ret << 15) & 0xdb8b0000
-            ret ^= (ret >> 16)
+            ret ^= (ret << 7) & 0x2B5B2500
+            ret ^= (ret << 15) & 0xDB8B0000
+            ret ^= ret >> 16
             return ret
 
         # consume three rng values and returns a float
         def rand_float(self) -> float:
             big = 4294967296.0
-            return ((self.rand_int() / big + self.rand_int()) / big + self.rand_int()) / big
+            return (
+                (self.rand_int() / big + self.rand_int()) / big + self.rand_int()
+            ) / big
 
     # Get the current RNG values
     def get_rng(self) -> RNGStruct:
         cursor = self.process.read_u32(self.rng_cursor_ptr)
-        values = [self.process.read_u32(self.rng_base_ptr + i * self._RNG_VALUE_SIZE) for i in range(self.RNG_VALS)]
+        values = [
+            self.process.read_u32(self.rng_base_ptr + i * self._RNG_VALUE_SIZE)
+            for i in range(self.RNG_VALS)
+        ]
         return EvolandRNG.RNGStruct(cursor=cursor, values=values)

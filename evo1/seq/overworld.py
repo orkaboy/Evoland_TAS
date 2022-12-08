@@ -1,26 +1,29 @@
-from memory.rng import EvolandRNG
-from engine.seq import SeqList
-from engine.mathlib import Facing, Vec2, dist
-from evo1.atb import SeqATBmove2D, EncounterID, FarmingGoal, calc_next_encounter
-from evo1.move2d import SeqZoneTransition, SeqGrabChest, SeqMove2D, move_to
-from evo1.memory import MapID, get_zelda_memory, get_memory
-from evo1.maps import GetAStar
-from typing import List, Optional
-from term.window import WindowLayout
 import logging
+from typing import List, Optional
+
+from engine.mathlib import Facing, Vec2, dist
+from engine.seq import SeqList
+from evo1.atb import EncounterID, FarmingGoal, SeqATBmove2D, calc_next_encounter
+from evo1.maps import GetAStar
+from evo1.memory import MapID, get_memory, get_zelda_memory
+from evo1.move2d import SeqGrabChest, SeqMove2D, SeqZoneTransition, move_to
+from memory.rng import EvolandRNG
+from term.window import WindowLayout
 
 _overworld_astar = GetAStar(MapID.OVERWORLD)
 
 logger = logging.getLogger(__name__)
 
+
 class OverworldGliFarm(SeqATBmove2D):
-    def __init__(self, name: str, coords: List[Vec2], goal: FarmingGoal = None, precision: float = 0.2):
-        super().__init__(
-            name=name,
-            coords=coords,
-            goal=goal,
-            precision=precision
-        )
+    def __init__(
+        self,
+        name: str,
+        coords: List[Vec2],
+        goal: FarmingGoal = None,
+        precision: float = 0.2,
+    ):
+        super().__init__(name=name, coords=coords, goal=goal, precision=precision)
         self.can_manip = True
         self.started_manip = False
         self.manipulated_enc: Optional[EncounterID] = None
@@ -32,17 +35,23 @@ class OverworldGliFarm(SeqATBmove2D):
         super().reset()
 
     _CHEST_LOCATION = Vec2(84, 46)
-    _CHEST_RNG_ADVANCE = 66 # Ticks the rng forward 66 steps
+    _CHEST_RNG_ADVANCE = 66  # Ticks the rng forward 66 steps
     _GLI_PER_ENEMY = 50
 
     def _get_number_of_combatants(self, encounter: EncounterID) -> int:
         match encounter:
-            case EncounterID.SLIME: return 1
-            case EncounterID.SLIME_2: return 2
-            case EncounterID.SLIME_3: return 3
-            case EncounterID.SLIME_EMUK: return 2
-            case EncounterID.EMUK: return 1
-            case _: return 0 # Should never happen
+            case EncounterID.SLIME:
+                return 1
+            case EncounterID.SLIME_2:
+                return 2
+            case EncounterID.SLIME_3:
+                return 3
+            case EncounterID.SLIME_EMUK:
+                return 2
+            case EncounterID.EMUK:
+                return 1
+            case _:
+                return 0  # Should never happen
 
     def _should_manip(self) -> bool:
         # self.next_enc already calculated
@@ -80,7 +89,6 @@ class OverworldGliFarm(SeqATBmove2D):
         if not dist_to_chest < player.encounter_timer:
             return False
 
-
         if self.started_manip:
             # Check if we've picked up chest, manip done
             if self.manipulated_enc == self.next_enc:
@@ -97,11 +105,15 @@ class OverworldGliFarm(SeqATBmove2D):
                 return False
 
         if not self.started_manip:
-            logger.info(f"Picking up chest to forward rng. {self.manipulated_enc} is better than {self.next_enc}")
+            logger.info(
+                f"Picking up chest to forward rng. {self.manipulated_enc} is better than {self.next_enc}"
+            )
             self.started_manip = True
 
         # Move towards chest to manip
-        move_to(player=player.pos, target=self._CHEST_LOCATION, precision=self.precision)
+        move_to(
+            player=player.pos, target=self._CHEST_LOCATION, precision=self.precision
+        )
 
         return True
 
@@ -109,6 +121,7 @@ class OverworldGliFarm(SeqATBmove2D):
         super().render(window=window)
         if self.can_manip and self.manipulated_enc:
             window.stats.addstr(Vec2(1, 15), f"  Manip: {self.manipulated_enc.name}")
+
 
 class OverworldToMeadow(SeqList):
     def __init__(self):
@@ -121,7 +134,7 @@ class OverworldToMeadow(SeqList):
                         Vec2(79.7, 54.8),
                         # Nudge chest (encounters) at (79, 54)
                         Vec2(79.5, 53),
-                    ]
+                    ],
                 ),
                 # Battle handler for random battles, mashing confirm is fine for now
                 OverworldGliFarm(
@@ -131,11 +144,18 @@ class OverworldToMeadow(SeqList):
                         Vec2(87, 43),
                     ],
                     # Need to farm gli before progressing. We need 250 to buy gear, and we can get 50 in the village
-                    goal=FarmingGoal(farm_coords=[Vec2(87, 44), Vec2(87, 43)], precision=0.2, gli_goal=200)
+                    goal=FarmingGoal(
+                        farm_coords=[Vec2(87, 44), Vec2(87, 43)],
+                        precision=0.2,
+                        gli_goal=200,
+                    ),
                 ),
-                SeqZoneTransition("Meadow", direction=Facing.UP, target_zone=MapID.MEADOW),
+                SeqZoneTransition(
+                    "Meadow", direction=Facing.UP, target_zone=MapID.MEADOW
+                ),
             ],
         )
+
 
 class OverworldToCavern(SeqList):
     def __init__(self):
@@ -145,11 +165,17 @@ class OverworldToCavern(SeqList):
                 # Grab the forced combat chest and rescue/name Kaeris
                 SeqATBmove2D(
                     "Picking up Kaeris",
-                    coords=_overworld_astar.calculate(start=Vec2(87, 40), goal=Vec2(79, 35))
+                    coords=_overworld_astar.calculate(
+                        start=Vec2(87, 40), goal=Vec2(79, 35)
+                    ),
                 ),
                 # Move into the caverns
-                SeqZoneTransition("Crystal Cavern", direction=Facing.UP, target_zone=MapID.CRYSTAL_CAVERN)
-            ]
+                SeqZoneTransition(
+                    "Crystal Cavern",
+                    direction=Facing.UP,
+                    target_zone=MapID.CRYSTAL_CAVERN,
+                ),
+            ],
         )
 
 
@@ -158,20 +184,44 @@ class OverworldToNoria(SeqList):
         super().__init__(
             name="Overworld",
             children=[
-                SeqMove2D("Move to chest", coords=_overworld_astar.calculate(start=Vec2(79, 73), goal=Vec2(78, 76))),
+                SeqMove2D(
+                    "Move to chest",
+                    coords=_overworld_astar.calculate(
+                        start=Vec2(79, 73), goal=Vec2(78, 76)
+                    ),
+                ),
                 SeqGrabChest("Perspective", direction=Facing.LEFT),
-                SeqMove2D("Move to mines", coords=_overworld_astar.calculate(start=Vec2(78, 76), goal=Vec2(75, 79))),
-                SeqZoneTransition("Noria Mines", direction=Facing.LEFT, target_zone=MapID.NORIA_CLOSED),
-            ]
+                SeqMove2D(
+                    "Move to mines",
+                    coords=_overworld_astar.calculate(
+                        start=Vec2(78, 76), goal=Vec2(75, 79)
+                    ),
+                ),
+                SeqZoneTransition(
+                    "Noria Mines", direction=Facing.LEFT, target_zone=MapID.NORIA_CLOSED
+                ),
+            ],
         )
+
 
 class OverworldToAogai(SeqList):
     def __init__(self):
         super().__init__(
             name="Overworld",
             children=[
-                SeqMove2D("Performing skip", coords=[Vec2(75, 84.95), Vec2(78, 84.95)], precision=0.05),
-                SeqMove2D("Moving to Aogai", coords=_overworld_astar.calculate(start=Vec2(78, 85), goal=Vec2(95, 93))),
-                SeqZoneTransition("Aogai village", direction=Facing.UP, target_zone=MapID.AOGAI),
-            ]
+                SeqMove2D(
+                    "Performing skip",
+                    coords=[Vec2(75, 84.95), Vec2(78, 84.95)],
+                    precision=0.05,
+                ),
+                SeqMove2D(
+                    "Moving to Aogai",
+                    coords=_overworld_astar.calculate(
+                        start=Vec2(78, 85), goal=Vec2(95, 93)
+                    ),
+                ),
+                SeqZoneTransition(
+                    "Aogai village", direction=Facing.UP, target_zone=MapID.AOGAI
+                ),
+            ],
         )

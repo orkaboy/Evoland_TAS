@@ -2,6 +2,7 @@ import math
 from enum import IntEnum
 from typing import NamedTuple
 
+
 class Vec2(NamedTuple):
     x: float
     y: float
@@ -21,7 +22,7 @@ class Vec2(NamedTuple):
     def __rmul__(self, scalar: float):
         return self * scalar
 
-    def rotated(self, rad_angle: float, center = None):
+    def rotated(self, rad_angle: float, center=None):
         s = math.sin(rad_angle)
         c = math.cos(rad_angle)
         # Move point to center
@@ -84,25 +85,33 @@ class Box2(NamedTuple):
     # Top-left, Top-right, Bot-left, Bot-right
     def tl(self) -> Vec2:
         return self.pos
+
     def tr(self) -> Vec2:
         return Vec2(self.pos.x + self.w, self.pos.y)
+
     def bl(self) -> Vec2:
         return Vec2(self.pos.x, self.pos.y + self.h)
+
     def br(self) -> Vec2:
         return Vec2(self.pos.x + self.w, self.pos.y + self.h)
 
 
 def get_box_with_size(center: Vec2, half_size: float) -> Box2:
-    return Box2(pos=Vec2(center.x - half_size, center.y - half_size), w=2*half_size, h=2*half_size)
+    return Box2(
+        pos=Vec2(center.x - half_size, center.y - half_size),
+        w=2 * half_size,
+        h=2 * half_size,
+    )
 
 
 # expand the box by a set amount in all directions
 def grow_box(box: Box2, amount: int = 1) -> Box2:
     return Box2(
         pos=Vec2(box.pos.x - amount, box.pos.y - amount),
-        w=box.w + 2*amount,
-        h=box.h + 2*amount
+        w=box.w + 2 * amount,
+        h=box.h + 2 * amount,
     )
+
 
 class Facing(IntEnum):
     LEFT = 0
@@ -110,18 +119,25 @@ class Facing(IntEnum):
     UP = 2
     DOWN = 3
 
+
 def is_facing_opposite(a: Facing, b: Facing) -> bool:
     match a:
-        case Facing.LEFT: return b == Facing.RIGHT
-        case Facing.RIGHT: return b == Facing.LEFT
-        case Facing.UP: return b == Facing.DOWN
-        case Facing.DOWN: return b == Facing.UP
+        case Facing.LEFT:
+            return b == Facing.RIGHT
+        case Facing.RIGHT:
+            return b == Facing.LEFT
+        case Facing.UP:
+            return b == Facing.DOWN
+        case Facing.DOWN:
+            return b == Facing.UP
+
 
 def get_2d_facing_from_dir(dir: Vec2) -> Facing:
     if abs(dir.x) > abs(dir.y):
         return Facing.LEFT if dir.x < 0 else Facing.RIGHT
-    else: # dir.y is larger
+    else:  # dir.y is larger
         return Facing.UP if dir.y < 0 else Facing.DOWN
+
 
 def facing_str(facing: Facing) -> str:
     match facing:
@@ -133,6 +149,7 @@ def facing_str(facing: Facing) -> str:
             return "up"
         case Facing.DOWN:
             return "down"
+
 
 def facing_ch(facing: Facing) -> str:
     match facing:

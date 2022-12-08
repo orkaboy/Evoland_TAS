@@ -1,11 +1,14 @@
-from engine.pathing import TileMap, AStar
-from evo1.memory import MapID, get_memory
 from typing import Optional
+
+from engine.pathing import AStar, TileMap
+from evo1.memory import MapID, get_memory
+
 
 class NavMap:
     def __init__(self, filename: str) -> None:
         self.tilemap = TileMap(filename=filename)
         self.astar = AStar(self.tilemap.map)
+
 
 _maps = {
     MapID.EDEL_VALE: NavMap("evo1/maps/edel_vale.yaml"),
@@ -19,7 +22,9 @@ _maps = {
     MapID.NORIA_CLOSED: NavMap("evo1/maps/noria_start.yaml"),
     MapID.NORIA: NavMap("evo1/maps/noria_mines.yaml"),
     MapID.SACRED_GROVE_2D: NavMap("evo1/maps/sacred_grove.yaml"),
-    MapID.SACRED_GROVE_3D: NavMap("evo1/maps/sacred_grove.yaml"), # TODO: Add the 3d map too?
+    MapID.SACRED_GROVE_3D: NavMap(
+        "evo1/maps/sacred_grove.yaml"
+    ),  # TODO: Add the 3d map too?
     MapID.SACRED_GROVE_CAVE_1: NavMap("evo1/maps/sacred_grove_cave1.yaml"),
     MapID.SACRED_GROVE_CAVE_2: NavMap("evo1/maps/sacred_grove_cave2.yaml"),
     # TODO: Sarudnahk

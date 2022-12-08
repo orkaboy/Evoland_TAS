@@ -1,14 +1,14 @@
-import math
 import contextlib
 import logging
+import math
 from typing import List
 
 import evo1.control
+from engine.mathlib import Facing, Vec2, angle_between, dist, facing_str, is_close
 from engine.seq import SeqBase, SeqDelay
-from evo1.memory import GameEntity2D, get_zelda_memory, get_memory, MapID
-from term.window import WindowLayout, SubWindow
-from engine.mathlib import Facing, facing_str, Vec2, is_close, dist, angle_between
 from evo1.maps import CurrentTilemap
+from evo1.memory import GameEntity2D, MapID, get_memory, get_zelda_memory
+from term.window import SubWindow, WindowLayout
 
 logger = logging.getLogger(__name__)
 
@@ -171,7 +171,9 @@ class SeqManualUntilClose(SeqBase):
 
 
 class SeqHoldInPlace(SeqDelay):
-    def __init__(self, name: str, target: Vec2, timeout_in_s: float, precision: float = 0.1):
+    def __init__(
+        self, name: str, target: Vec2, timeout_in_s: float, precision: float = 0.1
+    ):
         self.target = target
         self.precision = precision
         self.timer = 0
@@ -220,7 +222,10 @@ class SeqSection2D(SeqBase):
     # (0,0) is at center of map. Y-axis increases going down the screen.
     def _print_ch_in_map(self, map_win: SubWindow, pos: Vec2, ch: str):
         size = map_win.size
-        centerx, centery = size.x / 2, self._map_start_y + (size.y - self._map_start_y) / 2
+        centerx, centery = (
+            size.x / 2,
+            self._map_start_y + (size.y - self._map_start_y) / 2,
+        )
         draw_x, draw_y = int(centerx + pos.x), int(centery + pos.y)
         with contextlib.suppress(Exception):
             if draw_x in range(size.x) and draw_y in range(self._map_start_y, size.y):
@@ -255,14 +260,20 @@ class SeqSection2D(SeqBase):
             for actor in mem.actors:
                 actor_kind = actor.kind
                 match actor_kind:
-                    case GameEntity2D.EKind.ENEMY: ch = "!"
-                    case GameEntity2D.EKind.CHEST: ch = "C"
-                    case GameEntity2D.EKind.ITEM: ch = "$"
-                    case GameEntity2D.EKind.NPC: ch = "&"
-                    case GameEntity2D.EKind.SPECIAL: ch = "*"
-                    case _: ch = "?"
+                    case GameEntity2D.EKind.ENEMY:
+                        ch = "!"
+                    case GameEntity2D.EKind.CHEST:
+                        ch = "C"
+                    case GameEntity2D.EKind.ITEM:
+                        ch = "$"
+                    case GameEntity2D.EKind.NPC:
+                        ch = "&"
+                    case GameEntity2D.EKind.SPECIAL:
+                        ch = "*"
+                    case _:
+                        ch = "?"
                 actor_pos = actor.pos
-                self._print_ch_in_map(map_win=map_win, pos=actor_pos-center, ch=ch)
+                self._print_ch_in_map(map_win=map_win, pos=actor_pos - center, ch=ch)
 
     def render(self, window: WindowLayout) -> None:
         window.stats.erase()
@@ -320,16 +331,14 @@ class SeqMove2D(SeqSection2D):
 
         target = self.coords[self.step]
         step = self.step + 1
-        window.stats.write_centered(
-            line=8, text=f"Moving to [{step}/{num_coords}]"
-        )
+        window.stats.write_centered(line=8, text=f"Moving to [{step}/{num_coords}]")
         window.stats.addstr(Vec2(1, 9), f" Target X: {target.x:.3f}")
         window.stats.addstr(Vec2(1, 10), f" Target Y: {target.y:.3f}")
 
         # Draw target in relation to player
         mem = get_zelda_memory()
         center = mem.player.pos
-        self._print_ch_in_map(map_win=window.map, pos=target-center, ch="X")
+        self._print_ch_in_map(map_win=window.map, pos=target - center, ch="X")
 
     def render(self, window: WindowLayout) -> None:
         # Update stats window
@@ -362,7 +371,9 @@ class SeqMove2DClunkyCombat(SeqMove2D):
     def execute(self, delta: float) -> bool:
         self._navigate_to_checkpoint()
 
-        target = self.coords[self.step] if self.step < len(self.coords) else self.coords[-1]
+        target = (
+            self.coords[self.step] if self.step < len(self.coords) else self.coords[-1]
+        )
         self._clunky_combat2d(target=target)
 
         done = self._nav_done()
@@ -387,7 +398,7 @@ class SeqMove2DClunkyCombat(SeqMove2D):
     def _clunky_combat2d(self, target: Vec2) -> None:
         mem = get_zelda_memory()
         player_pos = mem.player.pos
-        player_angle = (target-player_pos).angle
+        player_angle = (target - player_pos).angle
         with contextlib.suppress(
             ReferenceError
         ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
@@ -396,25 +407,31 @@ class SeqMove2DClunkyCombat(SeqMove2D):
                     continue
                 enemy_pos = actor.pos
                 dist_to_player = dist(player_pos, enemy_pos)
-                if dist_to_player < 1.5:  # TODO Arbitrary magic number, distance to enemy
-                    enemy_angle = (enemy_pos-player_pos).angle
+                if (
+                    dist_to_player < 1.5
+                ):  # TODO Arbitrary magic number, distance to enemy
+                    enemy_angle = (enemy_pos - player_pos).angle
                     angle = angle_between(enemy_angle, player_angle)
                     # logger.debug(f"Enemy {i} dist: {dist_to_player}, angle_to_e: {enemy_angle}. angle: {angle}")
-                    self._clunky_counter_with_sword(angle=angle, enemy_angle=enemy_angle)
+                    self._clunky_counter_with_sword(
+                        angle=angle, enemy_angle=enemy_angle
+                    )
 
     def _clunky_counter_with_sword(self, angle: float, enemy_angle: float) -> None:
         # If in front, attack!
-        if abs(angle) < math.pi/4:  # TODO Arbitrary magic number, angle difference between where we are heading and where the enemy is
+        if (
+            abs(angle) < math.pi / 4
+        ):  # TODO Arbitrary magic number, angle difference between where we are heading and where the enemy is
             ctrl = evo1.control.handle()
             ctrl.attack(tapping=False)
-        elif abs(angle) <= math.pi/2:  # TODO On our sides
+        elif abs(angle) <= math.pi / 2:  # TODO On our sides
             ctrl = evo1.control.handle()
             ctrl.attack(tapping=False)
             ctrl.dpad.none()
             # Turn and attack (angle is in the range +PI to -PI, with 0 to our right)
-            if abs(enemy_angle) < math.pi/4:
+            if abs(enemy_angle) < math.pi / 4:
                 ctrl.dpad.right()
-            elif abs(enemy_angle) > 3*math.pi/4:
+            elif abs(enemy_angle) > 3 * math.pi / 4:
                 ctrl.dpad.left()
             elif enemy_angle > 0:
                 ctrl.dpad.down()

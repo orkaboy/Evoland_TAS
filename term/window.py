@@ -1,5 +1,6 @@
 from engine.mathlib import Vec2
 
+
 class SubWindow:
     def __init__(self) -> None:
         pass

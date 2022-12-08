@@ -1,10 +1,17 @@
+from engine.mathlib import Box2, Facing, Vec2
 from engine.seq import SeqList
-from engine.mathlib import Facing, Vec2, Box2
-from evo1.move2d import SeqAttack, SeqGrabChest, SeqGrabChestKeyItem, SeqMove2D, SeqMove2DClunkyCombat, SeqZoneTransition, SeqMove2DConfirm
 from evo1.combat import SeqKnight2D
-from evo1.memory import MapID
 from evo1.maps import GetAStar
-
+from evo1.memory import MapID
+from evo1.move2d import (
+    SeqAttack,
+    SeqGrabChest,
+    SeqGrabChestKeyItem,
+    SeqMove2D,
+    SeqMove2DClunkyCombat,
+    SeqMove2DConfirm,
+    SeqZoneTransition,
+)
 
 _edel_vale_astar = GetAStar(MapID.EDEL_VALE)
 
@@ -22,50 +29,59 @@ class Edel1(SeqList):
                 SeqGrabChest("Basic Scroll", direction=Facing.UP),
                 SeqMove2D(
                     "Move to chest",
-                    coords=_edel_vale_astar.calculate(start=Vec2(12, 51), goal=Vec2(20, 52), free_move=False)
+                    coords=_edel_vale_astar.calculate(
+                        start=Vec2(12, 51), goal=Vec2(20, 52), free_move=False
+                    ),
                 ),
                 SeqGrabChest("Smooth Scroll", direction=Facing.LEFT),
                 SeqMove2D(
                     "Move to sword",
-                    coords=_edel_vale_astar.calculate(start=Vec2(20, 52), goal=Vec2(30, 60), free_move=False)
+                    coords=_edel_vale_astar.calculate(
+                        start=Vec2(20, 52), goal=Vec2(30, 60), free_move=False
+                    ),
                 ),
                 SeqGrabChest("Sword", direction=Facing.DOWN),
                 SeqMove2D(
                     "Move to bush",
-                    coords=_edel_vale_astar.calculate(start=Vec2(30, 60), goal=Vec2(31, 55), free_move=False)
+                    coords=_edel_vale_astar.calculate(
+                        start=Vec2(30, 60), goal=Vec2(31, 55), free_move=False
+                    ),
                 ),
                 SeqAttack("Bush"),
                 SeqMove2D("Move to chest", coords=[Vec2(32, 55)]),
                 SeqGrabChest("Monsters", direction=Facing.RIGHT),
                 SeqMove2DClunkyCombat(
                     "Dodge enemies",
-                    coords=_edel_vale_astar.calculate(start=Vec2(32, 55), goal=Vec2(39, 52), free_move=False)
+                    coords=_edel_vale_astar.calculate(
+                        start=Vec2(32, 55), goal=Vec2(39, 52), free_move=False
+                    ),
                 ),
-                SeqGrabChest("Music", direction=Facing.RIGHT), # TODO: optionally grab?
+                SeqGrabChest("Music", direction=Facing.RIGHT),  # TODO: optionally grab?
                 SeqAttack("Bush"),
                 SeqMove2D("Move past bush", coords=[Vec2(39, 50)]),
                 SeqMove2DClunkyCombat(
                     "Move to chest",
-                    coords=_edel_vale_astar.calculate(start=Vec2(39, 50), goal=Vec2(44, 49), free_move=False),
-#                                coords=[
-#                                    Vec2(39, 47),
-#                                    # TODO Optional, chest to the north, save (move to Vec2(39, 45), then open chest N)
-#                                    Vec2(41, 47),
-#                                    Vec2(41, 48),
-#                                    Vec2(44, 48),
-#                                    Vec2(44, 49),
-#                                ],
+                    coords=_edel_vale_astar.calculate(
+                        start=Vec2(39, 50), goal=Vec2(44, 49), free_move=False
+                    ),
+                    #                                coords=[
+                    #                                    Vec2(39, 47),
+                    #                                    # TODO Optional, chest to the north, save (move to Vec2(39, 45), then open chest N)
+                    #                                    Vec2(41, 47),
+                    #                                    Vec2(41, 48),
+                    #                                    Vec2(44, 48),
+                    #                                    Vec2(44, 49),
+                    #                                ],
                 ),
                 SeqGrabChest("16-bit", direction=Facing.DOWN),
                 # TODO: Some enemies here, will probably fail
                 SeqMove2DClunkyCombat(
                     "Dodge enemies",
-                    coords=_edel_vale_astar.calculate(start=Vec2(44, 49), goal=Vec2(35, 33), free_move=False)
+                    coords=_edel_vale_astar.calculate(
+                        start=Vec2(44, 49), goal=Vec2(35, 33), free_move=False
+                    ),
                 ),
-                SeqMove2D(
-                    "Move to chest",
-                    coords=[Vec2(34, 33)]
-                ),
+                SeqMove2D("Move to chest", coords=[Vec2(34, 33)]),
                 SeqGrabChest("Free move", direction=Facing.LEFT),
                 # TODO: At this point we can move more freely, could implement a better move2d (or improve current)
                 SeqMove2DClunkyCombat(
@@ -106,7 +122,9 @@ class Edel1(SeqList):
                 # We need to kill two knights. These enemies must be killed with 3 attacks, but cannot be harmed from the front.
                 SeqKnight2D(
                     "Killing two knights",
-                    arena=Box2(pos=Vec2(53, 32), w=5, h=4), # Valid arena to fight inside (should be clear of obstacles)
+                    arena=Box2(
+                        pos=Vec2(53, 32), w=5, h=4
+                    ),  # Valid arena to fight inside (should be clear of obstacles)
                     num_targets=2,
                 ),
                 SeqMove2D(
@@ -116,7 +134,9 @@ class Edel1(SeqList):
                         Vec2(54, 29),
                     ],
                 ),
-                SeqZoneTransition("Overworld", direction=Facing.UP, target_zone=MapID.OVERWORLD),
+                SeqZoneTransition(
+                    "Overworld", direction=Facing.UP, target_zone=MapID.OVERWORLD
+                ),
             ],
         )
 
@@ -126,25 +146,51 @@ class Edel2(SeqList):
         super().__init__(
             name="Edel Vale",
             children=[
-                SeqMove2DClunkyCombat("Move to chest", coords=_edel_vale_astar.calculate(start=Vec2(10, 8), goal=Vec2(15, 14))),
+                SeqMove2DClunkyCombat(
+                    "Move to chest",
+                    coords=_edel_vale_astar.calculate(
+                        start=Vec2(10, 8), goal=Vec2(15, 14)
+                    ),
+                ),
                 SeqGrabChestKeyItem("Hearts", direction=Facing.UP),
-                SeqMove2DClunkyCombat("Move to bush", coords=_edel_vale_astar.calculate(start=Vec2(15, 13), goal=Vec2(33, 19))),
-                SeqAttack("Bush"), # TODO: RIGHT
+                SeqMove2DClunkyCombat(
+                    "Move to bush",
+                    coords=_edel_vale_astar.calculate(
+                        start=Vec2(15, 13), goal=Vec2(33, 19)
+                    ),
+                ),
+                SeqAttack("Bush"),  # TODO: RIGHT
                 # TODO: Improve on sequence here? Works
-                SeqMove2DClunkyCombat("Move to bush", coords=[Vec2(35, 19), Vec2(36, 20)]),
-                SeqAttack("Bush"), # TODO: DOWN
-                SeqMove2DClunkyCombat("Move to bush", coords=[Vec2(36, 22), Vec2(34, 26)]),
-                SeqAttack("Bush"), # TODO: DOWN
+                SeqMove2DClunkyCombat(
+                    "Move to bush", coords=[Vec2(35, 19), Vec2(36, 20)]
+                ),
+                SeqAttack("Bush"),  # TODO: DOWN
+                SeqMove2DClunkyCombat(
+                    "Move to bush", coords=[Vec2(36, 22), Vec2(34, 26)]
+                ),
+                SeqAttack("Bush"),  # TODO: DOWN
                 SeqMove2DClunkyCombat("Move past bush", coords=[Vec2(34, 28)]),
-                SeqMove2DClunkyCombat("Move to bush", coords=_edel_vale_astar.calculate(start=Vec2(34, 28), goal=Vec2(58, 54))),
-                SeqAttack("Bush"), # TODO: DOWN
+                SeqMove2DClunkyCombat(
+                    "Move to bush",
+                    coords=_edel_vale_astar.calculate(
+                        start=Vec2(34, 28), goal=Vec2(58, 54)
+                    ),
+                ),
+                SeqAttack("Bush"),  # TODO: DOWN
                 SeqMove2DClunkyCombat("Move past bush", coords=[Vec2(58, 60)]),
                 # TODO: Optional? Health drops
                 SeqMove2DClunkyCombat("Move to chest", coords=[Vec2(57, 59.5)]),
                 SeqGrabChest("Health drops", direction=Facing.UP),
                 # TODO: End optional health drops
-                SeqMove2DClunkyCombat("Move to end", coords=_edel_vale_astar.calculate(start=Vec2(57, 60), goal=Vec2(58, 78))),
+                SeqMove2DClunkyCombat(
+                    "Move to end",
+                    coords=_edel_vale_astar.calculate(
+                        start=Vec2(57, 60), goal=Vec2(58, 78)
+                    ),
+                ),
                 SeqMove2DConfirm("Move to end", coords=[Vec2(58, 82)]),
-                SeqZoneTransition("To overworld", direction=Facing.DOWN, target_zone=MapID.OVERWORLD),
-            ]
+                SeqZoneTransition(
+                    "To overworld", direction=Facing.DOWN, target_zone=MapID.OVERWORLD
+                ),
+            ],
         )

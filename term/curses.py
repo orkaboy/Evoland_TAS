@@ -1,9 +1,9 @@
 import curses
 from curses import wrapper as curses_wrapper
-from term.window import SubWindow, WindowLayout
-from engine.mathlib import Vec2, Box2
 
+from engine.mathlib import Box2, Vec2
 from term.log_init import initialize_logging
+from term.window import SubWindow, WindowLayout
 
 
 def entry_point(config_data: dict, func):
@@ -81,7 +81,9 @@ class CursesLayout(WindowLayout):
         maxy, maxx = screen.getmaxyx()
         begin_y, begin_x = maxy - self.LOGGER_H + 1, 1
         height, width = self.LOGGER_H - 2, maxx - 2
-        return CursesWindow(Box2(pos=Vec2(begin_x, begin_y), w=width, h=height), auto_scroll=True)
+        return CursesWindow(
+            Box2(pos=Vec2(begin_x, begin_y), w=width, h=height), auto_scroll=True
+        )
 
     def _create_main_window(self, screen):
         # Determine the dimensions of the logger window

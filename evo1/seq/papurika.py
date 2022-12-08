@@ -1,9 +1,10 @@
-from engine.seq import SeqList, SeqOptional, SeqLog
-from engine.mathlib import Facing, Vec2, Box2
+from engine.mathlib import Box2, Facing, Vec2
+from engine.seq import SeqList, SeqLog, SeqOptional
 from evo1.combat import SeqKnight2D
+from evo1.interact import SeqInteract, SeqShopBuy
+from evo1.memory import MapID, get_memory
 from evo1.move2d import SeqGrabChest, SeqMove2D, SeqZoneTransition
-from evo1.interact import SeqShopBuy, SeqInteract
-from evo1.memory import get_memory, MapID
+
 
 class MeadowFight(SeqList):
     def __init__(self):
@@ -14,20 +15,22 @@ class MeadowFight(SeqList):
                     name="Wake up knights",
                     precision=0.1,
                     coords=[
-                        Vec2(14, 14), # Go past the chest
+                        Vec2(14, 14),  # Go past the chest
                         Vec2(14.1, 11.5),
-                        Vec2(15, 11), # Wake up first knight
+                        Vec2(15, 11),  # Wake up first knight
                         Vec2(16.5, 10.9),
-                        Vec2(17, 10), # Wake up second knight
+                        Vec2(17, 10),  # Wake up second knight
                         Vec2(16.9, 8.6),
-                        Vec2(16, 8), # Wake up third knight
+                        Vec2(16, 8),  # Wake up third knight
                         Vec2(14.5, 8.1),
-                        Vec2(14, 9), # Wake up the fourth knight
+                        Vec2(14, 9),  # Wake up the fourth knight
                     ],
                 ),
                 SeqKnight2D(
                     "Killing four knights",
-                    arena=Box2(pos=Vec2(12, 6), w=7, h=8), # Valid arena to fight inside (should be clear of obstacles)
+                    arena=Box2(
+                        pos=Vec2(12, 6), w=7, h=8
+                    ),  # Valid arena to fight inside (should be clear of obstacles)
                     num_targets=4,
                 ),
                 SeqMove2D(
@@ -38,7 +41,7 @@ class MeadowFight(SeqList):
                         # Chest to the right
                     ],
                 ),
-            ]
+            ],
         )
 
 
@@ -72,7 +75,7 @@ class PapurikaVillage(SeqList):
                     "Move to surface",
                     coords=[
                         Vec2(7.5, 2.8),
-                        Vec2(7.5, 2.6), # Align to look north
+                        Vec2(7.5, 2.6),  # Align to look north
                     ],
                 ),
                 SeqInteract("Leave well"),
@@ -96,7 +99,9 @@ class PapurikaVillage(SeqList):
                     ],
                 ),
                 # Transition north (into shop)
-                SeqZoneTransition("Enter shop", Facing.UP, target_zone=MapID.PAPURIKA_INTERIOR),
+                SeqZoneTransition(
+                    "Enter shop", Facing.UP, target_zone=MapID.PAPURIKA_INTERIOR
+                ),
                 SeqMove2D(
                     "Moving to chest",
                     coords=[
@@ -141,7 +146,9 @@ class PapurikaVillage(SeqList):
                     ],
                 ),
                 # Transition south (exit shop)
-                SeqZoneTransition("Leave shop", Facing.DOWN, target_zone=MapID.PAPURIKA),
+                SeqZoneTransition(
+                    "Leave shop", Facing.DOWN, target_zone=MapID.PAPURIKA
+                ),
                 SeqMove2D(
                     "Leave town",
                     coords=[
@@ -155,6 +162,8 @@ class PapurikaVillage(SeqList):
                     ],
                 ),
                 # Transition north (exit town to overworld)
-                SeqZoneTransition("To overworld", Facing.UP, target_zone=MapID.OVERWORLD),
+                SeqZoneTransition(
+                    "To overworld", Facing.UP, target_zone=MapID.OVERWORLD
+                ),
             ],
         )

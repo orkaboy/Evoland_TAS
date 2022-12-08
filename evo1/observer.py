@@ -1,8 +1,8 @@
 import contextlib
 import logging
 
-from evo1.memory import get_zelda_memory
 from engine.mathlib import Vec2, dist
+from evo1.memory import get_zelda_memory
 from evo1.move2d import SeqSection2D
 from term.window import WindowLayout
 
@@ -32,7 +32,7 @@ class SeqObserver2D(SeqSection2D):
                 if dist_to_player < 3:  # TODO Arbitrary magic number, distance to enemy
                     logger.info(f"Actor[{i}] {actor}")
                     self.tracked.add(actor_pos)
-        return False # Never finishes
+        return False  # Never finishes
 
     def render(self, window: WindowLayout) -> None:
         super().render(window)
@@ -43,4 +43,3 @@ class SeqObserver2D(SeqSection2D):
         if target := mem.player.target:
             window.stats.addstr(Vec2(1, 9), f" Target X: {target.x:.3f}")
             window.stats.addstr(Vec2(1, 10), f" Target Y: {target.y:.3f}")
-
