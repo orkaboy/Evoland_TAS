@@ -1,11 +1,23 @@
 # Current
 
+0.0.5:
+*
+
+# Older changelogs
+
 0.0.4:
 
 * Battle stats and damage prediction
 * ATB Encounter prediction and manipulation on overworld map
-
-## Older changelogs
+* ATB Encounter prediction and manipulation in the crystal caverns
+* Massive refactoring of code, splitting into files
+* Refactored knights combat to be reusable. Can currently kill the forced bats in Noria
+* Pathed Noria up to the bottomless pit
+* Current manual sections:
+  * Kefka's Ghost
+  * Killing 3 skellies in Noria
+  * Pushing the armored enemy into the pit
+  * (Some more the TAS hasn't reached yet)
 
 0.0.3:
 

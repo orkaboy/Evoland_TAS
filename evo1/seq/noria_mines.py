@@ -162,6 +162,7 @@ class NoriaMines(SeqList):
                         start=Vec2(15, 21), goal=Vec2(14, 18)
                     ),
                 ),
+                # TODO: Better juking so we can avoid fighting the skellies
                 SeqMove2DClunkyCombat(
                     "Juke skellies",
                     coords=_noria_astar.calculate(start=Vec2(14, 18), goal=Vec2(9, 14)),
@@ -213,6 +214,8 @@ class NoriaMines(SeqList):
                 # TODO: Code to bump enemy into pit
                 SeqManualUntilClose("BUMP ENEMY INTO PIT", target=Vec2(34, 11)),
                 # TODO: Remove manual
+                SeqMove2D("Move to chest", coords=[Vec2(34, 4.6)]),
+                SeqGrabChest("Trick plate", direction=Facing.UP),
                 SeqMove2DClunkyCombat(
                     "Trigger plate(L)",
                     coords=_noria_astar.calculate(start=Vec2(34, 5), goal=Vec2(32, 4)),
