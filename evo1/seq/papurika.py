@@ -28,9 +28,8 @@ class MeadowFight(SeqList):
                 ),
                 SeqKnight2D(
                     "Killing four knights",
-                    arena=Box2(
-                        pos=Vec2(12, 6), w=7, h=8
-                    ),  # Valid arena to fight inside (should be clear of obstacles)
+                    # Valid arena to fight inside (should be clear of obstacles)
+                    arena=Box2(pos=Vec2(12, 6), w=7, h=8),
                     num_targets=4,
                 ),
                 SeqMove2D(

@@ -36,9 +36,8 @@ class SeqCombat(SeqSection2D):
                 mem=mem, arena=self.arena, num_targets=self.num_targets
             )
 
-        with contextlib.suppress(
-            ReferenceError
-        ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
+        # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
+        with contextlib.suppress(ReferenceError):
             # TODO Track decisions, so we are not being wishy-washy
             target = self.plan.get_next_target()
 

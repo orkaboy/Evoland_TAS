@@ -115,9 +115,8 @@ class Edel1(SeqList):
                 # We need to kill two knights. These enemies must be killed with 3 attacks, but cannot be harmed from the front.
                 SeqKnight2D(
                     "Killing two knights",
-                    arena=Box2(
-                        pos=Vec2(53, 32), w=5, h=4
-                    ),  # Valid arena to fight inside (should be clear of obstacles)
+                    # Valid arena to fight inside (should be clear of obstacles)
+                    arena=Box2(pos=Vec2(53, 32), w=5, h=4),
                     num_targets=2,
                 ),
                 SeqMove2D(

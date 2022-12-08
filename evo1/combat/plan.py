@@ -13,9 +13,8 @@ class CombatPlan:
         self.targets: List[GameEntity2D] = []
         self.next_target: Optional[GameEntity2D] = None
         # Map start positions to array of GameEntity2D to track
-        with contextlib.suppress(
-            ReferenceError
-        ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
+        # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
+        with contextlib.suppress(ReferenceError):
             for actor in mem.actors:
                 if actor.kind != GameEntity2D.EKind.ENEMY:
                     continue

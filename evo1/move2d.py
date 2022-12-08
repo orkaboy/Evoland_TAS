@@ -253,9 +253,8 @@ class SeqSection2D(SeqBase):
         mem = get_zelda_memory()
         center = mem.player.pos
 
-        with contextlib.suppress(
-            ReferenceError
-        ):  # Needed until I figure out which actors are valid (broken pointers will throw an exception)
+        # Needed until I figure out which actors are valid (broken pointers will throw an exception)
+        with contextlib.suppress(ReferenceError):
             for actor in mem.actors:
                 actor_kind = actor.kind
                 match actor_kind:
