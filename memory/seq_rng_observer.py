@@ -1,9 +1,8 @@
 import logging
 from typing import Optional
 
-import memory.core as core
 from engine.mathlib import Vec2
-from engine.seq import SeqBase, SequencerEngine
+from engine.seq import SeqBase, SequencerEngine, wait_seconds
 from memory.rng import EvolandRNG
 from term.window import WindowLayout
 
@@ -183,4 +182,4 @@ def rng_observer(window: WindowLayout):
     while engine.active():
         engine.run()
 
-    core.wait_seconds(3)
+    wait_seconds(3)

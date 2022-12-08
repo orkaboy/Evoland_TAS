@@ -3,24 +3,11 @@ import ctypes
 import ctypes.wintypes
 import logging
 import os
-import time
 
 import pymem
 from ReadWriteMemory import Process, ReadWriteMemory, ReadWriteMemoryError
 
 logger = logging.getLogger(__name__)
-
-_FPS = 30.0
-_FRAME_TIME = 1.0 / _FPS
-
-
-def wait_seconds(seconds: float):
-    time.sleep(seconds)
-
-
-# TODO: Find memory value
-def wait_frames(frames: float):
-    time.sleep(frames * _FRAME_TIME)
 
 
 class LocProcess(Process):

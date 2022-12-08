@@ -2,9 +2,8 @@
 import contextlib
 import logging
 
-import memory.core as core
 from engine.mathlib import Vec2
-from engine.seq import SeqList, SeqOptional, SequencerEngine
+from engine.seq import SeqList, SeqOptional, SequencerEngine, wait_seconds
 from evo1.checkpoints import Checkpoints
 from evo1.memory import load_memory, load_zelda_memory
 from evo1.observer import SeqObserver2D
@@ -47,7 +46,7 @@ def observer(window: WindowLayout):
     while engine.active():
         engine.run()
 
-    core.wait_seconds(3)
+    wait_seconds(3)
 
 
 def perform_TAS(window: WindowLayout):
@@ -149,4 +148,4 @@ def perform_TAS(window: WindowLayout):
 
     logger.info("Evoland1 TAS Done!"),
 
-    core.wait_seconds(3)
+    wait_seconds(3)

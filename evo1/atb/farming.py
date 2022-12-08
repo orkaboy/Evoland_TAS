@@ -127,7 +127,7 @@ class SeqATBmove2D(SeqMove2D):
             return False
 
         if done := self.check_farming_goals():
-            logger.debug(f"Finished moved2D section: {self.name}")
+            logger.info(f"Finished moved2D section: {self.name}")
         return done
 
     def render(self, window: WindowLayout) -> None:

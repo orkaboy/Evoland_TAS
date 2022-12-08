@@ -1,14 +1,9 @@
 # Libraries and Core Files
-import time
 from enum import IntEnum
 
 from control.controller import Buttons as VgButtons
 from control.controller import VgTranslator, handle
-from engine.seq import SeqBase
-
-
-def wait_seconds(seconds: float):
-    time.sleep(seconds)
+from engine.seq import SeqBase, wait_seconds
 
 
 # Game functions

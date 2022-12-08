@@ -320,7 +320,7 @@ class SeqMove2D(SeqSection2D):
         done = self._nav_done()
 
         if done:
-            logger.debug(f"Finished moved2D section: {self.name}")
+            logger.info(f"Finished moved2D section: {self.name}")
         return done
 
     def _print_target(self, window: WindowLayout) -> None:

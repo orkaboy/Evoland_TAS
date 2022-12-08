@@ -1,13 +1,21 @@
 # Libraries and Core Files
 import logging
+import time
 from enum import IntEnum
 
 from control.controller import Buttons as VgButtons
 from control.controller import VgTranslator
 from control.controller import handle as ctrl_handle
-from memory.core import wait_frames
 
 logger = logging.getLogger(__name__)
+
+
+_FPS = 30.0
+_FRAME_TIME = 1.0 / _FPS
+
+
+def wait_frames(frames: float):
+    time.sleep(frames * _FRAME_TIME)
 
 
 # Game functions

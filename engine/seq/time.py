@@ -1,5 +1,11 @@
 # Libraries and Core Files
+import time
+
 from engine.seq.base import SeqBase
+
+
+def wait_seconds(seconds: float):
+    time.sleep(seconds)
 
 
 class SeqDelay(SeqBase):
