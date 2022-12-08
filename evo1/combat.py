@@ -3,11 +3,20 @@ import logging
 import math
 from typing import List, Optional
 
-from engine.mathlib import Facing, Vec2, Box2, get_box_with_size, grow_box, get_2d_facing_from_dir, dist, angle_between
-from evo1.memory import GameEntity2D, ZeldaMemory, get_zelda_memory
-from evo1.move2d import SeqSection2D, move_to
 import evo1.control
-from term.window import WindowLayout, SubWindow
+from engine.mathlib import (
+    Box2,
+    Facing,
+    Vec2,
+    angle_between,
+    dist,
+    get_2d_facing_from_dir,
+    get_box_with_size,
+    grow_box,
+)
+from evo1.memory import GameEntity2D, ZeldaMemory, get_zelda_memory
+from evo1.move2d import SeqMove2D, SeqSection2D, move_to
+from term.window import SubWindow, WindowLayout
 
 logger = logging.getLogger(__name__)
 
@@ -18,8 +27,8 @@ class CombatPlan:
         self.next_target: Optional[GameEntity2D] = None
         # Map start positions to array of GameEntity2D to track
         with contextlib.suppress(
-                ReferenceError
-            ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
+            ReferenceError
+        ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
             for actor in mem.actors:
                 if actor.kind != GameEntity2D.EKind.ENEMY:
                     continue
@@ -28,7 +37,9 @@ class CombatPlan:
                 if arena.contains(enemy_pos):
                     self.targets.append(actor)
         if num_targets != len(self.targets):
-            logger.error(f"Couldn't track all entities! Found {len(self.targets)}/{num_targets} enemies")
+            logger.error(
+                f"Couldn't track all entities! Found {len(self.targets)}/{num_targets} enemies"
+            )
 
     def done(self) -> bool:
         return len(self.targets) == 0
@@ -70,7 +81,9 @@ def find_closest_point(origin: Vec2, points: List[Vec2]) -> Vec2:
 
 # Base class for combat. Mostly handles target selection and rendering
 class SeqCombat(SeqSection2D):
-    def __init__(self, name: str, arena: Box2, num_targets: int, precision: float = 0.2) -> None:
+    def __init__(
+        self, name: str, arena: Box2, num_targets: int, precision: float = 0.2
+    ) -> None:
         self.plan = None
         self.arena = arena
         self.precision = precision
@@ -88,7 +101,9 @@ class SeqCombat(SeqSection2D):
         mem = get_zelda_memory()
 
         if self.plan is None:
-            self.plan = CombatPlan(mem=mem, arena=self.arena, num_targets=self.num_targets)
+            self.plan = CombatPlan(
+                mem=mem, arena=self.arena, num_targets=self.num_targets
+            )
 
         with contextlib.suppress(
             ReferenceError
@@ -125,18 +140,26 @@ class SeqCombat(SeqSection2D):
 
         arena_borders = grow_box(self.arena, 1)
         # Print corners
-        self._print_ch_in_map(map_win=map_win, pos=arena_borders.tl()-center, ch="+")
-        self._print_ch_in_map(map_win=map_win, pos=arena_borders.tr()-center, ch="+")
-        self._print_ch_in_map(map_win=map_win, pos=arena_borders.bl()-center, ch="+")
-        self._print_ch_in_map(map_win=map_win, pos=arena_borders.br()-center, ch="+")
+        self._print_ch_in_map(map_win=map_win, pos=arena_borders.tl() - center, ch="+")
+        self._print_ch_in_map(map_win=map_win, pos=arena_borders.tr() - center, ch="+")
+        self._print_ch_in_map(map_win=map_win, pos=arena_borders.bl() - center, ch="+")
+        self._print_ch_in_map(map_win=map_win, pos=arena_borders.br() - center, ch="+")
         # Print horizontal sections
-        for x in range(arena_borders.pos.x+1, arena_borders.pos.x+arena_borders.w):
-            self._print_ch_in_map(map_win=map_win, pos=Vec2(x, arena_borders.pos.y)-center, ch="-")
-            self._print_ch_in_map(map_win=map_win, pos=Vec2(x, arena_borders.bl().y)-center, ch="-")
+        for x in range(arena_borders.pos.x + 1, arena_borders.pos.x + arena_borders.w):
+            self._print_ch_in_map(
+                map_win=map_win, pos=Vec2(x, arena_borders.pos.y) - center, ch="-"
+            )
+            self._print_ch_in_map(
+                map_win=map_win, pos=Vec2(x, arena_borders.bl().y) - center, ch="-"
+            )
         # Print vertical sections
-        for y in range(arena_borders.pos.y+1, arena_borders.pos.y+arena_borders.h):
-            self._print_ch_in_map(map_win=map_win, pos=Vec2(arena_borders.pos.x, y)-center, ch="|")
-            self._print_ch_in_map(map_win=map_win, pos=Vec2(arena_borders.tr().x, y)-center, ch="|")
+        for y in range(arena_borders.pos.y + 1, arena_borders.pos.y + arena_borders.h):
+            self._print_ch_in_map(
+                map_win=map_win, pos=Vec2(arena_borders.pos.x, y) - center, ch="|"
+            )
+            self._print_ch_in_map(
+                map_win=map_win, pos=Vec2(arena_borders.tr().x, y) - center, ch="|"
+            )
 
     def __repr__(self) -> str:
         dead_targets = self.num_targets - self.plan.enemies_left() if self.plan else 0
@@ -158,7 +181,7 @@ class SeqCombat3D(SeqCombat):
         direction = (player_pos - enemy_pos).normalized()
         # TODO: Make this more intelligent/give more options
         # For the time being, beeline for the enemy
-        distance_to_enemy = 1.2 # TODO: Test if this is a good distance or if we should be closer/farther away
+        distance_to_enemy = 1.2  # TODO: Test if this is a good distance or if we should be closer/farther away
         attack_vector = enemy_pos + (direction * distance_to_enemy)
         return [attack_vector]
 
@@ -176,7 +199,7 @@ class SeqCombat3D(SeqCombat):
             player_angle = mem.player.rotation
             # Compare player rotation to angle_to_enemy
             angle = angle_between(angle_to_enemy, player_angle)
-            if angle < math.pi / 3: # Roughly turned in the right direction
+            if angle < math.pi / 3:  # Roughly turned in the right direction
                 # We are aligned and in position. Attack!
                 ctrl.dpad.none()
                 ctrl.attack()
@@ -192,7 +215,9 @@ class SeqCombat3D(SeqCombat):
                 # Vertical axis
                 if angle_to_enemy > math.pi / 8 and angle_to_enemy < 5 * math.pi / 8:
                     ctrl.dpad.down()
-                elif angle_to_enemy < -math.pi / 8 and angle_to_enemy > -5 * math.pi / 8:
+                elif (
+                    angle_to_enemy < -math.pi / 8 and angle_to_enemy > -5 * math.pi / 8
+                ):
                     ctrl.dpad.up()
                 return False
         return False
@@ -218,7 +243,6 @@ class SeqCombat3D(SeqCombat):
 
 
 class SeqKnight2D(SeqCombat):
-
     def _get_attack_vectors(self, target: GameEntity2D) -> List[Vec2]:
         enemy_facing = target.facing
         enemy_pos = target.pos
@@ -239,9 +263,9 @@ class SeqKnight2D(SeqCombat):
         forward = 1.1 * forward
         right = 1.1 * right
         return [
-            enemy_pos - forward, # Behind enemy
-            enemy_pos + right, # To the right of enemy
-            enemy_pos - right, # To the left of enemy
+            enemy_pos - forward,  # Behind enemy
+            enemy_pos + right,  # To the right of enemy
+            enemy_pos - right,  # To the left of enemy
         ]
 
     def _try_attack(self, target: GameEntity2D, weak_spot: Vec2) -> bool:
@@ -260,15 +284,19 @@ class SeqKnight2D(SeqCombat):
                 ctrl.dpad.none()
                 ctrl.attack()
                 return True
-            else: # Not currently facing the enemy. Turn towards enemy
+            else:  # Not currently facing the enemy. Turn towards enemy
                 ctrl.dpad.none()
                 match facing_to_enemy:
-                    case Facing.UP: ctrl.dpad.up()
-                    case Facing.DOWN: ctrl.dpad.down()
-                    case Facing.LEFT: ctrl.dpad.left()
-                    case Facing.RIGHT: ctrl.dpad.right()
+                    case Facing.UP:
+                        ctrl.dpad.up()
+                    case Facing.DOWN:
+                        ctrl.dpad.down()
+                    case Facing.LEFT:
+                        ctrl.dpad.left()
+                    case Facing.RIGHT:
+                        ctrl.dpad.right()
                 return False
-        return False # Couldn't attack this target right now
+        return False  # Couldn't attack this target right now
 
     # TODO: Possibly refactor this so parts of it can be reused for SeqCombat3D
     def try_move_into_position_and_attack(self, target: GameEntity2D) -> bool:
@@ -278,9 +306,13 @@ class SeqKnight2D(SeqCombat):
         # Filter out threatened positions so we don't walk into another enemy
         for enemy in self.plan.targets:
             # For each enemy get a hitbox around them
-            enemy_hitbox = get_box_with_size(center=enemy.pos, half_size=0.3) # TODO: enemy collision magic number. Get bounding box?
+            enemy_hitbox = get_box_with_size(
+                center=enemy.pos, half_size=0.3
+            )  # TODO: enemy collision magic number. Get bounding box?
             # Remove any weak points that fall inside the enemy hitbox
-            attack_vectors = [wp for wp in attack_vectors if not enemy_hitbox.contains(wp)]
+            attack_vectors = [
+                wp for wp in attack_vectors if not enemy_hitbox.contains(wp)
+            ]
         if len(attack_vectors) == 0:
             return False
         # Find the closest point to attack
@@ -292,3 +324,74 @@ class SeqKnight2D(SeqCombat):
         # Attempt to attack if in range
         return self._try_attack(target=target, weak_spot=closest_weak_spot)
 
+
+class SeqMove2DClunkyCombat(SeqMove2D):
+    def execute(self, delta: float) -> bool:
+        self._navigate_to_checkpoint()
+
+        target = (
+            self.coords[self.step] if self.step < len(self.coords) else self.coords[-1]
+        )
+        self._clunky_combat2d(target=target)
+
+        done = self._nav_done()
+
+        if done:
+            logger.debug(f"Finished moved2D section: {self.name}")
+        return done
+
+    # ============
+    # = Algoritm =
+    # ============
+    # TODO: Implement
+    # * Check where we are going in the next few steps (TODO: need to know player speed)
+    # * Check where nearby enemies are, and which squares are threatened. Enemies has a threat of 1 in the current square they are in, 0.5 in adjacent (transferred over when moving)
+    # * Adjacent threat is adjusted by timer
+    # * Avoid moving into threatened squares
+    # * Keep track on our weapon cooldown
+    # * Keep track of our attack potential (stab hitbox is smaller than our hurtbox)
+    # * The goal is not to kill the enemy, but to get past them!
+
+    # TODO: Handle some edge cases, like when the enemy is at a diagonal, moving into the target space
+    def _clunky_combat2d(self, target: Vec2) -> None:
+        mem = get_zelda_memory()
+        player_pos = mem.player.pos
+        player_angle = (target - player_pos).angle
+        with contextlib.suppress(
+            ReferenceError
+        ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
+            for actor in mem.actors:
+                if actor.kind != GameEntity2D.EKind.ENEMY:
+                    continue
+                enemy_pos = actor.pos
+                dist_to_player = dist(player_pos, enemy_pos)
+                if (
+                    dist_to_player < 1.5
+                ):  # TODO Arbitrary magic number, distance to enemy
+                    enemy_angle = (enemy_pos - player_pos).angle
+                    angle = angle_between(enemy_angle, player_angle)
+                    # logger.debug(f"Enemy {i} dist: {dist_to_player}, angle_to_e: {enemy_angle}. angle: {angle}")
+                    self._clunky_counter_with_sword(
+                        angle=angle, enemy_angle=enemy_angle
+                    )
+
+    def _clunky_counter_with_sword(self, angle: float, enemy_angle: float) -> None:
+        # If in front, attack!
+        if (
+            abs(angle) < math.pi / 4
+        ):  # TODO Arbitrary magic number, angle difference between where we are heading and where the enemy is
+            ctrl = evo1.control.handle()
+            ctrl.attack(tapping=False)
+        elif abs(angle) <= math.pi / 2:  # TODO On our sides
+            ctrl = evo1.control.handle()
+            ctrl.attack(tapping=False)
+            ctrl.dpad.none()
+            # Turn and attack (angle is in the range +PI to -PI, with 0 to our right)
+            if abs(enemy_angle) < math.pi / 4:
+                ctrl.dpad.right()
+            elif abs(enemy_angle) > 3 * math.pi / 4:
+                ctrl.dpad.left()
+            elif enemy_angle > 0:
+                ctrl.dpad.down()
+            else:
+                ctrl.dpad.up()
