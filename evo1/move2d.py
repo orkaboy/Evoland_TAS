@@ -353,13 +353,15 @@ class SeqMove2D(SeqSection2D):
         return f"{self.name}[{step}/{num_coords}]: {target}"
 
 
-# Mash confirm while moving along a path
+# Mash confirm while moving along a path (to get past talk triggers)
 class SeqMove2DConfirm(SeqMove2D):
     def __init__(self, name: str, coords: List[Vec2], precision: float = 0.2):
         super().__init__(name, coords, precision)
 
     def execute(self, delta: float) -> bool:
         done = super().execute(delta=delta)
-        ctrl = evo1.control.handle()
-        ctrl.confirm(tapping=True)
+        mem = get_zelda_memory()
+        if mem.player.not_in_control:
+            ctrl = evo1.control.handle()
+            ctrl.confirm(tapping=True)
         return done

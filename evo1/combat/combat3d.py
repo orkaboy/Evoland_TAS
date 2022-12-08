@@ -40,7 +40,9 @@ class SeqCombat3D(SeqCombat):
             # Check angle to enemy
             enemy_pos = target.pos
             angle_to_enemy = (enemy_pos - player_pos).angle
-            player_angle = mem.player.rotation
+            # The rotation is stored somewhat strangely in memory
+            rot = mem.player.rotation
+            player_angle = rot + math.pi if rot < 0 else rot - math.pi
             # Compare player rotation to angle_to_enemy
             angle = angle_between(angle_to_enemy, player_angle)
             if angle < math.pi / 3:  # Roughly turned in the right direction

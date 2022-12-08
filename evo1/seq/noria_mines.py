@@ -87,10 +87,11 @@ class NoriaMines(SeqList):
                 SeqMove2D("Move to chest", coords=[Vec2(35, 40.6)]),
                 # TODO: Trigger menu glitch
                 SeqGrabChest("Trap room", direction=Facing.UP),
-                # TODO: Test killing bat
-                # TODO: Kill bats if needed (can reuse knight logic, simplify)
                 SeqCombat3D(
-                    "Killing bats", arena=Box2(Vec2(33, 41), w=5, h=6), num_targets=3
+                    "Killing bats",
+                    arena=Box2(Vec2(32, 40), w=8, h=8),
+                    num_targets=3,
+                    retracking=True,
                 ),
                 SeqMove2DClunkyCombat("Move to chest", coords=[Vec2(34, 41)]),
                 # Get in position for chest
@@ -118,7 +119,7 @@ class NoriaMines(SeqList):
                         start=Vec2(41, 40), goal=Vec2(31, 38)
                     ),
                 ),
-                SeqMove2DConfirm("Talking", coords=[Vec2(30, 39)]),
+                SeqMove2DConfirm("Talking", coords=[Vec2(30, 40)], precision=0.4),
                 # TODO: Deal with mage enemy here?
                 SeqMove2DClunkyCombat(
                     "Trigger plate",
@@ -199,7 +200,7 @@ class NoriaMines(SeqList):
                 # Get in position for chest
                 SeqMove2D("Move to chest", coords=[Vec2(22, 17.4)]),
                 SeqGrabChest("GUI", direction=Facing.DOWN),
-                SeqMove2DConfirm("Talk", coords=[Vec2(26, 18)]),
+                SeqMove2DConfirm("Talk", coords=[Vec2(26, 18)], precision=0.4),
                 SeqMove2DClunkyCombat(
                     "Move to chest",
                     coords=_noria_astar.calculate(
@@ -210,7 +211,7 @@ class NoriaMines(SeqList):
                 SeqMove2D("Move to chest", coords=[Vec2(33, 16.6)]),
                 SeqGrabChest("Pit", direction=Facing.UP),
                 # TODO: Code to bump enemy into pit
-                SeqManualUntilClose("BUMP ENEMY INTO PIT", target=Vec2(34, 5)),
+                SeqManualUntilClose("BUMP ENEMY INTO PIT", target=Vec2(34, 11)),
                 # TODO: Remove manual
                 SeqMove2DClunkyCombat(
                     "Trigger plate(L)",
@@ -269,7 +270,7 @@ class NoriaMines(SeqList):
                         start=Vec2(53, 18), goal=Vec2(66, 20)
                     ),
                 ),
-                SeqMove2DConfirm("Talk", coords=[Vec2(67, 22)]),
+                SeqMove2DConfirm("Talk", coords=[Vec2(67, 22)], precision=0.4),
                 # TODO: Maze with pots! Have fallback for dying here to recover
                 SeqManualUntilClose("NAVIGATE LAVA MAZE", target=Vec2(67, 30)),
                 # TODO: Remove manual
@@ -301,7 +302,7 @@ class NoriaMines(SeqList):
                         start=Vec2(41, 53), goal=Vec2(32, 51)
                     ),
                 ),
-                SeqMove2DConfirm("Talk", coords=[Vec2(32, 54)]),
+                SeqMove2DConfirm("Talk", coords=[Vec2(32, 54)], precision=0.4),
                 SeqMove2DClunkyCombat(
                     "Move to trigger",
                     coords=_noria_astar.calculate(
@@ -316,7 +317,7 @@ class NoriaMines(SeqList):
                 SeqMove2D("Move to chest", coords=[Vec2(21, 60.6)]),
                 SeqGrabChest("Buster sword", direction=Facing.UP),
                 # TODO: Skip (need to use cancel instead of confirm!)
-                SeqMove2DConfirm("Talk", coords=[Vec2(21, 69)]),
+                SeqMove2DConfirm("Talk", coords=[Vec2(21, 69)], precision=0.4),
                 SeqZoneTransition(
                     "To overworld", direction=Facing.DOWN, target_zone=MapID.OVERWORLD
                 ),

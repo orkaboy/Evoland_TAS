@@ -22,9 +22,11 @@
   * Inspect pointer path to battle struct, to see if it can be use to decide if combat is active or not
     * It can (0x860, 0x0, 0x244), but it remains even after combat is done. It will be allocated again on new combat
 * 3D Movement and combat
+  * Clink attacks from just out of range, swinging in the air
   * Handle 3D enemy detection/tracking (Skellies/Mages)
-  * Killing bats
+  * Killing bats (some detection issues atm)
   * Handle pathfinding past breakable objects (bushes/pots)
+  * SeqMove2DConfirm is pretty wonky. It continuously taps with delays, which causes the TAS to miss movement detection to progress. For now, lower precision to detect progress.
 * Routing
   * Route Noria mines
 
