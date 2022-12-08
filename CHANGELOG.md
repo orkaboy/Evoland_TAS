@@ -1,5 +1,10 @@
 # Current
 
+0.0.5:
+*
+
+# Older changelogs
+
 0.0.4:
 * Battle stats and damage prediction
 * ATB Encounter prediction and manipulation on overworld map
@@ -12,8 +17,6 @@
     - Killing 3 skellies in Noria
     - Pushing the armored enemy into the pit
     - (Some more the TAS hasn't reached yet)
-
-# Older changelogs
 
 0.0.3:
 * TAS can progress to the start of Noria mines (though it needs some handholding against Kefka's Ghost)
