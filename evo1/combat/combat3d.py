@@ -22,7 +22,7 @@ class SeqCombat3D(SeqCombat):
         player_pos = mem.player.pos
         enemy_pos = target.pos
         # Calculate direction from enemy to player
-        direction = (player_pos - enemy_pos).normalized()
+        direction = (player_pos - enemy_pos).normalized
         # TODO: Make this more intelligent/give more options
         # For the time being, beeline for the enemy
         distance_to_enemy = 1.2  # TODO: Test if this is a good distance or if we should be closer/farther away
