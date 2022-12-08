@@ -1,6 +1,6 @@
 import math
 from enum import IntEnum
-from typing import NamedTuple
+from typing import List, NamedTuple
 
 
 class Vec2(NamedTuple):
@@ -59,6 +59,17 @@ def dist(a: Vec2, b: Vec2) -> float:
 
 def is_close(a: Vec2, b: Vec2, precision: float) -> bool:
     return dist(a, b) <= precision
+
+
+def find_closest_point(origin: Vec2, points: List[Vec2]) -> Vec2:
+    closest_point = None
+    closest_dist = 999
+    for point in points:
+        dist_to_point = dist(origin, point)
+        if dist_to_point < closest_dist:
+            closest_dist = dist_to_point
+            closest_point = point
+    return closest_point
 
 
 # Compare two angles and return the angle between the two. Accounts for -PI/+PI

@@ -1,0 +1,86 @@
+import logging
+import math
+from typing import List
+
+import evo1.control
+from engine.mathlib import Vec2, angle_between, find_closest_point, get_box_with_size
+from evo1.combat.base import SeqCombat
+from evo1.memory import GameEntity2D, get_zelda_memory
+from evo1.move2d import move_to
+
+logger = logging.getLogger(__name__)
+
+
+# TODO: WIP base
+# TODO: This class can be used as the base of 3D combat, both for killing bats, skeletons/mages and even Dark Clink
+class SeqCombat3D(SeqCombat):
+
+    # TODO: Implement combat using rotation instead of facing
+    # TODO: This isn't going to work for the skeletons (need to attack them from the sides/behind, just like the knights)
+    def _get_attack_vectors(self, target: GameEntity2D) -> List[Vec2]:
+        mem = get_zelda_memory()
+        player_pos = mem.player.pos
+        enemy_pos = target.pos
+        # Calculate direction from enemy to player
+        direction = (player_pos - enemy_pos).normalized()
+        # TODO: Make this more intelligent/give more options
+        # For the time being, beeline for the enemy
+        distance_to_enemy = 1.2  # TODO: Test if this is a good distance or if we should be closer/farther away
+        attack_vector = enemy_pos + (direction * distance_to_enemy)
+        return [attack_vector]
+
+    # TODO: Implement combat using rotation instead of facing
+    def _try_attack(self, target: GameEntity2D, weak_spot: Vec2) -> bool:
+        ctrl = evo1.control.handle()
+        mem = get_zelda_memory()
+        player_pos = mem.player.pos
+        box = get_box_with_size(center=player_pos, half_size=self.precision)
+        # Check position (must be in range, in a weak spot)
+        if box.contains(weak_spot):
+            # Check angle to enemy
+            enemy_pos = target.pos
+            angle_to_enemy = (enemy_pos - player_pos).angle
+            player_angle = mem.player.rotation
+            # Compare player rotation to angle_to_enemy
+            angle = angle_between(angle_to_enemy, player_angle)
+            if angle < math.pi / 3:  # Roughly turned in the right direction
+                # We are aligned and in position. Attack!
+                ctrl.dpad.none()
+                ctrl.attack()
+                return True
+            else:
+                # Turn to the correct direction, facing the enemy
+                # Split into 8 directions. 0 is to the right
+                # Horizontal axis
+                if abs(angle_to_enemy) < 3 * math.pi / 8:
+                    ctrl.dpad.right()
+                elif abs(angle_to_enemy) > 5 * math.pi / 8:
+                    ctrl.dpad.left()
+                # Vertical axis
+                if angle_to_enemy > math.pi / 8 and angle_to_enemy < 5 * math.pi / 8:
+                    ctrl.dpad.down()
+                elif (
+                    angle_to_enemy < -math.pi / 8 and angle_to_enemy > -5 * math.pi / 8
+                ):
+                    ctrl.dpad.up()
+                return False
+        return False
+
+    def try_move_into_position_and_attack(self, target: GameEntity2D) -> bool:
+        # Find all the ways that the enemy is vulnerable
+        # TODO: For 3D, we don't need to work with static positions, but rather, we should use angles.
+        # TODO: This is true for the skeletons as well; we just need to be behind/to the sides of them.
+        attack_vectors = self._get_attack_vectors(target=target)
+
+        # TODO: Filter out invalid/threatened?
+
+        if len(attack_vectors) == 0:
+            return False
+        # Find the closest point to attack
+        mem = get_zelda_memory()
+        player_pos = mem.player.pos
+        closest_weak_spot = find_closest_point(origin=player_pos, points=attack_vectors)
+        # Move towards target weak point
+        move_to(player=player_pos, target=closest_weak_spot, precision=self.precision)
+        # Attempt to attack if in range
+        return self._try_attack(target=target, weak_spot=closest_weak_spot)
