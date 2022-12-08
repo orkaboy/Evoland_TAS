@@ -2,7 +2,6 @@
 import logging
 
 import evo2.control as control
-import evo2.memory as memory
 import memory.core as core
 from term.window import WindowLayout
 

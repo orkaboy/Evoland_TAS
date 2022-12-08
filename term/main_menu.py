@@ -1,10 +1,9 @@
 import evo1
 import evo2
 from app import TAS_VERSION_STRING
-from term.window import WindowLayout
 from engine.mathlib import Vec2
-
 from memory.seq_rng_observer import rng_observer
+from term.window import WindowLayout
 
 
 def main_menu(window: WindowLayout):
@@ -67,7 +66,7 @@ def main_menu(window: WindowLayout):
             for opt in options:
                 key = opt.get("key", "x")
                 func = opt.get("func", None)
-                if c == ord(key) and func != None:
+                if c == ord(key) and func is not None:
                     window.main.nodelay(True)
                     # Call subfunction
                     func(window=window)

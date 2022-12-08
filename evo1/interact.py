@@ -50,15 +50,19 @@ class SeqShopBuy(SeqBase):
         ctrl.dpad.none()
 
         match self.step:
-            case 0: ctrl.confirm(tapping=True) # Approach
-            case 1: ctrl.confirm(tapping=True) # Buy
-            case 2: # Move to slot
+            case 0:
+                ctrl.confirm(tapping=True)  # Approach
+            case 1:
+                ctrl.confirm(tapping=True)  # Buy
+            case 2:  # Move to slot
                 if self.cur_slot < self.slot:
                     ctrl.dpad.tap_down()
                     self.cur_slot = self.cur_slot + 1
                     return False
-            case 3: ctrl.confirm(tapping=True) # Select item to buy
-            case 4: ctrl.confirm(tapping=True) # Confirm buying item
+            case 3:
+                ctrl.confirm(tapping=True)  # Select item to buy
+            case 4:
+                ctrl.confirm(tapping=True)  # Confirm buying item
             case 5:
                 logger.info(f"Done buying {self.name}")
                 return True

@@ -1,4 +1,4 @@
-from evo1.seq import OverworldToMeadow, MeadowFight
+from evo1.seq import MeadowFight, OverworldToMeadow
 
 
 def Checkpoints():

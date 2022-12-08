@@ -1,14 +1,14 @@
 # Libraries and Core Files
 import logging
-from enum import Flag, auto, Enum, IntEnum
+from enum import Enum, Flag, IntEnum, auto
 from typing import List, Optional, Tuple
 
-from engine.mathlib import Vec2, Facing
-
 import memory.core
+from engine.mathlib import Facing, Vec2
 from memory.core import LocProcess
 
 logger = logging.getLogger(__name__)
+
 
 # Representation of game features picked up from chests
 class GameFeatures(Flag):
@@ -44,12 +44,12 @@ class MapID(Enum):
 
 
 class BattleEntity:
-    _MAX_HP_PTR = [0xF0] # int
-    _CUR_HP_PTR = [0xF4] # int
-    _ATK_PTR = [0xF8] # int
-    _DEF_PTR = [0xFC] # int
-    #_?_PTR = [0x104] # int: 12 for Clink? Acc??
-    _TURN_GAUGE_PTR = [0x110] # double: [0-1.0]
+    _MAX_HP_PTR = [0xF0]  # int
+    _CUR_HP_PTR = [0xF4]  # int
+    _ATK_PTR = [0xF8]  # int
+    _DEF_PTR = [0xFC]  # int
+    # _?_PTR = [0x104] # int: 12 for Clink? Acc??
+    _TURN_GAUGE_PTR = [0x110]  # double: [0-1.0]
 
     def __init__(self, process: LocProcess, entity_ptr: int):
         self.process = process
@@ -63,12 +63,8 @@ class BattleEntity:
         self.cur_hp_ptr = self.process.get_pointer(
             self.entity_ptr, offsets=self._CUR_HP_PTR
         )
-        self.atk_ptr = self.process.get_pointer(
-            self.entity_ptr, offsets=self._ATK_PTR
-        )
-        self.def_ptr = self.process.get_pointer(
-            self.entity_ptr, offsets=self._DEF_PTR
-        )
+        self.atk_ptr = self.process.get_pointer(self.entity_ptr, offsets=self._ATK_PTR)
+        self.def_ptr = self.process.get_pointer(self.entity_ptr, offsets=self._DEF_PTR)
         self.turn_gauge_ptr = self.process.get_pointer(
             self.entity_ptr, offsets=self._TURN_GAUGE_PTR
         )
@@ -107,8 +103,8 @@ class BattleMemory:
     _ENEMIES_ARR_SIZE_PTR = [0x30, 0x4]
     _ENEMIES_ARR_BASE_PTR = [0x30, 0x8]
     # Each list has these properties
-    _FIRST_ENT_OFFSET = 0x10 # Offset from base ptr
-    _ENT_PTR_SIZE = 0x4 # 0x10, 0x14...
+    _FIRST_ENT_OFFSET = 0x10  # Offset from base ptr
+    _ENT_PTR_SIZE = 0x4  # 0x10, 0x14...
 
     # Only valid when menu is open
     # TODO: Implement
@@ -142,13 +138,21 @@ class BattleMemory:
 
     def update(self):
         try:
-            self.allies = self._init_entities(array_size_ptr=self._ALLIES_ARR_SIZE_PTR, array_base_ptr=self._ALLIES_ARR_BASE_PTR)
-            self.enemies = self._init_entities(array_size_ptr=self._ENEMIES_ARR_SIZE_PTR, array_base_ptr=self._ENEMIES_ARR_BASE_PTR)
+            self.allies = self._init_entities(
+                array_size_ptr=self._ALLIES_ARR_SIZE_PTR,
+                array_base_ptr=self._ALLIES_ARR_BASE_PTR,
+            )
+            self.enemies = self._init_entities(
+                array_size_ptr=self._ENEMIES_ARR_SIZE_PTR,
+                array_base_ptr=self._ENEMIES_ARR_BASE_PTR,
+            )
             # TODO: Other battle related data? Cursors gui etc.
         except ReferenceError:
             self.active = False
 
-    def _init_entities(self, array_size_ptr: List[int], array_base_ptr: List[int]) -> List[BattleEntity]:
+    def _init_entities(
+        self, array_size_ptr: List[int], array_base_ptr: List[int]
+    ) -> List[BattleEntity]:
         entities: List[BattleEntity] = []
         entities_arr_size_ptr = self.process.get_pointer(
             self.base_offset, offsets=array_size_ptr
@@ -184,20 +188,20 @@ class Evoland1Memory:
 
     # TODO
     # Zelda player health for roaming battle (hearts)
-    _PLAYER_HP_ZELDA_PTR = [0x7FC, 0x8, 0x30, 0x7C, 0x0] # each heart is 16 "health"
-    _GLI_PTR = [0x7FC, 0x8, 0x30, 0x84, 0x0] # Money
+    _PLAYER_HP_ZELDA_PTR = [0x7FC, 0x8, 0x30, 0x7C, 0x0]  # each heart is 16 "health"
+    _GLI_PTR = [0x7FC, 0x8, 0x30, 0x84, 0x0]  # Money
 
     _MAP_ID_PTR = [0x7FC, 0x8, 0x30, 0xC8, 0x0, 0x4]
 
     # TODO: Verify these are useful/correct (got from mem searching)
     _PLAYER_MAX_HP_ZELDA_PTR = [0x7FC, 0x8, 0x30, 0x80, 0x0]
     _PLAYER_HP_OVERWORLD_PTR = [0x7FC, 0x8, 0x30, 0x3C, 0x0]
-    #_KAERIS_HP_OVERWORLD_PTR = [0x7FC, 0x8, 0x30, 0x48] # TODO: Verify, looks wrong
-    _LEVEL_ARRAY_SIZE_PTR = [0x7FC, 0x8, 0x30, 0x78, 0x0, 0x4] # Should be 2
-    _PLAYER_LVL_PTR = [0x7FC, 0x8, 0x30, 0x78, 0x0, 0x8, 0x10, 0x8, 0x0] # int
-    _PLAYER_EXP_PTR = [0x7FC, 0x8, 0x30, 0x78, 0x0, 0x8, 0x10, 0x8, 0x4] # int
-    _KAERIS_LVL_PTR = [0x7FC, 0x8, 0x30, 0x78, 0x0, 0x8, 0x14, 0x8, 0x0] # int
-    _KAERIS_EXP_PTR = [0x7FC, 0x8, 0x30, 0x78, 0x0, 0x8, 0x14, 0x8, 0x4] # int
+    # _KAERIS_HP_OVERWORLD_PTR = [0x7FC, 0x8, 0x30, 0x48] # TODO: Verify, looks wrong
+    _LEVEL_ARRAY_SIZE_PTR = [0x7FC, 0x8, 0x30, 0x78, 0x0, 0x4]  # Should be 2
+    _PLAYER_LVL_PTR = [0x7FC, 0x8, 0x30, 0x78, 0x0, 0x8, 0x10, 0x8, 0x0]  # int
+    _PLAYER_EXP_PTR = [0x7FC, 0x8, 0x30, 0x78, 0x0, 0x8, 0x10, 0x8, 0x4]  # int
+    _KAERIS_LVL_PTR = [0x7FC, 0x8, 0x30, 0x78, 0x0, 0x8, 0x14, 0x8, 0x0]  # int
+    _KAERIS_EXP_PTR = [0x7FC, 0x8, 0x30, 0x78, 0x0, 0x8, 0x14, 0x8, 0x4]  # int
 
     def __init__(self):
         mem_handle = memory.core.handle()
@@ -270,7 +274,7 @@ class GameEntity2D:
     _ATTACK_PTR = [0x5C]  # byte, bit 5
     _ROTATION_PTR = [0x90]  # double (left = 0.0, up = 1.57, right = 3.14, down = -1.57)
     _HP_PTR = [0x100]  # int, for enemies such as knights
-    #TODO: _ATTACK_TIMER_PTR = [0xC8]  # double. unclear purpose, resets when swinging sword
+    # TODO: _ATTACK_TIMER_PTR = [0xC8]  # double. unclear purpose, resets when swinging sword
     _ENCOUNTER_TIMER_PTR = [0xD0]  # double. Steps to encounter
     _IN_CONTROL_PTR = [0xA4]
 
@@ -280,7 +284,9 @@ class GameEntity2D:
         self.setup_pointers()
 
     def setup_pointers(self):
-        self.ent_kind_ptr = self.process.get_pointer(self.entity_ptr, offsets=self._ENT_KIND_PTR)
+        self.ent_kind_ptr = self.process.get_pointer(
+            self.entity_ptr, offsets=self._ENT_KIND_PTR
+        )
         self.x_ptr = self.process.get_pointer(self.entity_ptr, offsets=self._X_PTR)
         self.y_ptr = self.process.get_pointer(self.entity_ptr, offsets=self._Y_PTR)
         self.x_tile_ptr = self.process.get_pointer(
@@ -307,9 +313,7 @@ class GameEntity2D:
         self.rotation_ptr = self.process.get_pointer(
             self.entity_ptr, offsets=self._ROTATION_PTR
         )
-        self.hp_ptr = self.process.get_pointer(
-            self.entity_ptr, offsets=self._HP_PTR
-        )
+        self.hp_ptr = self.process.get_pointer(self.entity_ptr, offsets=self._HP_PTR)
         self.in_control_ptr = self.process.get_pointer(
             self.entity_ptr, offsets=self._IN_CONTROL_PTR
         )
@@ -324,7 +328,7 @@ class GameEntity2D:
         CHEST = 3
         ITEM = 4
         NPC = 5
-        PARTICLE = 6 # When breaking pots, closing bars?
+        PARTICLE = 6  # When breaking pots, closing bars?
         SPECIAL = 7
         UNKNOWN = 999
 

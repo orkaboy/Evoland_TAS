@@ -1,12 +1,14 @@
+import logging
 from typing import Optional
+
 import memory.core as core
-from memory.rng import EvolandRNG
 from engine.mathlib import Vec2
 from engine.seq import SeqBase, SequencerEngine
+from memory.rng import EvolandRNG
 from term.window import WindowLayout
-import logging
 
 logger = logging.getLogger("RNG")
+
 
 # Passive class used to verify the RNG calculations
 class SeqRngObserver(SeqBase):
@@ -19,7 +21,7 @@ class SeqRngObserver(SeqBase):
         self.captured_rng = self.mem.get_rng()
         self.last_values = []
         self.modulo = None
-        self.mask = 0xffffffff
+        self.mask = 0xFFFFFFFF
         self.setting_modulo = 0
         self.tracking = False
         self.tracking_offset = 0
@@ -58,15 +60,18 @@ class SeqRngObserver(SeqBase):
         else:
             self.setting_modulo = 0
 
-
     def handle_input(self, input: str) -> None:
         # Capture the rng buffer
         if input == ord("c"):
             self.captured_rng = self.mem.get_rng()
-            logger.info(f"Captured current rng values. Cursor is at {self.captured_rng.cursor}")
+            logger.info(
+                f"Captured current rng values. Cursor is at {self.captured_rng.cursor}"
+            )
         elif input == ord("t"):
             if self.tracking:
-                logger.info(f"Stopped tracking. Offset from start: {self.tracking_offset}")
+                logger.info(
+                    f"Stopped tracking. Offset from start: {self.tracking_offset}"
+                )
             else:
                 self.captured_rng = self.mem.get_rng()
                 self.tracking_offset = 0
@@ -84,7 +89,7 @@ class SeqRngObserver(SeqBase):
         elif input == ord("m"):
             self._handle_input_modulo()
         elif input == ord("M"):
-            self.mask = 0x3fffffff if self.mask == 0xffffffff else 0xffffffff
+            self.mask = 0x3FFFFFFF if self.mask == 0xFFFFFFFF else 0xFFFFFFFF
         elif not self.modulo:
             digit = self._get_digit(input)
             if isinstance(digit, int):
@@ -105,26 +110,30 @@ class SeqRngObserver(SeqBase):
                     break
                 self.captured_rng.advance_rng()
                 self.tracking_offset += 1
-        return False # Never completes
+        return False  # Never completes
 
-    def _render_rng_table(self, window: WindowLayout, title: str, rng: EvolandRNG.RNGStruct, y_offset) -> None:
+    def _render_rng_table(
+        self, window: WindowLayout, title: str, rng: EvolandRNG.RNGStruct, y_offset
+    ) -> None:
         window.main.addstr(Vec2(0, y_offset), f"{title} buffer. Cursor: {rng.cursor}")
         for i in range(EvolandRNG.RNG_VALS):
             y = y_offset + 1 + i // self.COLUMNS
             x = 2 + (i % self.COLUMNS) * self.VAL_WIDTH
             if i == (rng.cursor % EvolandRNG.RNG_VALS):
-                window.main.addstr(Vec2(x-1, y), f"<{rng.values[i]:#010x}>")
+                window.main.addstr(Vec2(x - 1, y), f"<{rng.values[i]:#010x}>")
             else:
                 window.main.addstr(Vec2(x, y), f"{rng.values[i]:#010x}")
 
     def _render_modulo_text(self, window: WindowLayout) -> None:
         size = window.stats.size
         if self.modulo:
-            window.stats.addstr(Vec2(0, size.y-1), f"Modulo: {self.modulo}")
+            window.stats.addstr(Vec2(0, size.y - 1), f"Modulo: {self.modulo}")
         else:
-            window.stats.addstr(Vec2(0, size.y-1), f"Setting modulo: {self.setting_modulo}")
-        window.stats.addstr(Vec2(0, size.y-2), f"Mask: {self.mask:#10x}")
-        max_cap_values = size.y-3
+            window.stats.addstr(
+                Vec2(0, size.y - 1), f"Setting modulo: {self.setting_modulo}"
+            )
+        window.stats.addstr(Vec2(0, size.y - 2), f"Mask: {self.mask:#10x}")
+        max_cap_values = size.y - 3
         while len(self.last_values) > max_cap_values:
             self.last_values.pop(0)
 
@@ -141,23 +150,26 @@ class SeqRngObserver(SeqBase):
             elif isinstance(value, float):
                 window.stats.addstr(Vec2(2, y), f"{value:.9f}")
 
-    def render(self,  window: WindowLayout) -> None:
+    def render(self, window: WindowLayout) -> None:
         window.main.erase()
         window.stats.erase()
         self._render_rng_table(window, title="Current", rng=self.rng, y_offset=0)
-        self._render_rng_table(window, title="Captured", rng=self.captured_rng, y_offset=self.ROWS + 2)
+        self._render_rng_table(
+            window, title="Captured", rng=self.captured_rng, y_offset=self.ROWS + 2
+        )
         self._render_modulo_text(window=window)
         self._render_calculated_values(window=window)
 
         if self.tracking:
             size = window.main.size
-            window.main.addstr(Vec2(1, size.y-1), f"Tracking rng changes. Cursor has advanced by: {self.tracking_offset}")
+            window.main.addstr(
+                Vec2(1, size.y - 1),
+                f"Tracking rng changes. Cursor has advanced by: {self.tracking_offset}",
+            )
 
 
 def rng_observer(window: WindowLayout):
-    observer = SeqRngObserver(
-        "RNG Observer"
-    )
+    observer = SeqRngObserver("RNG Observer")
 
     engine = SequencerEngine(
         window=window,
