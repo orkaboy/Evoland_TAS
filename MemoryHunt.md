@@ -1,4 +1,6 @@
-# TODO
+# Memory Hunt
+
+## TODO
 
 * Menu cursor stuff in combat (other than main ATB)
 * Kefka invincibility
@@ -7,7 +9,7 @@
 
 * Main menu save slots
 
-# Found
+## Found
 
 * Current map
 * Enemy projectiles (EKind.SPECIAL, actor array)
@@ -16,8 +18,8 @@
 * Differentiate between enemies and other actors (chests etc.) in zelda mode.
 * Player struct (x,y,direction) in world movement [ptr]
 * In control
-    - Inv open(?)
-    - Is-in-battle (an ugly hack to start with)
+  * Inv open(?)
+  * Is-in-battle (an ugly hack to start with)
 * Attacking
 
 * Enemy array in zelda-mode
