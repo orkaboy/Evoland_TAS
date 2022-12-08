@@ -89,6 +89,9 @@ class OverworldGliFarm(SeqATBmove2D):
         if not dist_to_chest < player.encounter_timer:
             return False
 
+        # TODO: There's some logic flaw here that can in some cases cause a softlock,
+        # TODO: the TAS gets stuck trying to pick up the chest after it's already done so.
+        # TODO: Refactor into a FSM instead
         if self.started_manip:
             # Check if we've picked up chest, manip done
             if self.manipulated_enc == self.next_enc:
