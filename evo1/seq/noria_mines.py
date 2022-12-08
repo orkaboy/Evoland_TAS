@@ -86,7 +86,7 @@ class NoriaMines(SeqList):
                 ),
                 # Get in position for chest
                 SeqMove2D("Move to chest", coords=[Vec2(35, 40.6)]),
-                # TODO: Trigger menu bug
+                # TODO: Trigger menu glitch
                 SeqGrabChest("Trap room", direction=Facing.UP),
                 # TODO: Test killing bat
                 # TODO: Kill bats if needed (can reuse knight logic, simplify)

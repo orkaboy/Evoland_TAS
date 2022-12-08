@@ -56,7 +56,8 @@ class Edel1(SeqList):
                         start=Vec2(32, 55), goal=Vec2(39, 52), free_move=False
                     ),
                 ),
-                SeqGrabChest("Music", direction=Facing.RIGHT),  # TODO: optionally grab?
+                # TODO: optionally grab? (Getting it is marginally slower, but more entertaining)
+                SeqGrabChest("Music", direction=Facing.RIGHT),
                 SeqAttack("Bush"),
                 SeqMove2D("Move past bush", coords=[Vec2(39, 50)]),
                 SeqMove2DClunkyCombat(
@@ -64,14 +65,7 @@ class Edel1(SeqList):
                     coords=_edel_vale_astar.calculate(
                         start=Vec2(39, 50), goal=Vec2(44, 49), free_move=False
                     ),
-                    #                                coords=[
-                    #                                    Vec2(39, 47),
-                    #                                    # TODO Optional, chest to the north, save (move to Vec2(39, 45), then open chest N)
-                    #                                    Vec2(41, 47),
-                    #                                    Vec2(41, 48),
-                    #                                    Vec2(44, 48),
-                    #                                    Vec2(44, 49),
-                    #                                ],
+                    # TODO Optional, chest to the north, save (move to Vec2(39, 45), then open chest N)
                 ),
                 SeqGrabChest("16-bit", direction=Facing.DOWN),
                 # TODO: Some enemies here, will probably fail
@@ -128,7 +122,7 @@ class Edel1(SeqList):
                     num_targets=2,
                 ),
                 SeqMove2D(
-                    "Grabbing inv",
+                    "Leaving Edel Vale",
                     coords=[
                         Vec2(54, 31),
                         Vec2(54, 29),
@@ -160,7 +154,7 @@ class Edel2(SeqList):
                     ),
                 ),
                 SeqAttack("Bush"),  # TODO: RIGHT
-                # TODO: Improve on sequence here? Works
+                # TODO: Improve on sequence here? It works, but is potentially fragile if the bats distract the TAS
                 SeqMove2DClunkyCombat(
                     "Move to bush", coords=[Vec2(35, 19), Vec2(36, 20)]
                 ),

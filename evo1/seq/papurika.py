@@ -50,6 +50,62 @@ def need_to_steal_cash() -> int:
     return 1 if mem.gli < 250 else 0
 
 
+class PapurikaVillageShopping(SeqList):
+    def __init__(self):
+        super().__init__(
+            name="Shopping",
+            children=[
+                SeqMove2D(
+                    "Moving to chest",
+                    coords=[
+                        Vec2(37, 42),
+                        Vec2(39, 40.2),
+                    ],
+                ),
+                SeqOptional(
+                    "Checking wallet",
+                    cases={
+                        # Check if we have enough cash
+                        0: SeqLog("Wallet", "We don't need to break any laws today"),
+                        1: SeqList(
+                            "Pillaging",
+                            children=[
+                                SeqMove2D(
+                                    "Moving to barrel",
+                                    coords=[Vec2(40, 40.3)],
+                                ),
+                                SeqInteract("Grabbing 50 gli"),
+                                SeqInteract("Confirming"),
+                            ],
+                        ),
+                    },
+                    selector=need_to_steal_cash,
+                ),
+                SeqMove2D(
+                    "Shopping",
+                    coords=[
+                        Vec2(38, 41),
+                        Vec2(34.3, 41),
+                        Vec2(34.3, 40.6),
+                    ],
+                ),
+                SeqShopBuy("Sword", slot=1),
+                SeqShopBuy("Armor", slot=1),
+                SeqMove2D(
+                    "Leave shop",
+                    coords=[
+                        Vec2(30, 42),
+                        Vec2(29, 42),
+                    ],
+                ),
+                # Transition south (exit shop)
+                SeqZoneTransition(
+                    "Leave shop", Facing.DOWN, target_zone=MapID.PAPURIKA
+                ),
+            ],
+        )
+
+
 class PapurikaVillage(SeqList):
     def __init__(self):
         super().__init__(
@@ -102,53 +158,7 @@ class PapurikaVillage(SeqList):
                 SeqZoneTransition(
                     "Enter shop", Facing.UP, target_zone=MapID.PAPURIKA_INTERIOR
                 ),
-                SeqMove2D(
-                    "Moving to chest",
-                    coords=[
-                        Vec2(37, 42),
-                        Vec2(39, 40.2),
-                    ],
-                ),
-                SeqOptional(
-                    "Checking wallet",
-                    cases={
-                        # Check if we have enough cash
-                        0: SeqLog("Wallet", "We don't need to break any laws today"),
-                        1: SeqList(
-                            "Pillaging",
-                            children=[
-                                SeqMove2D(
-                                    "Moving to barrel",
-                                    coords=[Vec2(40, 40.3)],
-                                ),
-                                SeqInteract("Grabbing 50 gli"),
-                                SeqInteract("Confirming"),
-                            ],
-                        ),
-                    },
-                    selector=need_to_steal_cash,
-                ),
-                SeqMove2D(
-                    "Shopping",
-                    coords=[
-                        Vec2(38, 41),
-                        Vec2(34.3, 41),
-                        Vec2(34.3, 40.6),
-                    ],
-                ),
-                SeqShopBuy("Sword", slot=1),
-                SeqShopBuy("Armor", slot=1),
-                SeqMove2D(
-                    "Leave shop",
-                    coords=[
-                        Vec2(30, 42),
-                        Vec2(29, 42),
-                    ],
-                ),
-                # Transition south (exit shop)
-                SeqZoneTransition(
-                    "Leave shop", Facing.DOWN, target_zone=MapID.PAPURIKA
-                ),
+                PapurikaVillageShopping(),
                 SeqMove2D(
                     "Leave town",
                     coords=[
