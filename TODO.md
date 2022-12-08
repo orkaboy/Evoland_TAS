@@ -26,6 +26,7 @@
     - Handle 3D enemy detection/tracking (Skellies/Mages)
     - Killing bats (some detection issues atm)
     - Handle pathfinding past breakable objects (bushes/pots)
+    - SeqMove2DConfirm is pretty wonky. It continuously taps with delays, which causes the TAS to miss movement detection to progress. For now, lower precision to detect progress.
 * Routing
     - Route Noria mines
 
