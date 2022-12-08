@@ -2,7 +2,7 @@
 import logging
 
 import control.controller as controller
-from evo1.memory import Vec2
+from engine.mathlib import Vec2
 
 logger = logging.getLogger(__name__)
 
