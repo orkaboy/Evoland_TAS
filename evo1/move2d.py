@@ -7,7 +7,7 @@ import evo1.control
 from engine.seq import SeqBase, SeqDelay
 from evo1.memory import GameEntity2D, get_zelda_memory, get_memory, MapID
 from term.window import WindowLayout, SubWindow
-from engine.mathlib import Facing, facing_str, Vec2, is_close, dist
+from engine.mathlib import Facing, facing_str, Vec2, is_close, dist, angle_between
 from evo1.maps import CurrentTilemap
 
 logger = logging.getLogger(__name__)
@@ -398,7 +398,7 @@ class SeqMove2DClunkyCombat(SeqMove2D):
                 dist_to_player = dist(player_pos, enemy_pos)
                 if dist_to_player < 1.5:  # TODO Arbitrary magic number, distance to enemy
                     enemy_angle = (enemy_pos-player_pos).angle
-                    angle = enemy_angle - player_angle # TODO: could this cause issues?
+                    angle = angle_between(enemy_angle, player_angle)
                     # logger.debug(f"Enemy {i} dist: {dist_to_player}, angle_to_e: {enemy_angle}. angle: {angle}")
                     self._clunky_counter_with_sword(angle=angle, enemy_angle=enemy_angle)
 
