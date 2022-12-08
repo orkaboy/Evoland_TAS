@@ -1,10 +1,11 @@
 # Libraries and Core Files
+import datetime
 import logging
 import time
-import datetime
 from typing import Any, Callable, List
-from term.window import WindowLayout
+
 from engine.mathlib import Vec2
+from term.window import WindowLayout
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +77,9 @@ class SeqDelay(SeqBase):
 
 
 class SeqList(SeqBase):
-    def __init__(self, name: str, children: List[SeqBase], func=None, shadow: str = False):
+    def __init__(
+        self, name: str, children: List[SeqBase], func=None, shadow: str = False
+    ):
         self.step = 0
         self.children = children
         self.shadow = shadow
@@ -95,7 +98,7 @@ class SeqList(SeqBase):
         cur_child = self.children[self.step]
         # Peform logic of current child step
         ret = cur_child.execute(delta=delta)
-        if ret == True:  # If current child is done
+        if ret is True:  # If current child is done
             self.step = self.step + 1
         return False
 
@@ -124,7 +127,7 @@ class SeqOptional(SeqBase):
         cases: dict[Any, SeqBase],
         selector: Callable | int,
         fallback: SeqBase = SeqBase(),
-        shadow: bool = False
+        shadow: bool = False,
     ):
         self.fallback = fallback
         self.selector = selector
@@ -141,7 +144,9 @@ class SeqOptional(SeqBase):
 
     def execute(self, delta: float) -> bool:
         if not self.selected:
-            self.selector_repr = self.selector() if callable(self.selector) else self.selector
+            self.selector_repr = (
+                self.selector() if callable(self.selector) else self.selector
+            )
             self.selection = self.cases.get(self.selector_repr)
             self.selected = True
 
@@ -247,9 +252,7 @@ class SequencerEngine(object):
         self._print_timer()
         self.window.main.addstr(Vec2(0, 1), f"Gamestate:\n  {self.root}")
         # Render the current gamestate
-        self.root.render(
-            window=self.window
-        )
+        self.root.render(window=self.window)
 
         self.window.update()
 

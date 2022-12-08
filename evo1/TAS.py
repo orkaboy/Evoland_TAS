@@ -7,10 +7,21 @@ from engine.mathlib import Vec2
 from engine.seq import SeqList, SeqOptional, SequencerEngine
 from evo1.checkpoints import Checkpoints
 from evo1.memory import load_memory, load_zelda_memory
-from evo1.seq import Edel1, Evoland1StartGame, OverworldToMeadow, MeadowFight, PapurikaVillage, OverworldToCavern, CrystalCavern, Edel2, OverworldToNoria, NoriaMines, OverworldToAogai
-from term.window import WindowLayout
 from evo1.observer import SeqObserver2D
-
+from evo1.seq import (
+    CrystalCavern,
+    Edel1,
+    Edel2,
+    Evoland1StartGame,
+    MeadowFight,
+    NoriaMines,
+    OverworldToAogai,
+    OverworldToCavern,
+    OverworldToMeadow,
+    OverworldToNoria,
+    PapurikaVillage,
+)
+from term.window import WindowLayout
 
 logger = logging.getLogger("SYSTEM")
 
@@ -22,9 +33,7 @@ def setup_memory() -> None:
 
 
 def observer(window: WindowLayout):
-    observer = SeqObserver2D(
-        "Observer", func=setup_memory
-    )
+    observer = SeqObserver2D("Observer", func=setup_memory)
 
     engine = SequencerEngine(
         window=window,
@@ -61,7 +70,9 @@ def perform_TAS(window: WindowLayout):
     checkpoint = window.config_data.get("checkpoint", "")
 
     # TODO: More run modes
-    logger.info(f"Run mode is {'Any% from New Game' if saveslot == 0 else 'Any% from load'}")
+    logger.info(
+        f"Run mode is {'Any% from New Game' if saveslot == 0 else 'Any% from load'}"
+    )
     logger.info("Preparing TAS... (may take a few seconds)")
 
     root = SeqList(

@@ -1,15 +1,14 @@
 import logging
-
-from engine.seq import SeqBase
-from engine.mathlib import Vec2, is_close
-import evo1.control
-from evo1.move2d import SeqMove2D, move_to
-from evo1.memory import get_memory, get_zelda_memory, MapID, BattleMemory, BattleEntity
-from memory.rng import EvolandRNG
 from enum import Enum, auto
-from term.window import WindowLayout
-
 from typing import List
+
+import evo1.control
+from engine.mathlib import Vec2, is_close
+from engine.seq import SeqBase
+from evo1.memory import BattleEntity, BattleMemory, MapID, get_memory, get_zelda_memory
+from evo1.move2d import SeqMove2D, move_to
+from memory.rng import EvolandRNG
+from term.window import WindowLayout
 
 logger = logging.getLogger(__name__)
 
@@ -34,38 +33,61 @@ class EncounterID(Enum):
     ZOOMBA_APIDYA = auto()
 
 
-def calc_next_encounter(rng: EvolandRNG.RNGStruct, has_3d_monsters: bool = False) -> EncounterID:
-    rng_value = (rng.rand_int() & 0x3fffffff)
+def calc_next_encounter(
+    rng: EvolandRNG.RNGStruct, has_3d_monsters: bool = False
+) -> EncounterID:
+    rng_value = rng.rand_int() & 0x3FFFFFFF
     map_id = get_memory().map_id
     modulo = 0xA
     if map_id == MapID.CRYSTAL_CAVERN:
         lut_value = rng_value % modulo
         match lut_value:
-            case 0 | 1 | 2: return EncounterID.SCAVEN_2
-            case 3 | 4 | 5: return EncounterID.KOBRA
-            case 6 | 7: return EncounterID.TORK
-            case 8: return EncounterID.KOBRA_2
-            case _: return EncounterID.SCAVEN_2_TORK
-    elif not has_3d_monsters: # Overworld 2D
+            case 0 | 1 | 2:
+                return EncounterID.SCAVEN_2
+            case 3 | 4 | 5:
+                return EncounterID.KOBRA
+            case 6 | 7:
+                return EncounterID.TORK
+            case 8:
+                return EncounterID.KOBRA_2
+            case _:
+                return EncounterID.SCAVEN_2_TORK
+    elif not has_3d_monsters:  # Overworld 2D
         lut_value = rng_value % modulo
         match lut_value:
-            case 0 | 1 | 2: return EncounterID.SLIME
-            case 3 | 4 | 5: return EncounterID.EMUK
-            case 6 | 7: return EncounterID.SLIME_2
-            case 8: return EncounterID.SLIME_EMUK
-            case _: return EncounterID.SLIME_3
+            case 0 | 1 | 2:
+                return EncounterID.SLIME
+            case 3 | 4 | 5:
+                return EncounterID.EMUK
+            case 6 | 7:
+                return EncounterID.SLIME_2
+            case 8:
+                return EncounterID.SLIME_EMUK
+            case _:
+                return EncounterID.SLIME_3
     else:
         # Overworld 3D
         modulo = 0x7
         lut_value = rng_value % modulo
         match lut_value:
-            case 0 | 1 | 2: return EncounterID.ZOOMBA_2_APIDYA
-            case 3 | 4: return EncounterID.APIDYA
-            case 5: return EncounterID.ZOOMBA_2_ATUIN
-            case 6: return EncounterID.ZOOMBA_APIDYA
+            case 0 | 1 | 2:
+                return EncounterID.ZOOMBA_2_APIDYA
+            case 3 | 4:
+                return EncounterID.APIDYA
+            case 5:
+                return EncounterID.ZOOMBA_2_ATUIN
+            case 6:
+                return EncounterID.ZOOMBA_APIDYA
+
 
 class FarmingGoal:
-    def __init__(self, farm_coords: List[Vec2], precision: float = 0.2, gli_goal: int = None, lvl_goal: int = None) -> None:
+    def __init__(
+        self,
+        farm_coords: List[Vec2],
+        precision: float = 0.2,
+        gli_goal: int = None,
+        lvl_goal: int = None,
+    ) -> None:
         self.farm_coords = farm_coords
         self.precision = precision
         self.gli_goal = gli_goal
@@ -85,7 +107,7 @@ class FarmingGoal:
 
         # If arrived, go to next coordinate in the list
         if is_close(cur_pos, target, self.precision):
-            self.step = self.step + 1 if self.step < len(self.farm_coords)-1 else 0
+            self.step = self.step + 1 if self.step < len(self.farm_coords) - 1 else 0
 
     def is_done(self) -> bool:
         # Check that farming goals are met
@@ -165,10 +187,10 @@ class SeqATBCombat(SeqBase):
 
     def predict_hit(self, attacker: BattleEntity, defender: BattleEntity) -> bool:
         rng = EvolandRNG().get_rng()
-        accuracy = 10 # TODO: from attacker
-        evade = 10 # TODO: from defender
-        miss_chance = 30 # TODO: Calc
-        roll = (rng.rand_int() & 0x3fffffff) % 100
+        # accuracy = 10  # TODO: from attacker
+        # evade = 10  # TODO: from defender
+        miss_chance = 30  # TODO: Calc
+        roll = (rng.rand_int() & 0x3FFFFFFF) % 100
         return roll >= miss_chance
 
     # TODO: Actual combat logic
@@ -200,14 +222,23 @@ class SeqATBCombat(SeqBase):
 
         # TODO: map representation
 
-    def _print_group(self, window: WindowLayout, group: List[BattleEntity], y_offset: int) -> None:
+    def _print_group(
+        self, window: WindowLayout, group: List[BattleEntity], y_offset: int
+    ) -> None:
         for i, entity in enumerate(group):
             y_pos = y_offset + i
-            window.stats.addstr(Vec2(2, y_pos), f"{entity.cur_hp}/{entity.max_hp} [{entity.turn_gauge:.02f}]")
+            window.stats.addstr(
+                Vec2(2, y_pos),
+                f"{entity.cur_hp}/{entity.max_hp} [{entity.turn_gauge:.02f}]",
+            )
 
     def __repr__(self) -> str:
         if self.active:
-            return f"Battle ended ({self.name})" if self.mem.ended else f"In battle ({self.name})"
+            return (
+                f"Battle ended ({self.name})"
+                if self.mem.ended
+                else f"In battle ({self.name})"
+            )
         return f"Waiting for battle to start ({self.name})"
 
     @property
@@ -225,7 +256,14 @@ class SeqATBCombatManual(SeqATBCombat):
 
 
 class SeqATBmove2D(SeqMove2D):
-    def __init__(self, name: str, coords: List[Vec2], battle_handler: SeqATBCombat = SeqATBCombat(), goal: FarmingGoal = None, precision: float = 0.2):
+    def __init__(
+        self,
+        name: str,
+        coords: List[Vec2],
+        battle_handler: SeqATBCombat = SeqATBCombat(),
+        goal: FarmingGoal = None,
+        precision: float = 0.2,
+    ):
         self.goal = goal
         self.next_enc: EncounterID = None
         self.battle_handler = battle_handler
@@ -245,7 +283,9 @@ class SeqATBmove2D(SeqMove2D):
 
     def navigate_to_goal(self) -> bool:
         rng = EvolandRNG().get_rng()
-        self.next_enc = calc_next_encounter(rng=rng, has_3d_monsters=False)  # TODO: Check for manips
+        self.next_enc = calc_next_encounter(
+            rng=rng, has_3d_monsters=False
+        )  # TODO: Check for manips
         if self.do_encounter_manip():
             return True
         self._navigate_to_checkpoint()
