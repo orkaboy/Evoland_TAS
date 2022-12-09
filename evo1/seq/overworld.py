@@ -61,6 +61,11 @@ class OverworldGliFarm(SeqATBmove2D):
 
     # Returning true means we seize control instead of moving on
     def do_encounter_manip(self) -> bool:
+        rng = EvolandRNG().get_rng()
+        self.next_enc = calc_next_encounter(
+            rng=rng, has_3d_monsters=False, clink_level=0
+        )
+
         # Check if we've already picked up the chest
         if not self.can_manip:
             return False
@@ -87,7 +92,7 @@ class OverworldGliFarm(SeqATBmove2D):
             # Calculate the manipulated encounter
             rng = EvolandRNG().get_rng()
             rng.advance_rng(self._CHEST_RNG_ADVANCE)
-            self.manipulated_enc = calc_next_encounter(rng)
+            self.manipulated_enc = calc_next_encounter(rng, clink_level=0)
 
             if not self._should_manip():
                 return False
@@ -107,8 +112,8 @@ class OverworldGliFarm(SeqATBmove2D):
 
     def render(self, window: WindowLayout) -> None:
         super().render(window=window)
-        if self.can_manip and self.manipulated_enc:
-            window.stats.addstr(Vec2(1, 15), f"  Manip: {self.manipulated_enc}")
+        if not self.battle_handler.active and self.can_manip and self.manipulated_enc:
+            window.stats.addstr(Vec2(1, 14), f" Manip: {self.manipulated_enc}")
 
 
 class OverworldToMeadow(SeqList):

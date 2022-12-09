@@ -2,7 +2,8 @@ import logging
 
 import evo1.control
 from engine.mathlib import Vec2
-from evo1.atb.base import Encounter, SeqATBCombat, calc_next_encounter
+from evo1.atb.base import SeqATBCombat
+from evo1.atb.encounter import Encounter, calc_next_encounter
 from evo1.memory import get_memory, get_zelda_memory
 from evo1.move2d import SeqMove2D, is_close, move_to
 from memory.rng import EvolandRNG
@@ -89,12 +90,14 @@ class SeqATBmove2D(SeqMove2D):
 
     # Override
     def do_encounter_manip(self) -> bool:
+        rng = EvolandRNG().get_rng()
+        # TODO: Clink level
+        self.next_enc = calc_next_encounter(
+            rng=rng, has_3d_monsters=False, clink_level=1
+        )
         return False
 
     def navigate_to_goal(self) -> bool:
-        rng = EvolandRNG().get_rng()
-        # TODO: Check for manips
-        self.next_enc = calc_next_encounter(rng=rng, has_3d_monsters=False)
         if self.do_encounter_manip():
             return True
         self._navigate_to_checkpoint()

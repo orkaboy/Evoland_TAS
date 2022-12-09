@@ -3,7 +3,7 @@ import logging
 import evo1.control
 from engine.mathlib import Facing, Vec2
 from engine.seq import SeqList
-from evo1.atb import EncounterID, SeqATBmove2D
+from evo1.atb import EncounterID, SeqATBmove2D, calc_next_encounter
 from evo1.maps import GetAStar
 from evo1.memory import MapID, get_zelda_memory
 from evo1.move2d import (
@@ -13,6 +13,7 @@ from evo1.move2d import (
     SeqMove2D,
     SeqZoneTransition,
 )
+from memory.rng import EvolandRNG
 from term.window import WindowLayout
 
 logger = logging.getLogger(__name__)
@@ -35,8 +36,8 @@ class CrystalCavernEncManip(SeqATBmove2D):
 
     def _should_manip(self) -> bool:
         # self.next_enc already calculated, check if it's good
-        if self.next_enc.id in self.pref_enc:
-            if self.next_enc.id == EncounterID.KOBRA:
+        if self.next_enc.enc_id in self.pref_enc:
+            if self.next_enc.enc_id == EncounterID.KOBRA:
                 return not self.next_enc.first_turn.hit
             return False
 
@@ -47,6 +48,12 @@ class CrystalCavernEncManip(SeqATBmove2D):
 
     # Returning true means we seize control instead of moving on
     def do_encounter_manip(self) -> bool:
+        rng = EvolandRNG().get_rng()
+        # TODO: Clink level
+        self.next_enc = calc_next_encounter(
+            rng=rng, has_3d_monsters=False, clink_level=1
+        )
+
         if not self._should_manip():
             return False
 

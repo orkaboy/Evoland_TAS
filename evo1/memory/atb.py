@@ -6,6 +6,8 @@ from memory.core import LocProcess
 
 
 class BattleEntity:
+
+    _TIMER_SINCE_TURN_PTR = [0xD0]  # double
     _MAX_HP_PTR = [0xF0]  # int
     _CUR_HP_PTR = [0xF4]  # int
     _ATK_PTR = [0xF8]  # int
@@ -13,6 +15,7 @@ class BattleEntity:
     _EVADE_PTR = [0x100]  # int
     _MAGIC_PTR = [0x104]  # int
     _TURN_GAUGE_PTR = [0x110]  # double: [0-1.0]
+    _TURN_COUNTER_PTR = [0x154]  # int
 
     def __init__(self, process: LocProcess, entity_ptr: int):
         self.process = process
@@ -36,6 +39,12 @@ class BattleEntity:
         )
         self.turn_gauge_ptr = self.process.get_pointer(
             self.entity_ptr, offsets=self._TURN_GAUGE_PTR
+        )
+        self.turn_counter_ptr = self.process.get_pointer(
+            self.entity_ptr, offsets=self._TURN_COUNTER_PTR
+        )
+        self.timer_since_turn_ptr = self.process.get_pointer(
+            self.entity_ptr, offsets=self._TIMER_SINCE_TURN_PTR
         )
 
     @property
@@ -65,6 +74,14 @@ class BattleEntity:
     @property
     def turn_gauge(self) -> float:
         return self.process.read_double(self.turn_gauge_ptr)
+
+    @property
+    def timer_since_turn(self) -> float:
+        return self.process.read_double(self.timer_since_turn_ptr)
+
+    @property
+    def turn_counter(self) -> int:
+        return self.process.read_u32(self.turn_counter_ptr)
 
 
 class BattleMemory:
