@@ -79,24 +79,25 @@ class SeqATBCombat(SeqBase):
         self._print_group(window=window, group=self.mem.enemies, y_offset=9)
 
         if not self.mem.ended:
-            # Who is acting?
-            clink_turn = self.mem.allies[0].turn_gauge
-            if len(self.mem.allies) > 1:
-                kaeris_turn = self.mem.allies[1].turn_gauge
-                cur_ally = (
-                    self.mem.allies[1]
-                    if kaeris_turn > clink_turn
-                    else self.mem.allies[0]
-                )
-            else:
-                cur_ally = self.mem.allies[0]
-            ally = atb_stats_from_memory(cur_ally)
-            enemy = atb_stats_from_memory(self.mem.enemies[0])
+            self._render_combat_predictions(window=window)
 
-            rng = EvolandRNG().get_rng()
-            prediction = predict_attack(rng, ally, enemy)
-            window.stats.addstr(Vec2(1, 13), "Damage prediction:")
-            window.stats.addstr(Vec2(2, 14), f" {prediction}")
+    def _render_combat_predictions(self, window: WindowLayout):
+        # Who is acting?
+        clink_turn = self.mem.allies[0].turn_gauge
+        if len(self.mem.allies) > 1:
+            kaeris_turn = self.mem.allies[1].turn_gauge
+            cur_ally = (
+                self.mem.allies[1] if kaeris_turn > clink_turn else self.mem.allies[0]
+            )
+        else:
+            cur_ally = self.mem.allies[0]
+        ally = atb_stats_from_memory(cur_ally)
+        enemy = atb_stats_from_memory(self.mem.enemies[0])
+        # Perform damage prediction
+        rng = EvolandRNG().get_rng()
+        prediction = predict_attack(rng, ally, enemy)
+        window.stats.addstr(Vec2(1, 13), "Damage prediction:")
+        window.stats.addstr(Vec2(2, 14), f" {prediction}")
 
         # TODO: map representation
 
