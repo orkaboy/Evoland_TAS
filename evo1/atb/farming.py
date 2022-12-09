@@ -74,11 +74,12 @@ class SeqATBmove2D(SeqMove2D):
         battle_handler: SeqATBCombat = SeqATBCombat(),
         goal: FarmingGoal = None,
         precision: float = 0.2,
+        func=None,
     ):
         self.goal = goal
         self.next_enc: Encounter = None
         self.battle_handler = battle_handler
-        super().__init__(name, coords, precision)
+        super().__init__(name, coords, precision, func=func)
 
     def reset(self) -> None:
         if self.goal:

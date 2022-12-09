@@ -281,11 +281,13 @@ class SeqSection2D(SeqBase):
 
 
 class SeqMove2D(SeqSection2D):
-    def __init__(self, name: str, coords: list[Vec2], precision: float = 0.2):
+    def __init__(
+        self, name: str, coords: list[Vec2], precision: float = 0.2, func=None
+    ):
         self.step = 0
         self.coords = coords
         self.precision = precision
-        super().__init__(name)
+        super().__init__(name, func=func)
 
     def reset(self) -> None:
         self.step = 0
