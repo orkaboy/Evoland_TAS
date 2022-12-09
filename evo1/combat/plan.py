@@ -25,9 +25,8 @@ class CombatPlan:
         ret = []
         mem = get_zelda_memory()
         # Map enemies in arena to array of GameEntity2D to track
-        with contextlib.suppress(
-            ReferenceError
-        ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
+        # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
+        with contextlib.suppress(ReferenceError):
             for actor in mem.actors:
                 if actor.kind != GameEntity2D.EKind.ENEMY:
                     continue

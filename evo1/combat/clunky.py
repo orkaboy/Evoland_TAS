@@ -42,17 +42,15 @@ class SeqMove2DClunkyCombat(SeqMove2D):
         mem = get_zelda_memory()
         player_pos = mem.player.pos
         player_angle = (target - player_pos).angle
-        with contextlib.suppress(
-            ReferenceError
-        ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
+        # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
+        with contextlib.suppress(ReferenceError):
             for actor in mem.actors:
                 if actor.kind != GameEntity2D.EKind.ENEMY:
                     continue
                 enemy_pos = actor.pos
                 dist_to_player = dist(player_pos, enemy_pos)
-                if (
-                    dist_to_player < 1.5
-                ):  # TODO Arbitrary magic number, distance to enemy
+                # TODO Arbitrary magic number, distance to enemy
+                if dist_to_player < 1.5:
                     enemy_angle = (enemy_pos - player_pos).angle
                     angle = angle_between(enemy_angle, player_angle)
                     # logger.debug(f"Enemy {i} dist: {dist_to_player}, angle_to_e: {enemy_angle}. angle: {angle}")
@@ -62,9 +60,8 @@ class SeqMove2DClunkyCombat(SeqMove2D):
 
     def _clunky_counter_with_sword(self, angle: float, enemy_angle: float) -> None:
         # If in front, attack!
-        if (
-            abs(angle) < math.pi / 4
-        ):  # TODO Arbitrary magic number, angle difference between where we are heading and where the enemy is
+        # TODO Arbitrary magic number, angle difference between where we are heading and where the enemy is
+        if abs(angle) < math.pi / 4:
             ctrl = evo1.control.handle()
             ctrl.attack(tapping=False)
         elif abs(angle) <= math.pi / 2:  # TODO On our sides
