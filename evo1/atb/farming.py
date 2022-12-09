@@ -90,10 +90,10 @@ class SeqATBmove2D(SeqMove2D):
 
     # Override
     def do_encounter_manip(self) -> bool:
+        mem = get_memory()
         rng = EvolandRNG().get_rng()
-        # TODO: Clink level
         self.next_enc = calc_next_encounter(
-            rng=rng, has_3d_monsters=False, clink_level=1
+            rng=rng, has_3d_monsters=False, clink_level=mem.lvl
         )
         return False
 
