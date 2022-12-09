@@ -1,6 +1,4 @@
 # Libraries and Core Files
-from typing import List
-
 import memory.core
 from evo1.memory.base import _LIBHL_OFFSET
 from evo1.memory.zelda import get_zelda_memory
@@ -12,7 +10,8 @@ class BattleEntity:
     _CUR_HP_PTR = [0xF4]  # int
     _ATK_PTR = [0xF8]  # int
     _DEF_PTR = [0xFC]  # int
-    # _?_PTR = [0x104] # int: 12 for Clink? Acc??
+    _EVADE_PTR = [0x100]  # int
+    _MAGIC_PTR = [0x104]  # int
     _TURN_GAUGE_PTR = [0x110]  # double: [0-1.0]
 
     def __init__(self, process: LocProcess, entity_ptr: int):
@@ -29,6 +28,12 @@ class BattleEntity:
         )
         self.atk_ptr = self.process.get_pointer(self.entity_ptr, offsets=self._ATK_PTR)
         self.def_ptr = self.process.get_pointer(self.entity_ptr, offsets=self._DEF_PTR)
+        self.evade_ptr = self.process.get_pointer(
+            self.entity_ptr, offsets=self._EVADE_PTR
+        )
+        self.magic_ptr = self.process.get_pointer(
+            self.entity_ptr, offsets=self._MAGIC_PTR
+        )
         self.turn_gauge_ptr = self.process.get_pointer(
             self.entity_ptr, offsets=self._TURN_GAUGE_PTR
         )
@@ -48,6 +53,14 @@ class BattleEntity:
     @property
     def defense(self) -> int:
         return self.process.read_u32(self.def_ptr)
+
+    @property
+    def evade(self) -> int:
+        return self.process.read_u32(self.evade_ptr)
+
+    @property
+    def magic(self) -> int:
+        return self.process.read_u32(self.magic_ptr)
 
     @property
     def turn_gauge(self) -> float:
@@ -115,9 +128,9 @@ class BattleMemory:
             self.active = False
 
     def _init_entities(
-        self, array_size_ptr: List[int], array_base_ptr: List[int]
-    ) -> List[BattleEntity]:
-        entities: List[BattleEntity] = []
+        self, array_size_ptr: list[int], array_base_ptr: list[int]
+    ) -> list[BattleEntity]:
+        entities: list[BattleEntity] = []
         entities_arr_size_ptr = self.process.get_pointer(
             self.base_offset, offsets=array_size_ptr
         )

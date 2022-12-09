@@ -3,12 +3,14 @@ from engine.seq import SeqBase, SeqDebug, SeqDelay, SeqList, SeqLog, SeqOptional
 from term.log_init import reset_logging_time_reference
 
 
-class Evoland1StartGame(SeqList):
-    def __init__(self, saveslot: int):
+class EvolandStartGame(SeqList):
+    def __init__(self, saveslot: int, game: int = 1):
         super().__init__(
             name="Start game",
             children=[
-                SeqLog(name="SYSTEM", text="Starting Evoland1 from main menu..."),
+                SeqLog(
+                    name="SYSTEM", text=f"Starting Evoland {game} from main menu..."
+                ),
                 SeqDebug(name="SYSTEM", text="Press confirm to activate main menu."),
                 SeqMenuConfirm(),
                 SeqDelay(name="Menu", timeout_in_s=1.0),
@@ -22,6 +24,19 @@ class Evoland1StartGame(SeqList):
                                     name="SYSTEM",
                                     text="Press confirm to select new game.",
                                 ),
+                                SeqOptional(
+                                    name="Game selection",
+                                    selector=game,
+                                    cases={
+                                        2: SeqList(
+                                            name="Evoland 2",
+                                            children=[
+                                                SeqMenuDown(name="Menu"),
+                                                SeqDelay(name="Menu", timeout_in_s=0.5),
+                                            ],
+                                        ),
+                                    },
+                                ),
                                 SeqMenuConfirm(),
                                 SeqLog(name="SYSTEM", text="Starting in..."),
                                 SeqLog(name="SYSTEM", text="3"),
@@ -32,7 +47,7 @@ class Evoland1StartGame(SeqList):
                                 SeqDelay(name="Menu", timeout_in_s=1.0),
                                 SeqDebug(
                                     name="SYSTEM",
-                                    text="Press confirm to select Evoland1.",
+                                    text=f"Press confirm to select Evoland {game}.",
                                 ),
                             ],
                         ),

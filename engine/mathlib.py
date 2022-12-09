@@ -1,6 +1,6 @@
 import math
 from enum import IntEnum
-from typing import List, NamedTuple
+from typing import NamedTuple
 
 
 class Vec2(NamedTuple):
@@ -61,7 +61,7 @@ def is_close(a: Vec2, b: Vec2, precision: float) -> bool:
     return dist(a, b) <= precision
 
 
-def find_closest_point(origin: Vec2, points: List[Vec2]) -> Vec2:
+def find_closest_point(origin: Vec2, points: list[Vec2]) -> Vec2:
     closest_point = None
     closest_dist = 999
     for point in points:

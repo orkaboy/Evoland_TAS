@@ -1,9 +1,8 @@
 import logging
-from typing import List
 
 import evo1.control
 from engine.mathlib import Vec2
-from evo1.atb.base import EncounterID, SeqATBCombat, calc_next_encounter
+from evo1.atb.base import Encounter, SeqATBCombat, calc_next_encounter
 from evo1.memory import get_memory, get_zelda_memory
 from evo1.move2d import SeqMove2D, is_close, move_to
 from memory.rng import EvolandRNG
@@ -21,7 +20,7 @@ def _tap_confirm() -> None:
 class FarmingGoal:
     def __init__(
         self,
-        farm_coords: List[Vec2],
+        farm_coords: list[Vec2],
         precision: float = 0.2,
         gli_goal: int = None,
         lvl_goal: int = None,
@@ -70,13 +69,13 @@ class SeqATBmove2D(SeqMove2D):
     def __init__(
         self,
         name: str,
-        coords: List[Vec2],
+        coords: list[Vec2],
         battle_handler: SeqATBCombat = SeqATBCombat(),
         goal: FarmingGoal = None,
         precision: float = 0.2,
     ):
         self.goal = goal
-        self.next_enc: EncounterID = None
+        self.next_enc: Encounter = None
         self.battle_handler = battle_handler
         super().__init__(name, coords, precision)
 
@@ -142,7 +141,7 @@ class SeqATBmove2D(SeqMove2D):
             mem = get_zelda_memory()
             enc_timer = mem.player.encounter_timer
             window.stats.addstr(Vec2(1, 12), f" Next enc ({enc_timer:.3f}):")
-            window.stats.addstr(Vec2(1, 13), f"  {self.next_enc.name}")
+            window.stats.addstr(Vec2(1, 13), f"  {self.next_enc}")
 
     def __repr__(self) -> str:
         # Check for active battle

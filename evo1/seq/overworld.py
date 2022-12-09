@@ -1,9 +1,9 @@
 import logging
-from typing import List, Optional
+from typing import Optional
 
 from engine.mathlib import Facing, Vec2, dist
 from engine.seq import SeqList
-from evo1.atb import EncounterID, FarmingGoal, SeqATBmove2D, calc_next_encounter
+from evo1.atb import Encounter, FarmingGoal, SeqATBmove2D, calc_next_encounter
 from evo1.maps import GetAStar
 from evo1.memory import MapID, get_memory, get_zelda_memory
 from evo1.move2d import SeqGrabChest, SeqMove2D, SeqZoneTransition, move_to
@@ -19,14 +19,14 @@ class OverworldGliFarm(SeqATBmove2D):
     def __init__(
         self,
         name: str,
-        coords: List[Vec2],
+        coords: list[Vec2],
         goal: FarmingGoal = None,
         precision: float = 0.2,
     ):
         super().__init__(name=name, coords=coords, goal=goal, precision=precision)
         self.can_manip = True
         self.started_manip = False
-        self.manipulated_enc: Optional[EncounterID] = None
+        self.manipulated_enc: Optional[Encounter] = None
 
     def reset(self) -> None:
         self.can_manip = True
@@ -38,25 +38,10 @@ class OverworldGliFarm(SeqATBmove2D):
     _CHEST_RNG_ADVANCE = 66  # Ticks the rng forward 66 steps
     _GLI_PER_ENEMY = 50
 
-    def _get_number_of_combatants(self, encounter: EncounterID) -> int:
-        match encounter:
-            case EncounterID.SLIME:
-                return 1
-            case EncounterID.SLIME_2:
-                return 2
-            case EncounterID.SLIME_3:
-                return 3
-            case EncounterID.SLIME_EMUK:
-                return 2
-            case EncounterID.EMUK:
-                return 1
-            case _:
-                return 0  # Should never happen
-
     def _should_manip(self) -> bool:
         # self.next_enc already calculated
-        next_nr_enemies = self._get_number_of_combatants(self.next_enc)
-        manip_nr_enemies = self._get_number_of_combatants(self.manipulated_enc)
+        next_nr_enemies = len(self.next_enc.enemies)
+        manip_nr_enemies = len(self.manipulated_enc.enemies)
 
         next_gli = next_nr_enemies * self._GLI_PER_ENEMY
         manip_gli = manip_nr_enemies * self._GLI_PER_ENEMY
@@ -123,7 +108,7 @@ class OverworldGliFarm(SeqATBmove2D):
     def render(self, window: WindowLayout) -> None:
         super().render(window=window)
         if self.can_manip and self.manipulated_enc:
-            window.stats.addstr(Vec2(1, 15), f"  Manip: {self.manipulated_enc.name}")
+            window.stats.addstr(Vec2(1, 15), f"  Manip: {self.manipulated_enc}")
 
 
 class OverworldToMeadow(SeqList):

@@ -1,5 +1,4 @@
 import logging
-from typing import List
 
 from engine.mathlib import Vec2, dist
 
@@ -28,7 +27,7 @@ class AStar:
             return self.f > other.f
 
         # Trace path to root
-        def trace_path(self) -> List[Vec2]:
+        def trace_path(self) -> list[Vec2]:
             cur = self
             ret = []
             while cur.parent:
@@ -37,12 +36,12 @@ class AStar:
             ret.reverse()
             return ret
 
-    def __init__(self, map_nodes: List[Vec2]) -> None:
+    def __init__(self, map_nodes: list[Vec2]) -> None:
         self.map = map_nodes
 
-    def calculate(self, start: Vec2, goal: Vec2, free_move: bool = True) -> List[Vec2]:
+    def calculate(self, start: Vec2, goal: Vec2, free_move: bool = True) -> list[Vec2]:
         open_list = [AStar.Node(start, goal)]
-        closed_list: List[AStar.Node] = []
+        closed_list: list[AStar.Node] = []
         while open_list:
             open_list.sort()
             node = open_list.pop()
@@ -60,14 +59,14 @@ class AStar:
         raise ValueError  # No path could be found between start and goal
 
     def _update_node(
-        self, cur_node: Node, neighbor: Node, node_list: List[Node]
+        self, cur_node: Node, neighbor: Node, node_list: list[Node]
     ) -> None:
         n_idx = node_list.index(neighbor)
         if neighbor.cost < node_list[n_idx].cost:
             node_list[n_idx].cost = neighbor.cost
             node_list[n_idx].parent = cur_node
 
-    def _neighbors(self, node: Node, goal: Vec2, free_move: bool) -> List[Node]:
+    def _neighbors(self, node: Node, goal: Vec2, free_move: bool) -> list[Node]:
         adjacent = []
         # directly adjacent
         node_n = AStar.Node(

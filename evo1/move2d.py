@@ -1,6 +1,5 @@
 import contextlib
 import logging
-from typing import List
 
 import evo1.control
 from engine.mathlib import Facing, Vec2, facing_str, is_close
@@ -283,7 +282,7 @@ class SeqSection2D(SeqBase):
 
 
 class SeqMove2D(SeqSection2D):
-    def __init__(self, name: str, coords: List[Vec2], precision: float = 0.2):
+    def __init__(self, name: str, coords: list[Vec2], precision: float = 0.2):
         self.step = 0
         self.coords = coords
         self.precision = precision
@@ -356,7 +355,7 @@ class SeqMove2D(SeqSection2D):
 
 # Mash confirm while moving along a path (to get past talk triggers)
 class SeqMove2DConfirm(SeqMove2D):
-    def __init__(self, name: str, coords: List[Vec2], precision: float = 0.2):
+    def __init__(self, name: str, coords: list[Vec2], precision: float = 0.2):
         super().__init__(name, coords, precision)
 
     def execute(self, delta: float) -> bool:

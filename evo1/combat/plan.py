@@ -1,6 +1,6 @@
 import contextlib
 import logging
-from typing import List, Optional
+from typing import Optional
 
 from engine.mathlib import Box2, dist
 from evo1.memory import GameEntity2D, get_zelda_memory
@@ -21,7 +21,7 @@ class CombatPlan:
                 f"Couldn't track all entities! Found {len(self.targets)}/{self.num_targets} enemies"
             )
 
-    def track_targets(self) -> List[GameEntity2D]:
+    def track_targets(self) -> list[GameEntity2D]:
         ret = []
         mem = get_zelda_memory()
         # Map enemies in arena to array of GameEntity2D to track
