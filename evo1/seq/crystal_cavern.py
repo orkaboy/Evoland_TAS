@@ -35,22 +35,28 @@ class CrystalCavernEncManip(SeqATBmove2D):
         super().__init__(name=name, coords=coords, goal=None, precision=precision)
 
     def _should_manip(self) -> bool:
-        # self.next_enc already calculated, check if it's good
-        if self.next_enc.enc_id in self.pref_enc:
-            if self.next_enc.enc_id == EncounterID.KOBRA:
-                return not self.next_enc.first_turn.hit
-            return False
-
         # Check how close we are to getting an encounter
         mem = get_zelda_memory()
         enc_timer = mem.player.encounter_timer
-        return enc_timer < 0.2
+
+        # If we are about to get an encounter, potentially manip (stop and wait)
+        if enc_timer < 0.2:
+            if self.next_enc.enc_id in self.pref_enc:
+                # If favorable and it's a Kobra, wait if we're going to miss
+                return (
+                    not self.next_enc.first_turn.hit
+                    if self.next_enc.enc_id == EncounterID.KOBRA
+                    else False
+                )
+            else:
+                # Not favorable, wait
+                return True
+        return False
 
     # Returning true means we seize control instead of moving on
     def do_encounter_manip(self) -> bool:
         mem = get_memory()
         rng = EvolandRNG().get_rng()
-        # TODO: Clink level
         self.next_enc = calc_next_encounter(
             rng=rng, has_3d_monsters=False, clink_level=mem.lvl
         )
