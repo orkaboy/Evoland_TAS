@@ -1,3 +1,4 @@
+from evo1.atb.base import SeqATBCombat
 from evo1.atb.encounter import Encounter, EncounterID, calc_next_encounter
 from evo1.atb.entity import atb_stats_from_memory
 from evo1.atb.farming import FarmingGoal, SeqATBmove2D
@@ -11,6 +12,7 @@ __all__ = [
     "FarmingGoal",
     "calc_next_encounter",
     "predict_attack",
+    "SeqATBCombat",
     "SeqATBCombatManual",
     "atb_stats_from_memory",
 ]
