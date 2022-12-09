@@ -16,10 +16,8 @@
     * Set up ATB combat handler for combat
   * Defeat Kefka's Ghost
 * Do more memory hunting
-  * ATB combat values (Acc, Evade, Invincibility (Kefka))
   * Cursor position in menues
   * Logic for the current active turn (use turn gauge)
-  * Find Kefka's Ghost invincibility
   * Inspect pointer path to battle struct, to see if it can be use to decide if combat is active or not
     * It can (0x860, 0x0, 0x244), but it remains even after combat is done. It will be allocated again on new combat
 * 3D Movement and combat

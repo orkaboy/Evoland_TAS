@@ -7,10 +7,10 @@ logger = logging.getLogger(__name__)
 
 
 class AttackPrediction:
-    def __init__(self, dmg: int, hit: bool, max_hp: int) -> None:
+    def __init__(self, dmg: int, hit: bool, cur_hp: int) -> None:
         self.dmg = dmg
         self.hit = hit
-        self.one_shot = dmg >= max_hp
+        self.one_shot = dmg >= cur_hp
 
     def __repr__(self) -> str:
         return f"{'KO' if self.one_shot else 'hit'}: {self.dmg}" if self.hit else "miss"
@@ -26,8 +26,8 @@ def predict_attack(
 ) -> AttackPrediction:
     dmg = _predict_damage(attacker.attack, defender.defense, rng.rand_float())
     hit = _predict_hit(defender.evade, rng.rand_int())
-    max_hp = defender.max_hp
-    return AttackPrediction(dmg, hit, max_hp)
+    cur_hp = defender.cur_hp
+    return AttackPrediction(dmg=dmg, hit=hit, cur_hp=cur_hp)
 
 
 # Att + (0.5 * Att * random_float) - enemy_def

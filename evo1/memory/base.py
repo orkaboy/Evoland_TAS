@@ -41,6 +41,9 @@ class Evoland1Memory:
         self.map_id_ptr = self.process.get_pointer(
             self.base_addr + _LIBHL_OFFSET, self._MAP_ID_PTR
         )
+        self.lvl_ptr = self.process.get_pointer(
+            self.base_addr + _LIBHL_OFFSET, self._PLAYER_LVL_PTR
+        )
 
     # Only valid in zelda map
     @property
@@ -56,8 +59,7 @@ class Evoland1Memory:
 
     @property
     def lvl(self) -> int:
-        # TODO: Implement player level
-        return 1
+        return self.process.read_u32(self.lvl_ptr)
 
     @property
     def map_id(self) -> MapID:

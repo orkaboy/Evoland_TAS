@@ -1,7 +1,7 @@
 # Current
 
 0.0.5:
-*
+* Added full attack prediction, in and out of combat
 
 # Older changelogs
 

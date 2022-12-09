@@ -53,7 +53,9 @@ def atb_stats_from_id(entity_id: ATBEntityID, level: int = 0) -> ATBEntityStats:
     match entity_id:
         case ATBEntityID.CLINK:
             max_hp = 100
-            if level >= 2:
+            if level >= 3:
+                attack = 26  # Claud's sword, lvl3
+            elif level >= 2:
                 attack = 21  # long sword, lvl2
             elif level >= 1:
                 attack = 20  # long sword, lvl1

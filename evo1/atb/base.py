@@ -30,6 +30,7 @@ class SeqATBCombat(SeqBase):
     def reset(self) -> None:
         self.triggered = False
 
+    # TODO: In/Out of combat not detected properly
     def execute(self, delta: float) -> bool:
         if not self.update_mem():
             if not self.wait_for_battle or self.triggered:

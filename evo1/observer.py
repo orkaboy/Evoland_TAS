@@ -57,6 +57,13 @@ class SeqObserver2D(SeqATBmove2D):
         super().render(window)
         self._print_actors(map_win=window.map)
 
+        if (
+            self.battle_handler.active
+            and not self.battle_handler.mem.ended
+            and self.battle_handler.mem.enemies[0].turn_gauge < -1
+        ):
+            window.main.addstr(Vec2(3, 10), "INVINCIBLE")
+
 
 #       mem = get_zelda_memory()
 #
