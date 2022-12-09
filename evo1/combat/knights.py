@@ -75,9 +75,8 @@ class SeqKnight2D(SeqCombat):
         # Filter out threatened positions so we don't walk into another enemy
         for enemy in self.plan.targets:
             # For each enemy get a hitbox around them
-            enemy_hitbox = get_box_with_size(
-                center=enemy.pos, half_size=0.3
-            )  # TODO: enemy collision magic number. Get bounding box?
+            # TODO: enemy collision magic number. Get bounding box?
+            enemy_hitbox = get_box_with_size(center=enemy.pos, half_size=0.3)
             # Remove any weak points that fall inside the enemy hitbox
             attack_vectors = [
                 wp for wp in attack_vectors if not enemy_hitbox.contains(wp)

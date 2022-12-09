@@ -42,9 +42,8 @@ class SeqCombat(SeqSection2D):
                 retracking=self.retracking,
             )
 
-        with contextlib.suppress(
-            ReferenceError
-        ):  # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
+        # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
+        with contextlib.suppress(ReferenceError):
             # TODO Track decisions, so we are not being wishy-washy
             target = self.plan.get_next_target()
 

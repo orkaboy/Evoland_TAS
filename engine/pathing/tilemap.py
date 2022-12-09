@@ -36,9 +36,8 @@ class TileMap:
                 self._load_tmx(filename=tmx_filename, map_data=map_data)
 
     def _load_ascii(self, map_data: dict) -> None:
-        self.tiles = map_data.get(
-            "tiles", []
-        )  # ascii representation of map, as array of strings
+        # ascii representation of map, as array of strings
+        self.tiles = map_data.get("tiles", [])
         for i, line in enumerate(self.tiles):
             y_pos = i + self.origin.y
             for j, tile in enumerate(line):

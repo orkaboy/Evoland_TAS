@@ -21,9 +21,8 @@ class SeqObserver2D(SeqSection2D):
         super().execute(delta=delta)
         mem = get_zelda_memory()
         player_pos = mem.player.pos
-        with contextlib.suppress(
-            ReferenceError
-        ):  # Needed until I figure out which actors are valid (broken pointers will throw an exception)
+        # Needed until I figure out which actors are valid (broken pointers will throw an exception)
+        with contextlib.suppress(ReferenceError):
             for i, actor in enumerate(mem.actors):
                 actor_pos = actor.pos
                 if actor_pos in self.tracked:

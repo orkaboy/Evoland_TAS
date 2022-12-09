@@ -93,9 +93,8 @@ class SeqATBmove2D(SeqMove2D):
 
     def navigate_to_goal(self) -> bool:
         rng = EvolandRNG().get_rng()
-        self.next_enc = calc_next_encounter(
-            rng=rng, has_3d_monsters=False
-        )  # TODO: Check for manips
+        # TODO: Check for manips
+        self.next_enc = calc_next_encounter(rng=rng, has_3d_monsters=False)
         if self.do_encounter_manip():
             return True
         self._navigate_to_checkpoint()

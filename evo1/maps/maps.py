@@ -22,9 +22,8 @@ _maps = {
     MapID.NORIA_CLOSED: NavMap("evo1/maps/noria_start.yaml"),
     MapID.NORIA: NavMap("evo1/maps/noria_mines.yaml"),
     MapID.SACRED_GROVE_2D: NavMap("evo1/maps/sacred_grove.yaml"),
-    MapID.SACRED_GROVE_3D: NavMap(
-        "evo1/maps/sacred_grove.yaml"
-    ),  # TODO: Add the 3d map too?
+    # TODO: Add the 3d map too?
+    MapID.SACRED_GROVE_3D: NavMap("evo1/maps/sacred_grove.yaml"),
     MapID.SACRED_GROVE_CAVE_1: NavMap("evo1/maps/sacred_grove_cave1.yaml"),
     MapID.SACRED_GROVE_CAVE_2: NavMap("evo1/maps/sacred_grove_cave2.yaml"),
     # TODO: Sarudnahk
