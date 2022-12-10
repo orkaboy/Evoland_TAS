@@ -1,6 +1,5 @@
 import logging
 import math
-from typing import List
 
 import evo1.control
 from engine.mathlib import Vec2, angle_between, find_closest_point, get_box_with_size
@@ -17,7 +16,7 @@ class SeqCombat3D(SeqCombat):
 
     # TODO: Implement combat using rotation instead of facing
     # TODO: This isn't going to work for the skeletons (need to attack them from the sides/behind, just like the knights)
-    def _get_attack_vectors(self, target: GameEntity2D) -> List[Vec2]:
+    def _get_attack_vectors(self, target: GameEntity2D) -> list[Vec2]:
         mem = get_zelda_memory()
         player_pos = mem.player.pos
         enemy_pos = target.pos

@@ -3,7 +3,13 @@ import contextlib
 import logging
 
 from engine.mathlib import Vec2
-from engine.seq import SeqList, SeqOptional, SequencerEngine, wait_seconds
+from engine.seq import (
+    EvolandStartGame,
+    SeqList,
+    SeqOptional,
+    SequencerEngine,
+    wait_seconds,
+)
 from evo1.checkpoints import Checkpoints
 from evo1.memory import load_memory, load_zelda_memory
 from evo1.observer import SeqObserver2D
@@ -11,7 +17,6 @@ from evo1.seq import (
     CrystalCavern,
     Edel1,
     Edel2,
-    Evoland1StartGame,
     MeadowFight,
     NoriaMines,
     OverworldToAogai,
@@ -79,7 +84,7 @@ def perform_TAS(window: WindowLayout):
         shadow=True,
         func=setup_memory,
         children=[
-            Evoland1StartGame(saveslot),
+            EvolandStartGame(saveslot, game=1),
             # TODO: This could be set up in a nicer way
             SeqOptional(
                 shadow=True,

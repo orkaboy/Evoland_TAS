@@ -3,7 +3,8 @@ from enum import IntEnum
 
 from control.controller import Buttons as VgButtons
 from control.controller import VgTranslator, handle
-from engine.seq import SeqBase, wait_seconds
+from engine.seq import SeqBase
+from engine.seq.time import wait_seconds
 
 
 # Game functions

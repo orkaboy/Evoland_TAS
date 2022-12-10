@@ -1,5 +1,3 @@
-from typing import List
-
 import evo1.control
 from engine.mathlib import (
     Facing,
@@ -14,7 +12,7 @@ from evo1.move2d import move_to
 
 
 class SeqKnight2D(SeqCombat):
-    def _get_attack_vectors(self, target: GameEntity2D) -> List[Vec2]:
+    def _get_attack_vectors(self, target: GameEntity2D) -> list[Vec2]:
         enemy_facing = target.facing
         enemy_pos = target.pos
         match enemy_facing:

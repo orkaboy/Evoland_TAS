@@ -1,9 +1,10 @@
 import logging
-from typing import List, Optional
+from enum import Enum, auto
+from typing import Optional
 
-from engine.mathlib import Facing, Vec2, dist
+from engine.mathlib import Facing, Vec2, dist, is_close
 from engine.seq import SeqList
-from evo1.atb import EncounterID, FarmingGoal, SeqATBmove2D, calc_next_encounter
+from evo1.atb import Encounter, FarmingGoal, SeqATBmove2D, calc_next_encounter
 from evo1.maps import GetAStar
 from evo1.memory import MapID, get_memory, get_zelda_memory
 from evo1.move2d import SeqGrabChest, SeqMove2D, SeqZoneTransition, move_to
@@ -19,18 +20,16 @@ class OverworldGliFarm(SeqATBmove2D):
     def __init__(
         self,
         name: str,
-        coords: List[Vec2],
+        coords: list[Vec2],
         goal: FarmingGoal = None,
         precision: float = 0.2,
     ):
         super().__init__(name=name, coords=coords, goal=goal, precision=precision)
-        self.can_manip = True
-        self.started_manip = False
-        self.manipulated_enc: Optional[EncounterID] = None
+        self.manip_state = self._MANIP_FSM.CAN_MANIP
+        self.manipulated_enc: Optional[Encounter] = None
 
     def reset(self) -> None:
-        self.can_manip = True
-        self.started_manip = False
+        self.manip_state = self._MANIP_FSM.CAN_MANIP
         self.manipulated_enc = None
         super().reset()
 
@@ -38,25 +37,10 @@ class OverworldGliFarm(SeqATBmove2D):
     _CHEST_RNG_ADVANCE = 66  # Ticks the rng forward 66 steps
     _GLI_PER_ENEMY = 50
 
-    def _get_number_of_combatants(self, encounter: EncounterID) -> int:
-        match encounter:
-            case EncounterID.SLIME:
-                return 1
-            case EncounterID.SLIME_2:
-                return 2
-            case EncounterID.SLIME_3:
-                return 3
-            case EncounterID.SLIME_EMUK:
-                return 2
-            case EncounterID.EMUK:
-                return 1
-            case _:
-                return 0  # Should never happen
-
     def _should_manip(self) -> bool:
         # self.next_enc already calculated
-        next_nr_enemies = self._get_number_of_combatants(self.next_enc)
-        manip_nr_enemies = self._get_number_of_combatants(self.manipulated_enc)
+        next_nr_enemies = len(self.next_enc.enemies)
+        manip_nr_enemies = len(self.manipulated_enc.enemies)
 
         next_gli = next_nr_enemies * self._GLI_PER_ENEMY
         manip_gli = manip_nr_enemies * self._GLI_PER_ENEMY
@@ -74,56 +58,68 @@ class OverworldGliFarm(SeqATBmove2D):
             # Else, go for the encounter that gives the most gli
             return manip_gli > next_gli
 
+    class _MANIP_FSM(Enum):
+        CAN_MANIP = auto()
+        STARTED_MANIP = auto()
+        MANIP_DONE = auto()
+
     # Returning true means we seize control instead of moving on
     def do_encounter_manip(self) -> bool:
-        # Check if we've already picked up the chest
-        if not self.can_manip:
-            return False
+        # Update the next expected encounter
+        self.calc_next_encounter(small_sword=True)
         # Check if we are done farming
         if self._farm_done():
             return False
+
         player = get_zelda_memory().player
-        dist_to_chest = dist(player.pos, self._CHEST_LOCATION)
+        # Check if we can/should manipulate
+        match self.manip_state:
+            case self._MANIP_FSM.CAN_MANIP:
+                # Check if we are outside range of the chest for next enc
+                dist_to_chest = dist(player.pos, self._CHEST_LOCATION)
+                if not dist_to_chest < player.encounter_timer:
+                    return False
 
-        # Check if we are outside range of the chest for next enc
-        if not dist_to_chest < player.encounter_timer:
-            return False
+                # Calculate the manipulated encounter
+                rng = EvolandRNG().get_rng()
+                rng.advance_rng(self._CHEST_RNG_ADVANCE)
+                self.manipulated_enc = calc_next_encounter(rng, clink_level=0)
 
-        # TODO: There's some logic flaw here that can in some cases cause a softlock,
-        # TODO: the TAS gets stuck trying to pick up the chest after it's already done so.
-        # TODO: Refactor into a FSM instead
-        if self.started_manip:
-            # Check if we've picked up chest, manip done
-            if self.manipulated_enc == self.next_enc:
-                self.started_manip = False
-                self.can_manip = False
+                if not self._should_manip():
+                    return False
+                # Initiate the manip
+                logger.info(
+                    f"Picking up chest to forward rng. {self.manipulated_enc} is better than {self.next_enc}"
+                )
+                self.manip_state = self._MANIP_FSM.STARTED_MANIP
+            case self._MANIP_FSM.STARTED_MANIP:
+                # Move towards chest to manip
+                move_to(
+                    player=player.pos,
+                    target=self._CHEST_LOCATION,
+                    precision=self.precision,
+                )
+                # Check if we've picked up chest, manip done
+                if self.manipulated_enc == self.next_enc or is_close(
+                    player.pos, self._CHEST_LOCATION, precision=self.precision
+                ):
+                    logger.info(f"Manip finished. Next encounter is {self.next_enc}")
+                    self.manip_state = self._MANIP_FSM.MANIP_DONE
+                    return False
+            # Check if we've already picked up the chest
+            case self._MANIP_FSM.MANIP_DONE:
                 return False
-        else:
-            # Calculate the manipulated encounter
-            rng = EvolandRNG().get_rng()
-            rng.advance_rng(self._CHEST_RNG_ADVANCE)
-            self.manipulated_enc = calc_next_encounter(rng)
-
-            if not self._should_manip():
-                return False
-
-        if not self.started_manip:
-            logger.info(
-                f"Picking up chest to forward rng. {self.manipulated_enc} is better than {self.next_enc}"
-            )
-            self.started_manip = True
-
-        # Move towards chest to manip
-        move_to(
-            player=player.pos, target=self._CHEST_LOCATION, precision=self.precision
-        )
 
         return True
 
     def render(self, window: WindowLayout) -> None:
         super().render(window=window)
-        if self.can_manip and self.manipulated_enc:
-            window.stats.addstr(Vec2(1, 15), f"  Manip: {self.manipulated_enc.name}")
+        if (
+            not self.battle_handler.active
+            and self.manip_state != self._MANIP_FSM.MANIP_DONE
+            and self.manipulated_enc
+        ):
+            window.stats.addstr(Vec2(1, 14), f" Manip: {self.manipulated_enc}")
 
 
 class OverworldToMeadow(SeqList):

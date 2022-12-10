@@ -1,7 +1,7 @@
 # Libraries and Core Files
 import logging
 from enum import IntEnum
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 
 import memory.core
 from engine.mathlib import Facing, Vec2
@@ -194,7 +194,7 @@ class ZeldaMemory:
         self.player = GameEntity2D(self.process, player_ptr)
 
     def _init_actors(self):
-        self.actors: List[GameEntity2D] = []
+        self.actors: list[GameEntity2D] = []
         actor_arr_size_ptr = self.process.get_pointer(
             self.base_offset, offsets=self._ACTOR_ARR_SIZE_PTR
         )

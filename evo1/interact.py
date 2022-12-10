@@ -7,7 +7,7 @@ from evo1.memory import get_zelda_memory
 logger = logging.getLogger(__name__)
 
 
-class SeqInteract(SeqBase):
+class SeqMashDelay(SeqBase):
     def __init__(self, name: str, timeout_in_s: float = 0.0):
         self.timeout_in_s = timeout_in_s
         self.timer = 0.0
@@ -21,8 +21,23 @@ class SeqInteract(SeqBase):
         ctrl = evo1.control.handle()
         ctrl.confirm(tapping=True)
         # Wait out any cutscene/pickup animation
+        return self.timer >= self.timeout_in_s
+
+    def __repr__(self) -> str:
+        return f"Mashing confirm while waiting ({self.name})... {self.timer:.2f}/{self.timeout_in_s:.2f}"
+
+
+class SeqInteract(SeqMashDelay):
+    def execute(self, delta: float) -> bool:
+        self.timer += delta
+        ctrl = evo1.control.handle()
+        ctrl.confirm(tapping=True)
+        # Wait out any cutscene/pickup animation
         mem = get_zelda_memory()
         return mem.player.in_control and self.timer >= self.timeout_in_s
+
+    def __repr__(self) -> str:
+        return f"Mashing confirm until in control ({self.name})"
 
 
 class SeqWaitForControl(SeqBase):

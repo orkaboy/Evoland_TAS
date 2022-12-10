@@ -1,7 +1,9 @@
 # Current
 
 0.0.5:
-*
+* Added full attack prediction, in and out of combat
+* Improved on ATB combat detection and state tracking
+* TAS can now kill Kefka's Ghost on its own
 
 # Older changelogs
 

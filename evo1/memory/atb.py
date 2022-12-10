@@ -1,19 +1,25 @@
 # Libraries and Core Files
-from typing import List
+import logging
 
 import memory.core
 from evo1.memory.base import _LIBHL_OFFSET
 from evo1.memory.zelda import get_zelda_memory
 from memory.core import LocProcess
 
+logger = logging.getLogger(__name__)
+
 
 class BattleEntity:
+
+    _TIMER_SINCE_TURN_PTR = [0xD0]  # double
     _MAX_HP_PTR = [0xF0]  # int
     _CUR_HP_PTR = [0xF4]  # int
     _ATK_PTR = [0xF8]  # int
     _DEF_PTR = [0xFC]  # int
-    # _?_PTR = [0x104] # int: 12 for Clink? Acc??
+    _EVADE_PTR = [0x100]  # int
+    _MAGIC_PTR = [0x104]  # int
     _TURN_GAUGE_PTR = [0x110]  # double: [0-1.0]
+    _TURN_COUNTER_PTR = [0x154]  # int
 
     def __init__(self, process: LocProcess, entity_ptr: int):
         self.process = process
@@ -29,8 +35,20 @@ class BattleEntity:
         )
         self.atk_ptr = self.process.get_pointer(self.entity_ptr, offsets=self._ATK_PTR)
         self.def_ptr = self.process.get_pointer(self.entity_ptr, offsets=self._DEF_PTR)
+        self.evade_ptr = self.process.get_pointer(
+            self.entity_ptr, offsets=self._EVADE_PTR
+        )
+        self.magic_ptr = self.process.get_pointer(
+            self.entity_ptr, offsets=self._MAGIC_PTR
+        )
         self.turn_gauge_ptr = self.process.get_pointer(
             self.entity_ptr, offsets=self._TURN_GAUGE_PTR
+        )
+        self.turn_counter_ptr = self.process.get_pointer(
+            self.entity_ptr, offsets=self._TURN_COUNTER_PTR
+        )
+        self.timer_since_turn_ptr = self.process.get_pointer(
+            self.entity_ptr, offsets=self._TIMER_SINCE_TURN_PTR
         )
 
     @property
@@ -50,14 +68,27 @@ class BattleEntity:
         return self.process.read_u32(self.def_ptr)
 
     @property
+    def evade(self) -> int:
+        return self.process.read_u32(self.evade_ptr)
+
+    @property
+    def magic(self) -> int:
+        return self.process.read_u32(self.magic_ptr)
+
+    @property
     def turn_gauge(self) -> float:
         return self.process.read_double(self.turn_gauge_ptr)
 
+    @property
+    def timer_since_turn(self) -> float:
+        return self.process.read_double(self.timer_since_turn_ptr)
+
+    @property
+    def turn_counter(self) -> int:
+        return self.process.read_u32(self.turn_counter_ptr)
+
 
 class BattleMemory:
-    # Pointer to the last/current battle
-    last_battle_ptr = 0
-
     # All battle data is stored here
     _BATTLE_BASE_PTR = [0x860, 0x0, 0x244]
     # All allies are listed here
@@ -78,8 +109,7 @@ class BattleMemory:
         # Check if we are in battle
         self.active = False
         mem = get_zelda_memory()
-        in_control = mem.player.in_control
-        if in_control:
+        if mem.player.in_control:
             return
 
         # Set up memory access, get the base pointer to the battle structure
@@ -90,15 +120,8 @@ class BattleMemory:
             base_addr + _LIBHL_OFFSET, offsets=self._BATTLE_BASE_PTR
         )
 
-        # Check if we have triggered a new battle
-        if self.base_offset == BattleMemory.last_battle_ptr:
-            return
-
         self.active = True
         self.update()
-
-        if self.active:
-            BattleMemory.last_battle_ptr = self.base_offset
 
     def update(self):
         try:
@@ -115,9 +138,9 @@ class BattleMemory:
             self.active = False
 
     def _init_entities(
-        self, array_size_ptr: List[int], array_base_ptr: List[int]
-    ) -> List[BattleEntity]:
-        entities: List[BattleEntity] = []
+        self, array_size_ptr: list[int], array_base_ptr: list[int]
+    ) -> list[BattleEntity]:
+        entities: list[BattleEntity] = []
         entities_arr_size_ptr = self.process.get_pointer(
             self.base_offset, offsets=array_size_ptr
         )
@@ -144,4 +167,5 @@ class BattleMemory:
     def battle_active(self) -> bool:
         mem = get_zelda_memory()
         in_control = mem.player.in_control
-        return False if in_control else self.active
+        battle_active = False if in_control else self.active
+        return battle_active

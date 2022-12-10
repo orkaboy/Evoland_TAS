@@ -1,6 +1,5 @@
 # Libraries and Core Files
 import logging
-from typing import List
 
 import memory.core
 
@@ -41,7 +40,7 @@ class EvolandRNG:
         )
 
     class RNGStruct:
-        def __init__(self, cursor: int, values: List[int]) -> None:
+        def __init__(self, cursor: int, values: list[int]) -> None:
             self.cursor = cursor
             self.values = values
 

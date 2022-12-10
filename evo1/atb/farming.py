@@ -1,9 +1,9 @@
 import logging
-from typing import List
 
 import evo1.control
 from engine.mathlib import Vec2
-from evo1.atb.base import EncounterID, SeqATBCombat, calc_next_encounter
+from evo1.atb.base import SeqATBCombat
+from evo1.atb.encounter import Encounter, calc_next_encounter
 from evo1.memory import get_memory, get_zelda_memory
 from evo1.move2d import SeqMove2D, is_close, move_to
 from memory.rng import EvolandRNG
@@ -21,7 +21,7 @@ def _tap_confirm() -> None:
 class FarmingGoal:
     def __init__(
         self,
-        farm_coords: List[Vec2],
+        farm_coords: list[Vec2],
         precision: float = 0.2,
         gli_goal: int = None,
         lvl_goal: int = None,
@@ -70,15 +70,16 @@ class SeqATBmove2D(SeqMove2D):
     def __init__(
         self,
         name: str,
-        coords: List[Vec2],
+        coords: list[Vec2],
         battle_handler: SeqATBCombat = SeqATBCombat(),
         goal: FarmingGoal = None,
         precision: float = 0.2,
+        func=None,
     ):
         self.goal = goal
-        self.next_enc: EncounterID = None
+        self.next_enc: Encounter = None
         self.battle_handler = battle_handler
-        super().__init__(name, coords, precision)
+        super().__init__(name, coords, precision, func=func)
 
     def reset(self) -> None:
         if self.goal:
@@ -90,12 +91,10 @@ class SeqATBmove2D(SeqMove2D):
 
     # Override
     def do_encounter_manip(self) -> bool:
+        self.calc_next_encounter()
         return False
 
     def navigate_to_goal(self) -> bool:
-        rng = EvolandRNG().get_rng()
-        # TODO: Check for manips
-        self.next_enc = calc_next_encounter(rng=rng, has_3d_monsters=False)
         if self.do_encounter_manip():
             return True
         self._navigate_to_checkpoint()
@@ -110,7 +109,14 @@ class SeqATBmove2D(SeqMove2D):
 
         return nav_done and farm_done
 
-    def execute(self, delta: float) -> bool:
+    def calc_next_encounter(self, small_sword: bool = False) -> None:
+        mem = get_memory()
+        rng = EvolandRNG().get_rng()
+        self.next_enc = calc_next_encounter(
+            rng=rng, has_3d_monsters=False, clink_level=0 if small_sword else mem.lvl
+        )
+
+    def handle_combat(self, delta: float) -> bool:
         mem = get_zelda_memory()
         # For some reason, this flag is set when in ATB combat
         if mem.player.not_in_control:
@@ -119,6 +125,13 @@ class SeqATBmove2D(SeqMove2D):
                 # Handle non-battle reasons for losing control
                 # TODO: Just cutscenes for now, might need logic for skips here
                 _tap_confirm()
+            return True
+        # Else: Reset the battle state machine to prepare for next combat
+        self.battle_handler.reset()
+        return False
+
+    def execute(self, delta: float) -> bool:
+        if self.handle_combat(delta):
             return False
 
         # Else navigate the world, checking for farming goals
@@ -141,7 +154,7 @@ class SeqATBmove2D(SeqMove2D):
             mem = get_zelda_memory()
             enc_timer = mem.player.encounter_timer
             window.stats.addstr(Vec2(1, 12), f" Next enc ({enc_timer:.3f}):")
-            window.stats.addstr(Vec2(1, 13), f"  {self.next_enc.name}")
+            window.stats.addstr(Vec2(1, 13), f"  {self.next_enc}")
 
     def __repr__(self) -> str:
         # Check for active battle

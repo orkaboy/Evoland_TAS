@@ -1,7 +1,6 @@
 import logging
 import os
 from enum import Enum
-from typing import List
 
 import tmx
 import yaml
@@ -143,7 +142,7 @@ class TileMap:
         # Default: '.'
     }
 
-    def _get_rgb_hex(self, pixel: List[int]) -> int:
+    def _get_rgb_hex(self, pixel: list[int]) -> int:
         red = int(pixel[0]) & 0xFF
         green = int(pixel[1]) & 0xFF
         blue = int(pixel[2]) & 0xFF

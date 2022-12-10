@@ -1,6 +1,6 @@
 # Libraries and Core Files
 import logging
-from typing import Any, Callable, List
+from typing import Any, Callable
 
 from term.window import WindowLayout
 
@@ -34,7 +34,7 @@ class SeqBase(object):
 
 class SeqList(SeqBase):
     def __init__(
-        self, name: str, children: List[SeqBase], func=None, shadow: str = False
+        self, name: str, children: list[SeqBase], func=None, shadow: str = False
     ):
         self.step = 0
         self.children = children
