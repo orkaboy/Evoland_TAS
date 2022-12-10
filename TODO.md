@@ -12,14 +12,10 @@
 * Improve knights combat logic
   * Account for spaces that are invalid (not passable). Can use navmap here
 * Cavern
-  * Fix smarter ATB combat
-    * Set up ATB combat handler for combat
-  * Defeat Kefka's Ghost
+  * Fix smarter ATB combat (run/heal)
 * Do more memory hunting
   * Cursor position in menues
   * Logic for the current active turn (use turn gauge)
-  * Inspect pointer path to battle struct, to see if it can be use to decide if combat is active or not
-    * It can (0x860, 0x0, 0x244), but it remains even after combat is done. It will be allocated again on new combat
 * 3D Movement and combat
   * Clink attacks from just out of range, swinging in the air
   * Handle 3D enemy detection/tracking (Skellies/Mages)
