@@ -26,6 +26,7 @@ class EvolandStartGame(SeqList):
                                     name="SYSTEM",
                                     text="Press confirm to select new game.",
                                 ),
+                                SeqMenuConfirm(),
                                 SeqOptional(
                                     name="Game selection",
                                     selector=game,
@@ -35,11 +36,13 @@ class EvolandStartGame(SeqList):
                                             children=[
                                                 SeqMenuDown(name="Menu"),
                                                 SeqDelay(name="Menu", timeout_in_s=0.5),
+                                                # Move into difficulty menu
+                                                SeqMenuConfirm(),
+                                                # TODO: Difficulty?
                                             ],
                                         ),
                                     },
                                 ),
-                                SeqMenuConfirm(),
                                 SeqLog(name="SYSTEM", text="Starting in..."),
                                 SeqLog(name="SYSTEM", text="3"),
                                 SeqDelay(name="Menu", timeout_in_s=1.0),
