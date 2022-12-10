@@ -73,8 +73,8 @@ class EvolandStartGame(SeqList):
                         ],
                     ),
                 ),
-                SeqLog(name="SYSTEM", text="Starting timer!"),
                 SeqBase(func=reset_logging_time_reference),
+                SeqLog(name="SYSTEM", text="Starting timer!"),
                 SeqMenuConfirm(),
                 # Loading the game needs a slightly longer delay than starting a new game, it seems
                 SeqOptional(

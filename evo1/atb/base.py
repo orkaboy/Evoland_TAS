@@ -1,4 +1,5 @@
 import logging
+from enum import Enum, auto
 
 import evo1.control
 from engine.mathlib import Vec2
@@ -20,40 +21,24 @@ def _tap_confirm() -> None:
 
 # Handling of the actual battle logic itself (base class, replace with more complex logic)
 class SeqATBCombat(SeqBase):
-    def __init__(self, name: str = "Generic", wait_for_battle: bool = False) -> None:
+    # Finite state machine for keeping track of the battle state
+    class _BattleFSM(Enum):
+        PRE_BATTLE = auto()
+        BATTLE = auto()
+        POST_BATTLE = auto()
+
+    def __init__(self, name: str = "Generic") -> None:
         self.mem: BattleMemory = None
-        self.wait_for_battle = wait_for_battle
-        # Triggered is used together with wait_for_battle to handle boss sequences
-        self.triggered = False
+        self.state = self._BattleFSM.PRE_BATTLE
         super().__init__(name=name)
 
     def reset(self) -> None:
-        self.triggered = False
-
-    # TODO: In/Out of combat not detected properly
-    def execute(self, delta: float) -> bool:
-        if not self.update_mem():
-            if not self.wait_for_battle or self.triggered:
-                return True
-            # Tap confirm until battle starts
-            _tap_confirm()
-            return False
-        self.triggered = True
-
-        # Tap past win screen/cutscenes
-        if self.mem.ended:
-            _tap_confirm()
-        else:
-            self.handle_combat()
-
-        return not self.active
+        self.mem = None
+        self.state = self._BattleFSM.PRE_BATTLE
 
     def update_mem(self) -> bool:
         # Check if we need to create a new ATB battle structure, or update the old one
-        if self.mem is None:
-            self.mem = BattleMemory()
-        else:
-            self.mem.update()
+        self.mem = BattleMemory()
         # Clear unused memory; we need to try to recreate it next frame
         if not self.active:
             self.mem = None
@@ -63,24 +48,50 @@ class SeqATBCombat(SeqBase):
     # TODO: Actual combat logic
     # TODO: Overload with more complex
     def handle_combat(self):
-        # TODO: Very, very dumb combat.
         _tap_confirm()
 
-    # TODO: Render combat state
+    def execute(self, delta: float) -> bool:
+        # Update memory
+        active = self.update_mem()
+        # Handle FSM
+        match self.state:
+            case self._BattleFSM.PRE_BATTLE:
+                if active and not self.mem.ended:
+                    self.state = self._BattleFSM.BATTLE
+                    logger.debug("Pre battle => Battle")
+                else:
+                    # Tap confirm until battle starts
+                    _tap_confirm()
+                    return False
+            case self._BattleFSM.BATTLE:
+                if active:
+                    self.handle_combat()
+                    if self.mem.ended:
+                        logger.debug("Battle => Post battle")
+                        self.state = self._BattleFSM.POST_BATTLE
+                return False
+            case self._BattleFSM.POST_BATTLE:
+                # Tap past win screen/cutscenes
+                _tap_confirm()
+
+        return not active
+
     def render(self, window: WindowLayout) -> None:
         if not self.active:
             return
         window.stats.erase()
+        # Render header
         window.stats.write_centered(line=1, text="Evoland 1 TAS")
         window.stats.write_centered(line=2, text="ATB Combat")
-
+        # Render party and enemy stats
         window.stats.addstr(Vec2(1, 4), "Party:")
         self._print_group(window=window, group=self.mem.allies, y_offset=5)
         window.stats.addstr(Vec2(1, 8), "Enemies:")
         self._print_group(window=window, group=self.mem.enemies, y_offset=9)
-
+        # Render damage predictions
         if not self.mem.ended:
             self._render_combat_predictions(window=window)
+            # TODO: map representation?
 
     def _render_combat_predictions(self, window: WindowLayout):
         # Who is acting?
@@ -100,8 +111,6 @@ class SeqATBCombat(SeqBase):
         window.stats.addstr(Vec2(1, 13), "Damage prediction:")
         window.stats.addstr(Vec2(2, 14), f" {prediction}")
 
-        # TODO: map representation
-
     def _print_group(
         self, window: WindowLayout, group: list[BattleEntity], y_offset: int
     ) -> None:
@@ -113,13 +122,7 @@ class SeqATBCombat(SeqBase):
             )
 
     def __repr__(self) -> str:
-        if self.active:
-            return (
-                f"Battle ended ({self.name})"
-                if self.mem.ended
-                else f"In battle ({self.name})"
-            )
-        return f"Waiting for battle to start ({self.name})"
+        return f"ATB Combat ({self.name}, State: {self.state.name})"
 
     @property
     def active(self):

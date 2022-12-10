@@ -91,11 +91,7 @@ class SeqATBmove2D(SeqMove2D):
 
     # Override
     def do_encounter_manip(self) -> bool:
-        mem = get_memory()
-        rng = EvolandRNG().get_rng()
-        self.next_enc = calc_next_encounter(
-            rng=rng, has_3d_monsters=False, clink_level=mem.lvl
-        )
+        self.calc_next_encounter()
         return False
 
     def navigate_to_goal(self) -> bool:
@@ -113,7 +109,14 @@ class SeqATBmove2D(SeqMove2D):
 
         return nav_done and farm_done
 
-    def execute(self, delta: float) -> bool:
+    def calc_next_encounter(self, small_sword: bool = False) -> None:
+        mem = get_memory()
+        rng = EvolandRNG().get_rng()
+        self.next_enc = calc_next_encounter(
+            rng=rng, has_3d_monsters=False, clink_level=0 if small_sword else mem.lvl
+        )
+
+    def handle_combat(self, delta: float) -> bool:
         mem = get_zelda_memory()
         # For some reason, this flag is set when in ATB combat
         if mem.player.not_in_control:
@@ -122,6 +125,13 @@ class SeqATBmove2D(SeqMove2D):
                 # Handle non-battle reasons for losing control
                 # TODO: Just cutscenes for now, might need logic for skips here
                 _tap_confirm()
+            return True
+        # Else: Reset the battle state machine to prepare for next combat
+        self.battle_handler.reset()
+        return False
+
+    def execute(self, delta: float) -> bool:
+        if self.handle_combat(delta):
             return False
 
         # Else navigate the world, checking for farming goals

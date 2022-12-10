@@ -1,8 +1,12 @@
 # Libraries and Core Files
+import logging
+
 import memory.core
 from evo1.memory.base import _LIBHL_OFFSET
 from evo1.memory.zelda import get_zelda_memory
 from memory.core import LocProcess
+
+logger = logging.getLogger(__name__)
 
 
 class BattleEntity:
@@ -85,9 +89,6 @@ class BattleEntity:
 
 
 class BattleMemory:
-    # Pointer to the last/current battle
-    last_battle_ptr = 0
-
     # All battle data is stored here
     _BATTLE_BASE_PTR = [0x860, 0x0, 0x244]
     # All allies are listed here
@@ -108,8 +109,7 @@ class BattleMemory:
         # Check if we are in battle
         self.active = False
         mem = get_zelda_memory()
-        in_control = mem.player.in_control
-        if in_control:
+        if mem.player.in_control:
             return
 
         # Set up memory access, get the base pointer to the battle structure
@@ -120,15 +120,8 @@ class BattleMemory:
             base_addr + _LIBHL_OFFSET, offsets=self._BATTLE_BASE_PTR
         )
 
-        # Check if we have triggered a new battle
-        if self.base_offset == BattleMemory.last_battle_ptr:
-            return
-
         self.active = True
         self.update()
-
-        if self.active:
-            BattleMemory.last_battle_ptr = self.base_offset
 
     def update(self):
         try:
@@ -174,4 +167,5 @@ class BattleMemory:
     def battle_active(self) -> bool:
         mem = get_zelda_memory()
         in_control = mem.player.in_control
-        return False if in_control else self.active
+        battle_active = False if in_control else self.active
+        return battle_active

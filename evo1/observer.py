@@ -2,9 +2,8 @@ import contextlib
 import logging
 
 from engine.mathlib import Vec2, dist
-from evo1.atb import SeqATBCombatManual, SeqATBmove2D, calc_next_encounter
-from evo1.memory import get_memory, get_zelda_memory
-from memory.rng import EvolandRNG
+from evo1.atb import SeqATBCombatManual, SeqATBmove2D
+from evo1.memory import get_zelda_memory
 from term.window import WindowLayout
 
 logger = logging.getLogger(__name__)
@@ -26,14 +25,12 @@ class SeqObserver2D(SeqATBmove2D):
     def execute(self, delta: float) -> bool:
         if self.func:
             self.func()
+
+        self.calc_next_encounter()
+        self.handle_combat(delta)
+
         mem = get_zelda_memory()
         player_pos = mem.player.pos
-
-        # For some reason, this flag is set when in ATB combat
-        if mem.player.not_in_control:
-            # Check for active battle (returns True on completion/non-execution)
-            self.battle_handler.execute(delta=delta)
-
         # Needed until I figure out which actors are valid (broken pointers will throw an exception)
         with contextlib.suppress(ReferenceError):
             for i, actor in enumerate(mem.actors):
@@ -44,12 +41,6 @@ class SeqObserver2D(SeqATBmove2D):
                 if dist_to_player < 3:  # TODO Arbitrary magic number, distance to enemy
                     logger.info(f"Actor[{i}] {actor}")
                     self.tracked.add(actor_pos)
-
-        mem = get_memory()
-        rng = EvolandRNG().get_rng()
-        self.next_enc = calc_next_encounter(
-            rng=rng, has_3d_monsters=False, clink_level=mem.lvl
-        )
 
         return False  # Never finishes
 
