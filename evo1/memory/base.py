@@ -1,8 +1,6 @@
 # Libraries and Core Files
-import memory.core
 from evo1.memory.map_id import MapID
-
-_LIBHL_OFFSET = 0x0004914C
+from memory.core import LIBHL_OFFSET, mem_handle
 
 
 # TODO: Refactor (currently only used in very specific cases)
@@ -26,30 +24,30 @@ class Evoland1Memory:
     _KAERIS_EXP_PTR = [0x7FC, 0x8, 0x30, 0x78, 0x0, 0x8, 0x14, 0x8, 0x4]  # int
 
     def __init__(self):
-        mem_handle = memory.core.handle()
-        self.process = mem_handle.process
-        self.base_addr = mem_handle.base_addr
+        mem = mem_handle()
+        self.process = mem.process
+        self.base_addr = mem.base_addr
         self.setup_pointers()
 
     def setup_pointers(self):
         self.player_hp_overworld_ptr = self.process.get_pointer(
-            self.base_addr + _LIBHL_OFFSET, offsets=self._PLAYER_HP_OVERWORLD_PTR
+            self.base_addr + LIBHL_OFFSET, offsets=self._PLAYER_HP_OVERWORLD_PTR
         )
         self.gli_ptr = self.process.get_pointer(
-            self.base_addr + _LIBHL_OFFSET, offsets=self._GLI_PTR
+            self.base_addr + LIBHL_OFFSET, offsets=self._GLI_PTR
         )
         self.map_id_ptr = self.process.get_pointer(
-            self.base_addr + _LIBHL_OFFSET, self._MAP_ID_PTR
+            self.base_addr + LIBHL_OFFSET, self._MAP_ID_PTR
         )
         self.lvl_ptr = self.process.get_pointer(
-            self.base_addr + _LIBHL_OFFSET, self._PLAYER_LVL_PTR
+            self.base_addr + LIBHL_OFFSET, self._PLAYER_LVL_PTR
         )
 
     # Only valid in zelda map
     @property
     def player_hearts(self) -> float:
         player_hearts_ptr = self.process.get_pointer(
-            self.base_addr + _LIBHL_OFFSET, offsets=self._PLAYER_HP_ZELDA_PTR
+            self.base_addr + LIBHL_OFFSET, offsets=self._PLAYER_HP_ZELDA_PTR
         )
         return self.process.read_double(player_hearts_ptr)
 

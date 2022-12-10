@@ -1,10 +1,8 @@
 # Libraries and Core Files
 import logging
 
-import memory.core
-from evo1.memory.base import _LIBHL_OFFSET
 from evo1.memory.zelda import get_zelda_memory
-from memory.core import LocProcess
+from memory.core import LIBHL_OFFSET, LocProcess, mem_handle
 
 logger = logging.getLogger(__name__)
 
@@ -113,11 +111,11 @@ class BattleMemory:
             return
 
         # Set up memory access, get the base pointer to the battle structure
-        mem_handle = memory.core.handle()
-        self.process = mem_handle.process
-        base_addr = mem_handle.base_addr
+        mem = mem_handle()
+        self.process = mem.process
+        base_addr = mem.base_addr
         self.base_offset = self.process.get_pointer(
-            base_addr + _LIBHL_OFFSET, offsets=self._BATTLE_BASE_PTR
+            base_addr + LIBHL_OFFSET, offsets=self._BATTLE_BASE_PTR
         )
 
         self.active = True

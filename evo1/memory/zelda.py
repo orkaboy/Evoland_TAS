@@ -3,10 +3,8 @@ import logging
 from enum import IntEnum
 from typing import Optional, Tuple
 
-import memory.core
 from engine.mathlib import Facing, Vec2
-from evo1.memory.base import _LIBHL_OFFSET
-from memory.core import LocProcess
+from memory.core import LIBHL_OFFSET, LocProcess, mem_handle
 
 logger = logging.getLogger(__name__)
 
@@ -179,11 +177,11 @@ class ZeldaMemory:
     _ACTOR_BASE_ADDR = 0x10
 
     def __init__(self):
-        mem_handle = memory.core.handle()
-        self.process = mem_handle.process
-        self.base_addr = mem_handle.base_addr
+        mem = mem_handle()
+        self.process = mem.process
+        self.base_addr = mem.base_addr
         self.base_offset = self.process.get_pointer(
-            self.base_addr + _LIBHL_OFFSET, offsets=self._ZELDA_PTR
+            self.base_addr + LIBHL_OFFSET, offsets=self._ZELDA_PTR
         )
 
         self._init_player()
