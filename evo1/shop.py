@@ -1,36 +1,9 @@
 import logging
 
 from control import evo_ctrl
-from engine.seq import SeqBase, SeqMashDelay
-from evo1.memory import get_zelda_memory
+from engine.seq import SeqBase
 
 logger = logging.getLogger(__name__)
-
-
-class SeqInteract(SeqMashDelay):
-    def __init__(self, name: str, timeout_in_s: float = 0.0):
-        super().__init__(name, timeout_in_s)
-        self.timer = 0
-
-    def execute(self, delta: float) -> bool:
-        self.timer += delta
-        ctrl = evo_ctrl()
-        ctrl.confirm(tapping=True)
-        # Wait out any cutscene/pickup animation
-        mem = get_zelda_memory()
-        return mem.player.in_control and self.timer >= self.timeout
-
-    def __repr__(self) -> str:
-        return f"Mashing confirm until in control ({self.name})"
-
-
-class SeqWaitForControl(SeqBase):
-    def execute(self, delta: float) -> bool:
-        mem = get_zelda_memory()
-        return mem.player.in_control
-
-    def __repr__(self) -> str:
-        return f"Wait for control ({self.name})"
 
 
 class SeqShopBuy(SeqBase):

@@ -1,9 +1,9 @@
 from engine.mathlib import Box2, Facing, Vec2
-from engine.seq import SeqList, SeqLog, SeqOptional
+from engine.seq import SeqInteract, SeqList, SeqLog, SeqOptional
 from evo1.combat import SeqKnight2D
-from evo1.interact import SeqInteract, SeqShopBuy
-from evo1.memory import MapID, get_memory
+from evo1.memory import MapID, get_memory, get_zelda_memory
 from evo1.move2d import SeqGrabChest, SeqMove2D, SeqZoneTransition
+from evo1.shop import SeqShopBuy
 
 
 class MeadowFight(SeqList):
@@ -73,8 +73,10 @@ class PapurikaVillageShopping(SeqList):
                                     "Moving to barrel",
                                     coords=[Vec2(40, 40.3)],
                                 ),
-                                SeqInteract("Grabbing 50 gli"),
-                                SeqInteract("Confirming"),
+                                SeqInteract(
+                                    "Grabbing 50 gli", mem_func=get_zelda_memory
+                                ),
+                                SeqInteract("Confirming", mem_func=get_zelda_memory),
                             ],
                         ),
                     },
@@ -118,14 +120,14 @@ class PapurikaVillage(SeqList):
                         Vec2(39, 16),
                     ],
                 ),
-                SeqInteract("Down the well"),
+                SeqInteract("Down the well", mem_func=get_zelda_memory),
                 SeqMove2D(
                     "Move to seed",
                     coords=[
                         Vec2(4, 6),
                     ],
                 ),
-                SeqInteract("Grab growth seed"),
+                SeqInteract("Grab growth seed", mem_func=get_zelda_memory),
                 SeqMove2D(
                     "Move to surface",
                     coords=[
@@ -133,7 +135,7 @@ class PapurikaVillage(SeqList):
                         Vec2(7.5, 2.6),  # Align to look north
                     ],
                 ),
-                SeqInteract("Leave well"),
+                SeqInteract("Leave well", mem_func=get_zelda_memory),
                 SeqMove2D(
                     "Move to chest",
                     coords=[
