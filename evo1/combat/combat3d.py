@@ -1,7 +1,7 @@
 import logging
 import math
 
-import evo1.control
+from control import evo_ctrl
 from engine.mathlib import Vec2, angle_between, find_closest_point, get_box_with_size
 from evo1.combat.base import SeqCombat
 from evo1.memory import GameEntity2D, get_zelda_memory
@@ -30,7 +30,7 @@ class SeqCombat3D(SeqCombat):
 
     # TODO: Implement combat using rotation instead of facing
     def _try_attack(self, target: GameEntity2D, weak_spot: Vec2) -> bool:
-        ctrl = evo1.control.handle()
+        ctrl = evo_ctrl()
         mem = get_zelda_memory()
         player_pos = mem.player.pos
         box = get_box_with_size(center=player_pos, half_size=self.precision)

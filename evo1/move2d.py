@@ -1,7 +1,7 @@
 import contextlib
 import logging
 
-import evo1.control
+from control import evo_ctrl
 from engine.mathlib import Facing, Vec2, facing_str, is_close
 from engine.seq import SeqBase, SeqDelay
 from evo1.maps import CurrentTilemap
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def move_to(player: Vec2, target: Vec2, precision: float) -> None:
-    ctrl = evo1.control.handle()
+    ctrl = evo_ctrl()
     ctrl.dpad.none()
     # Very dumb
     diff = target - player
@@ -45,7 +45,7 @@ class SeqGrabChest(SeqBase):
         if not self.tapped:
             logger.info(f"Picking up {self.name}!")
             self.tapped = True
-            ctrl = evo1.control.handle()
+            ctrl = evo_ctrl()
             match self.dir:
                 case Facing.LEFT:
                     ctrl.dpad.tap_left()
@@ -74,7 +74,7 @@ class SeqGrabChestKeyItem(SeqBase):
         self.grabbed = False
 
     def execute(self, delta: float) -> bool:
-        ctrl = evo1.control.handle()
+        ctrl = evo_ctrl()
         mem = get_zelda_memory()
         if not self.grabbed:
             ctrl.dpad.none()
@@ -110,7 +110,7 @@ class SeqZoneTransition(SeqBase):
         super().__init__(name)
 
     def execute(self, delta: float) -> bool:
-        ctrl = evo1.control.handle()
+        ctrl = evo_ctrl()
         ctrl.dpad.none()
         match self.direction:
             case Facing.LEFT:
@@ -138,7 +138,7 @@ class SeqAttack(SeqBase):
         super().__init__(name)
 
     def execute(self, delta: float) -> bool:
-        ctrl = evo1.control.handle()
+        ctrl = evo_ctrl()
         ctrl.attack(tapping=False)
         # TODO: Await control?
         return True
@@ -157,7 +157,7 @@ class SeqManualUntilClose(SeqBase):
     def execute(self, delta: float) -> bool:
         super().execute(delta)
         # Stay still
-        ctrl = evo1.control.handle()
+        ctrl = evo_ctrl()
         ctrl.dpad.none()
         # Check if we have reached the goal
         mem = get_zelda_memory()
@@ -185,7 +185,7 @@ class SeqHoldInPlace(SeqDelay):
             move_to(player=player_pos, target=self.target, precision=self.precision)
             return False
         # Stay still
-        ctrl = evo1.control.handle()
+        ctrl = evo_ctrl()
         ctrl.dpad.none()
         # Wait for a while
         self.timer = self.timer + delta
@@ -363,6 +363,6 @@ class SeqMove2DConfirm(SeqMove2D):
         done = super().execute(delta=delta)
         mem = get_zelda_memory()
         if mem.player.not_in_control:
-            ctrl = evo1.control.handle()
+            ctrl = evo_ctrl()
             ctrl.confirm(tapping=True)
         return done

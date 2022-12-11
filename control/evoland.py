@@ -3,9 +3,9 @@ import logging
 import time
 from enum import IntEnum
 
-from control.controller import Buttons as VgButtons
-from control.controller import VgTranslator
-from control.controller import handle as ctrl_handle
+from control.base import Buttons as VgButtons
+from control.base import VgTranslator
+from control.base import handle as ctrl_handle
 from engine.mathlib import Vec2
 
 logger = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ class Buttons(IntEnum):
 
 
 # TODO: Massive overlap with Evo1 code
-class Evoland2Controller:
+class EvolandController:
     def __init__(self, delay: int):
         self.ctrl = ctrl_handle()
         self.delay = delay  # In frames
@@ -117,8 +117,8 @@ class Evoland2Controller:
             wait_frames(self.delay)
 
 
-_controller = Evoland2Controller(delay=4)
+_controller = EvolandController(delay=4)
 
 
-def handle():
+def evo_ctrl():
     return _controller

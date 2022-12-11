@@ -1,4 +1,4 @@
-import evo1.control
+from control import evo_ctrl
 from engine.mathlib import (
     Facing,
     Vec2,
@@ -38,7 +38,7 @@ class SeqKnight2D(SeqCombat):
         ]
 
     def _try_attack(self, target: GameEntity2D, weak_spot: Vec2) -> bool:
-        ctrl = evo1.control.handle()
+        ctrl = evo_ctrl()
         mem = get_zelda_memory()
         player_pos = mem.player.pos
         box = get_box_with_size(center=player_pos, half_size=self.precision)

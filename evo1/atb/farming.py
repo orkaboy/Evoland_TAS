@@ -1,6 +1,6 @@
 import logging
 
-import evo1.control
+from control import evo_ctrl
 from engine.mathlib import Vec2
 from evo1.atb.base import SeqATBCombat
 from evo1.atb.encounter import Encounter, calc_next_encounter
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def _tap_confirm() -> None:
-    ctrl = evo1.control.handle()
+    ctrl = evo_ctrl()
     ctrl.dpad.none()
     ctrl.confirm(tapping=True)
 

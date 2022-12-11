@@ -1,6 +1,6 @@
 import logging
 
-import evo1.control
+from control import evo_ctrl
 from engine.seq import SeqBase
 from evo1.memory import get_zelda_memory
 
@@ -18,7 +18,7 @@ class SeqMashDelay(SeqBase):
 
     def execute(self, delta: float) -> bool:
         self.timer += delta
-        ctrl = evo1.control.handle()
+        ctrl = evo_ctrl()
         ctrl.confirm(tapping=True)
         # Wait out any cutscene/pickup animation
         return self.timer >= self.timeout_in_s
@@ -30,7 +30,7 @@ class SeqMashDelay(SeqBase):
 class SeqInteract(SeqMashDelay):
     def execute(self, delta: float) -> bool:
         self.timer += delta
-        ctrl = evo1.control.handle()
+        ctrl = evo_ctrl()
         ctrl.confirm(tapping=True)
         # Wait out any cutscene/pickup animation
         mem = get_zelda_memory()
@@ -61,7 +61,7 @@ class SeqShopBuy(SeqBase):
         self.step = 0
 
     def execute(self, delta: float) -> bool:
-        ctrl = evo1.control.handle()
+        ctrl = evo_ctrl()
         ctrl.dpad.none()
 
         match self.step:

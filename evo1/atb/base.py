@@ -1,7 +1,7 @@
 import logging
 from enum import Enum, auto
 
-import evo1.control
+from control import evo_ctrl
 from engine.mathlib import Vec2
 from engine.seq import SeqBase
 from evo1.atb.entity import atb_stats_from_memory
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 def _tap_confirm() -> None:
-    ctrl = evo1.control.handle()
+    ctrl = evo_ctrl()
     ctrl.dpad.none()
     ctrl.confirm(tapping=True)
 

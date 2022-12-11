@@ -1,4 +1,4 @@
-from control.menu_control import SeqLoadGame, SeqMenuConfirm, SeqMenuDown
+from control import SeqLoadGame, SeqMenuConfirm, SeqMenuDown
 from engine.seq.base import SeqBase, SeqList, SeqOptional
 from engine.seq.log import SeqDebug, SeqLog
 from engine.seq.time import SeqDelay

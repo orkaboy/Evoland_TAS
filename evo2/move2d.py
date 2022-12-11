@@ -1,7 +1,7 @@
 import contextlib
 import logging
 
-import evo2.control
+from control import evo_ctrl
 from engine.mathlib import Vec2, is_close
 from engine.seq import SeqBase
 from evo2.memory import get_zelda_memory
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def move_to(player: Vec2, target: Vec2, precision: float) -> None:
-    ctrl = evo2.control.handle()
+    ctrl = evo_ctrl()
     ctrl.dpad.none()
     # Very dumb
     diff = target - player
@@ -35,7 +35,7 @@ class SeqAttack(SeqBase):
         super().__init__(name)
 
     def execute(self, delta: float) -> bool:
-        ctrl = evo2.control.handle()
+        ctrl = evo_ctrl()
         ctrl.attack(tapping=False)
         # TODO: Await control?
         return True
@@ -217,6 +217,6 @@ class SeqMove2DConfirm(SeqMove2D):
         done = super().execute(delta=delta)
         mem = get_zelda_memory()
         if mem.player.not_in_control:
-            ctrl = evo2.control.handle()
+            ctrl = evo_ctrl()
             ctrl.confirm(tapping=True)
         return done

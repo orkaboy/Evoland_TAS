@@ -1,6 +1,6 @@
 import logging
 
-import evo1.control
+from control import evo_ctrl
 from engine.mathlib import Facing, Vec2
 from engine.seq import SeqList
 from evo1.atb import EncounterID, SeqATBCombat, SeqATBmove2D
@@ -60,7 +60,7 @@ class CrystalCavernEncManip(SeqATBmove2D):
             return False
 
         # Wait until a better encounter
-        ctrl = evo1.control.handle()
+        ctrl = evo_ctrl()
         ctrl.dpad.none()
 
         return True
@@ -87,7 +87,7 @@ class SeqKefkasGhost(SeqATBCombat):
         if self._is_invincible():
             return
         # TODO: Very, very dumb combat. Should maybe check for healing
-        ctrl = evo1.control.handle()
+        ctrl = evo_ctrl()
         ctrl.dpad.none()
         ctrl.confirm(tapping=True)
 

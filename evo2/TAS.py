@@ -2,7 +2,7 @@
 import contextlib
 import logging
 
-import evo2.control as control
+from control import evo_ctrl
 from engine.mathlib import Vec2
 from engine.seq import (
     EvolandStartGame,
@@ -17,7 +17,7 @@ from evo2.seq import MagiStart
 from term.window import WindowLayout
 
 logger = logging.getLogger(__name__)
-ctrl = control.handle()
+ctrl = evo_ctrl()
 
 
 def setup_memory() -> None:

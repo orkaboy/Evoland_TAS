@@ -1,6 +1,6 @@
 import logging
 
-import evo2.control
+from control import evo_ctrl
 from engine.mathlib import Vec2
 from engine.seq import SeqBase
 from evo2.memory import get_zelda_memory
@@ -19,7 +19,7 @@ class SeqMashDelay(SeqBase):
 
     def execute(self, delta: float) -> bool:
         self.timer += delta
-        ctrl = evo2.control.handle()
+        ctrl = evo_ctrl()
         ctrl.confirm(tapping=True)
         # Wait out any cutscene/pickup animation
         return self.timer >= self.timeout_in_s
@@ -31,7 +31,7 @@ class SeqMashDelay(SeqBase):
 class SeqInteract(SeqMashDelay):
     def execute(self, delta: float) -> bool:
         self.timer += delta
-        ctrl = evo2.control.handle()
+        ctrl = evo_ctrl()
         ctrl.confirm(tapping=True)
         # Wait out any cutscene/pickup animation
         mem = get_zelda_memory()
@@ -47,7 +47,7 @@ class SeqTapDirection(SeqBase):
         super().__init__(name)
 
     def execute(self, delta: float) -> bool:
-        ctrl = evo2.control.handle()
+        ctrl = evo_ctrl()
         if self.direction.x > 0:
             ctrl.dpad.tap_right()
         elif self.direction.x < 0:
@@ -68,7 +68,7 @@ class SeqDirHoldUntilLostControl(SeqBase):
         super().__init__(name)
 
     def execute(self, delta: float) -> bool:
-        ctrl = evo2.control.handle()
+        ctrl = evo_ctrl()
         if self.direction.x > 0:
             ctrl.dpad.right()
         elif self.direction.x < 0:

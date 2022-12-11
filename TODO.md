@@ -19,13 +19,14 @@
 * 3D Movement and combat
   * Clink attacks from just out of range, swinging in the air
   * Handle 3D enemy detection/tracking (Skellies/Mages)
-  * Killing bats (some detection issues atm)
-    * Could also use improvement; currently tries to move away from the bats rather than killing them if they're too close. Check radial collision
-  * Killing 3 skellies (knight-like logic, but in 3d, using modified rotation angle)
   * Handle pathfinding past breakable objects (bushes/pots). Can do this manually, but it's less elegant
 * Routing
   * Route Noria mines
+  * Killing bats (some detection issues atm)
+    * Could also use improvement; currently tries to move away from the bats rather than killing them if they're too close. Check radial collision (use same code as Evoland 2 bots)
+  * Killing 3 skellies (knight-like logic, but in 3d, using modified rotation angle)
   * Push armored enemy into pit
+  * Skip past the first skeleton without fighting it
   * Start doing cutscene skips with menu-glitch
 
 * Terminal improvements

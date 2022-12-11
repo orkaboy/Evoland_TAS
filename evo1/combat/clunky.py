@@ -2,7 +2,7 @@ import contextlib
 import logging
 import math
 
-import evo1.control
+from control import evo_ctrl
 from engine.mathlib import Vec2, angle_between, dist
 from evo1.memory import GameEntity2D, get_zelda_memory
 from evo1.move2d import SeqMove2D
@@ -62,10 +62,10 @@ class SeqMove2DClunkyCombat(SeqMove2D):
         # If in front, attack!
         # TODO Arbitrary magic number, angle difference between where we are heading and where the enemy is
         if abs(angle) < math.pi / 4:
-            ctrl = evo1.control.handle()
+            ctrl = evo_ctrl()
             ctrl.attack(tapping=False)
         elif abs(angle) <= math.pi / 2:  # TODO On our sides
-            ctrl = evo1.control.handle()
+            ctrl = evo_ctrl()
             ctrl.attack(tapping=False)
             ctrl.dpad.none()
             # Turn and attack (angle is in the range +PI to -PI, with 0 to our right)
