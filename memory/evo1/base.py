@@ -1,6 +1,6 @@
 # Libraries and Core Files
-from evo1.memory.map_id import MapID
 from memory.core import LIBHL_OFFSET, mem_handle
+from memory.evo1.map_id import MapID
 
 
 # TODO: Refactor (currently only used in very specific cases)

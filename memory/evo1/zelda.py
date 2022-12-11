@@ -98,6 +98,14 @@ class Evo1GameEntity2D(GameEntity2D):
             return Evo1GameEntity2D.EKind.UNKNOWN
 
     @property
+    def is_enemy(self) -> bool:
+        return self.kind == Evo1GameEntity2D.EKind.ENEMY
+
+    @property
+    def is_alive(self) -> bool:
+        return self.hp > 0
+
+    @property
     def ch(self) -> str:
         actor_kind = self.kind
         match actor_kind:

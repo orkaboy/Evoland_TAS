@@ -6,7 +6,7 @@ from engine.mathlib import Vec2
 from engine.seq import SeqBase
 from evo1.atb.entity import atb_stats_from_memory
 from evo1.atb.predict import predict_attack
-from evo1.memory import BattleEntity, BattleMemory
+from memory.evo1 import BattleEntity, BattleMemory
 from memory.rng import EvolandRNG
 from term.window import WindowLayout
 

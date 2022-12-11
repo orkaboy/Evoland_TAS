@@ -1,6 +1,5 @@
 import contextlib
 import logging
-from typing import Type
 
 from engine.combat.plan import CombatPlan
 from engine.mathlib import Box2, Vec2, grow_box
@@ -18,7 +17,6 @@ class SeqCombat(SeqSection2D):
         name: str,
         arena: Box2,
         num_targets: int,
-        planner: Type[CombatPlan],
         precision: float = 0.2,
         retracking: bool = False,
     ) -> None:
@@ -27,7 +25,6 @@ class SeqCombat(SeqSection2D):
         self.precision = precision
         self.retracking = retracking
         self.num_targets = num_targets
-        self.planner = planner
         super().__init__(name)
 
     def reset(self) -> None:
@@ -39,7 +36,7 @@ class SeqCombat(SeqSection2D):
 
     def execute(self, delta: float) -> bool:
         if self.plan is None:
-            self.plan = self.planner(
+            self.plan = CombatPlan(
                 arena=self.arena,
                 num_targets=self.num_targets,
                 retracking=self.retracking,

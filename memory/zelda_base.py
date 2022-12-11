@@ -20,6 +20,14 @@ class GameEntity2D:
         return False
 
     @property
+    def is_enemy(self) -> bool:
+        return True
+
+    @property
+    def is_alive(self) -> bool:
+        return True
+
+    @property
     def ch(self) -> str:
         return "?"
 

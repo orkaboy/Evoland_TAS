@@ -1,4 +1,6 @@
+from engine.combat import SeqArenaCombat
 from engine.mathlib import Box2, Vec2
+from engine.move2d import SeqMove2D, SeqMove2DConfirm
 from engine.seq import (
     SeqAttack,
     SeqDirHoldUntilLostControl,
@@ -6,8 +8,6 @@ from engine.seq import (
     SeqList,
     SeqTapDirection,
 )
-from evo2.memory import get_zelda_memory
-from evo2.seq import SeqArenaCombat, SeqMove2D, SeqMove2DConfirm
 
 
 class MagiStart(SeqList):
@@ -16,18 +16,14 @@ class MagiStart(SeqList):
             name="G",
             children=[
                 # Basic movement tutorial
-                SeqInteract("Talk", mem_func=get_zelda_memory),
-                SeqDirHoldUntilLostControl(
-                    "Right", Vec2(1, 0), mem_func=get_zelda_memory
-                ),
-                SeqInteract("Talk", mem_func=get_zelda_memory),
-                SeqDirHoldUntilLostControl(
-                    "Left", Vec2(-1, 0), mem_func=get_zelda_memory
-                ),
-                SeqInteract("Talk", mem_func=get_zelda_memory),
+                SeqInteract("Talk"),
+                SeqDirHoldUntilLostControl("Right", Vec2(1, 0)),
+                SeqInteract("Talk"),
+                SeqDirHoldUntilLostControl("Left", Vec2(-1, 0)),
+                SeqInteract("Talk"),
                 SeqTapDirection("Down", direction=Vec2(0, 1)),
                 SeqTapDirection("Up", direction=Vec2(0, -1)),
-                SeqInteract("Talk", mem_func=get_zelda_memory),
+                SeqInteract("Talk"),
                 # Move to bushes and attack
                 SeqMove2D("Move to bush", coords=[Vec2(89.5, 50)]),
                 SeqMove2DConfirm("Move to bush", coords=[Vec2(89.5, 46.3)]),
@@ -40,9 +36,7 @@ class MagiStart(SeqList):
                     num_targets=3,
                     retracking=True,
                 ),
-                SeqDirHoldUntilLostControl(
-                    "Wait", Vec2(0, 0), mem_func=get_zelda_memory
-                ),
-                SeqInteract("Story stuff", mem_func=get_zelda_memory),
+                SeqDirHoldUntilLostControl("Wait", Vec2(0, 0)),
+                SeqInteract("Story stuff"),
             ],
         )

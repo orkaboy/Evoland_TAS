@@ -2,6 +2,7 @@
 import logging
 from typing import Any, Callable, Optional
 
+from engine.game import get_current_tilemap, get_zelda_memory
 from engine.pathing import TileMap
 from memory.zelda_base import ZeldaMemory
 from term.window import WindowLayout
@@ -33,13 +34,11 @@ class SeqBase(object):
     def __repr__(self) -> str:
         return self.name
 
-    # OVERRIDE
     def zelda_mem(self) -> ZeldaMemory:
-        return ZeldaMemory()
+        return get_zelda_memory()
 
-    # OVERRIDE
     def get_tilemap(self) -> Optional[TileMap]:
-        return None
+        return get_current_tilemap()
 
 
 class SeqList(SeqBase):

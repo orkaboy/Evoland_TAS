@@ -1,8 +1,8 @@
 # Libraries and Core Files
 import logging
 
-from evo1.memory.zelda import get_zelda_memory
 from memory.core import LIBHL_OFFSET, LocProcess, mem_handle
+from memory.evo1.zelda import get_zelda_memory
 
 logger = logging.getLogger(__name__)
 

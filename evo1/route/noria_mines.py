@@ -8,9 +8,9 @@ from engine.move2d import (
     SeqMove2DConfirm,
 )
 from engine.seq import SeqList
-from evo1.maps import GetAStar
-from evo1.memory import MapID
 from evo1.move2d import SeqZoneTransition
+from maps.evo1 import GetAStar
+from memory.evo1 import MapID
 
 _noria_astar = GetAStar(MapID.NORIA)
 _noria_start_astar = GetAStar(MapID.NORIA_CLOSED)

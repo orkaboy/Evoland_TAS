@@ -1,7 +1,7 @@
 from control import evo_ctrl
 from engine.combat import SeqArenaCombat
 from engine.mathlib import Facing, Vec2, get_2d_facing_from_dir, get_box_with_size
-from evo1.memory import Evo1GameEntity2D
+from memory.evo1 import Evo1GameEntity2D
 
 
 class SeqKnight2D(SeqArenaCombat):

@@ -1,10 +1,7 @@
-from typing import Callable
-
 from control import evo_ctrl
 from engine.mathlib import Vec2
 from engine.seq.base import SeqBase
 from engine.seq.time import SeqMashDelay
-from memory import ZeldaMemory
 
 
 class SeqTapDirection(SeqBase):
@@ -43,19 +40,16 @@ class SeqAttack(SeqBase):
 
 
 class SeqInteract(SeqMashDelay):
-    def __init__(
-        self, name: str, mem_func: Callable[[], ZeldaMemory], timeout_in_s: float = 0.0
-    ):
+    def __init__(self, name: str, timeout_in_s: float = 0.0):
         super().__init__(name, timeout_in_s)
         self.timer = 0
-        self.mem_func = mem_func
 
     def execute(self, delta: float) -> bool:
         self.timer += delta
         ctrl = evo_ctrl()
         ctrl.confirm(tapping=True)
         # Wait out any cutscene/pickup animation
-        mem = self.mem_func()
+        mem = self.zelda_mem()
         return mem.player.in_control and self.timer >= self.timeout
 
     def __repr__(self) -> str:
@@ -63,12 +57,11 @@ class SeqInteract(SeqMashDelay):
 
 
 class SeqWaitForControl(SeqBase):
-    def __init__(self, name: str, mem_func: Callable[[], ZeldaMemory]):
+    def __init__(self, name: str):
         super().__init__(name)
-        self.mem_func = mem_func
 
     def execute(self, delta: float) -> bool:
-        mem = self.mem_func()
+        mem = self.zelda_mem()
         return mem.player.in_control
 
     def __repr__(self) -> str:
@@ -76,9 +69,9 @@ class SeqWaitForControl(SeqBase):
 
 
 class SeqDirHoldUntilLostControl(SeqWaitForControl):
-    def __init__(self, name: str, direction: Vec2, mem_func: Callable[[], ZeldaMemory]):
+    def __init__(self, name: str, direction: Vec2):
         self.direction = direction
-        super().__init__(name, mem_func)
+        super().__init__(name)
 
     def execute(self, delta: float) -> bool:
         ctrl = evo_ctrl()
@@ -91,7 +84,7 @@ class SeqDirHoldUntilLostControl(SeqWaitForControl):
         elif self.direction.y < 0:
             ctrl.dpad.up()
 
-        mem = self.mem_func()
+        mem = self.zelda_mem()
         done = not mem.player.in_control
         if done:
             ctrl.dpad.none()

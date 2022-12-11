@@ -1,4 +1,4 @@
-from evo2.memory.zelda import (
+from memory.evo2.zelda import (
     Evo2GameEntity2D,
     Evo2ZeldaMemory,
     PlayerEntity,

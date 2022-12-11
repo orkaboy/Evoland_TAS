@@ -5,7 +5,6 @@ import math
 from control import evo_ctrl
 from engine.mathlib import Vec2, angle_between, dist
 from engine.move2d import SeqMove2D
-from memory.zelda_base import GameEntity2D, ZeldaMemory
 
 logger = logging.getLogger(__name__)
 
@@ -39,13 +38,13 @@ class SeqMove2DClunkyCombat(SeqMove2D):
 
     # TODO: Handle some edge cases, like when the enemy is at a diagonal, moving into the target space
     def _clunky_combat2d(self, target: Vec2) -> None:
-        mem = self.mem_func()
+        mem = self.zelda_mem()
         player_pos = mem.player.pos
         player_angle = (target - player_pos).angle
         # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
         with contextlib.suppress(ReferenceError):
             for actor in mem.actors:
-                if not self.is_enemy(actor):
+                if not actor.is_enemy:
                     continue
                 enemy_pos = actor.pos
                 dist_to_player = dist(player_pos, enemy_pos)
@@ -77,12 +76,3 @@ class SeqMove2DClunkyCombat(SeqMove2D):
                 ctrl.dpad.down()
             else:
                 ctrl.dpad.up()
-
-    # OVERRIDE
-    def mem_func(self) -> ZeldaMemory:
-        return ZeldaMemory()
-
-    # OVERRIDE
-    def is_enemy(self, actor: GameEntity2D) -> bool:
-        return True
-        # actor.kind == GameEntity2D.EKind.ENEMY

@@ -3,7 +3,7 @@ import logging
 from control import evo_ctrl
 from engine.mathlib import Facing, facing_str
 from engine.seq import SeqBase
-from evo1.memory import MapID, get_memory
+from memory.evo1 import MapID, get_memory
 
 logger = logging.getLogger(__name__)
 

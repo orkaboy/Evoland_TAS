@@ -3,6 +3,7 @@ import contextlib
 import logging
 
 from control import evo_ctrl
+from engine.game import GameVersion, set_game_version
 from engine.mathlib import Vec2
 from engine.seq import (
     EvolandStartGame,
@@ -12,8 +13,8 @@ from engine.seq import (
     wait_seconds,
 )
 from evo2.checkpoints import Checkpoints
-from evo2.memory import load_zelda_memory
 from evo2.route import MagiStart
+from memory.evo2 import load_zelda_memory
 from term.window import WindowLayout
 
 logger = logging.getLogger(__name__)
@@ -26,6 +27,7 @@ def setup_memory() -> None:
 
 
 def perform_TAS(window: WindowLayout):
+    set_game_version(GameVersion.EVOLAND_2)
 
     # Print loading
     window.main.erase()

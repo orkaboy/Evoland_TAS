@@ -1,7 +1,7 @@
 import logging
 from enum import Enum, auto
 
-from evo1.memory.atb import BattleEntity
+from memory.evo1.atb import BattleEntity
 
 logger = logging.getLogger(__name__)
 
