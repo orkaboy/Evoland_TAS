@@ -133,20 +133,6 @@ class SeqZoneTransition(SeqBase):
         return f"Transition to {self.name}, walking {facing_str(self.direction)}"
 
 
-class SeqAttack(SeqBase):
-    def __init__(self, name: str):
-        super().__init__(name)
-
-    def execute(self, delta: float) -> bool:
-        ctrl = evo_ctrl()
-        ctrl.attack(tapping=False)
-        # TODO: Await control?
-        return True
-
-    def __repr__(self) -> str:
-        return f"Attack({self.name})"
-
-
 # Temp testing
 class SeqManualUntilClose(SeqBase):
     def __init__(self, name: str, target: Vec2, precision: float = 0.2, func=None):

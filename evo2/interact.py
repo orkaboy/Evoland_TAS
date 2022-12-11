@@ -2,64 +2,27 @@ import logging
 
 from control import evo_ctrl
 from engine.mathlib import Vec2
-from engine.seq import SeqBase
+from engine.seq import SeqBase, SeqMashDelay
 from evo2.memory import get_zelda_memory
 
 logger = logging.getLogger(__name__)
 
 
-class SeqMashDelay(SeqBase):
-    def __init__(self, name: str, timeout_in_s: float = 0.0):
-        self.timeout_in_s = timeout_in_s
-        self.timer = 0.0
-        super().__init__(name)
-
-    def reset(self) -> None:
-        self.timer = 0.0
-
-    def execute(self, delta: float) -> bool:
-        self.timer += delta
-        ctrl = evo_ctrl()
-        ctrl.confirm(tapping=True)
-        # Wait out any cutscene/pickup animation
-        return self.timer >= self.timeout_in_s
-
-    def __repr__(self) -> str:
-        return f"Mashing confirm while waiting ({self.name})... {self.timer:.2f}/{self.timeout_in_s:.2f}"
-
-
 class SeqInteract(SeqMashDelay):
+    def __init__(self, name: str, timeout_in_s: float):
+        super().__init__(name, timeout_in_s)
+        self.timer = 0
+
     def execute(self, delta: float) -> bool:
         self.timer += delta
         ctrl = evo_ctrl()
         ctrl.confirm(tapping=True)
         # Wait out any cutscene/pickup animation
         mem = get_zelda_memory()
-        return mem.player.in_control and self.timer >= self.timeout_in_s
+        return mem.player.in_control and self.timer >= self.timeout
 
     def __repr__(self) -> str:
         return f"Mashing confirm until in control ({self.name})"
-
-
-class SeqTapDirection(SeqBase):
-    def __init__(self, name: str, direction: Vec2):
-        self.direction = direction
-        super().__init__(name)
-
-    def execute(self, delta: float) -> bool:
-        ctrl = evo_ctrl()
-        if self.direction.x > 0:
-            ctrl.dpad.tap_right()
-        elif self.direction.x < 0:
-            ctrl.dpad.tap_left()
-        if self.direction.y > 0:
-            ctrl.dpad.tap_up()
-        elif self.direction.y < 0:
-            ctrl.dpad.tap_down()
-        return True
-
-    def __repr__(self) -> str:
-        return f"Tap direction ({self.name})"
 
 
 class SeqDirHoldUntilLostControl(SeqBase):

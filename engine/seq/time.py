@@ -1,6 +1,7 @@
 # Libraries and Core Files
 import time
 
+from control import evo_ctrl
 from engine.seq.base import SeqBase
 
 
@@ -27,3 +28,15 @@ class SeqDelay(SeqBase):
 
     def __repr__(self) -> str:
         return f"Waiting({self.name})... {self.timer:.2f}/{self.timeout:.2f}"
+
+
+class SeqMashDelay(SeqDelay):
+    def execute(self, delta: float) -> bool:
+        self.timer += delta
+        ctrl = evo_ctrl()
+        ctrl.confirm(tapping=True)
+        # Wait out any cutscene/pickup animation
+        return self.timer >= self.timeout
+
+    def __repr__(self) -> str:
+        return f"Mashing confirm while waiting ({self.name})... {self.timer:.2f}/{self.timeout:.2f}"

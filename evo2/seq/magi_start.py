@@ -1,8 +1,8 @@
 from engine.mathlib import Box2, Vec2
-from engine.seq import SeqList
+from engine.seq import SeqAttack, SeqList, SeqTapDirection
 from evo2.combat import SeqArenaCombat
-from evo2.interact import SeqDirHoldUntilLostControl, SeqInteract, SeqTapDirection
-from evo2.move2d import SeqAttack, SeqMove2D, SeqMove2DConfirm
+from evo2.interact import SeqDirHoldUntilLostControl, SeqInteract
+from evo2.move2d import SeqMove2D, SeqMove2DConfirm
 
 
 class MagiStart(SeqList):

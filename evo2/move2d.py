@@ -30,20 +30,6 @@ def move_to(player: Vec2, target: Vec2, precision: float) -> None:
         ctrl.dpad.up()
 
 
-class SeqAttack(SeqBase):
-    def __init__(self, name: str):
-        super().__init__(name)
-
-    def execute(self, delta: float) -> bool:
-        ctrl = evo_ctrl()
-        ctrl.attack(tapping=False)
-        # TODO: Await control?
-        return True
-
-    def __repr__(self) -> str:
-        return f"Attack({self.name})"
-
-
 # TODO: Overlap with Evo1 code
 # Base class for 2D movement areas
 class SeqSection2D(SeqBase):
