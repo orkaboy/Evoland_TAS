@@ -1,7 +1,7 @@
 from evo2.memory.zelda import (
-    GameEntity2D,
+    Evo2GameEntity2D,
+    Evo2ZeldaMemory,
     PlayerEntity,
-    ZeldaMemory,
     get_zelda_memory,
     load_zelda_memory,
 )
@@ -9,7 +9,7 @@ from evo2.memory.zelda import (
 __all__ = [
     "load_zelda_memory",
     "get_zelda_memory",
-    "ZeldaMemory",
+    "Evo2ZeldaMemory",
     "PlayerEntity",
-    "GameEntity2D",
+    "Evo2GameEntity2D",
 ]

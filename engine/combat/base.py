@@ -1,10 +1,11 @@
 import contextlib
 import logging
+from typing import Type
 
+from engine.combat.plan import CombatPlan
 from engine.mathlib import Box2, Vec2, grow_box
-from evo2.combat.plan import CombatPlan
-from evo2.memory import GameEntity2D, get_zelda_memory
-from evo2.move2d import SeqSection2D
+from engine.move2d import SeqSection2D
+from memory.zelda_base import GameEntity2D
 from term.window import SubWindow, WindowLayout
 
 logger = logging.getLogger(__name__)
@@ -17,6 +18,7 @@ class SeqCombat(SeqSection2D):
         name: str,
         arena: Box2,
         num_targets: int,
+        planner: Type[CombatPlan],
         precision: float = 0.2,
         retracking: bool = False,
     ) -> None:
@@ -25,6 +27,7 @@ class SeqCombat(SeqSection2D):
         self.precision = precision
         self.retracking = retracking
         self.num_targets = num_targets
+        self.planner = planner
         super().__init__(name)
 
     def reset(self) -> None:
@@ -36,7 +39,7 @@ class SeqCombat(SeqSection2D):
 
     def execute(self, delta: float) -> bool:
         if self.plan is None:
-            self.plan = CombatPlan(
+            self.plan = self.planner(
                 arena=self.arena,
                 num_targets=self.num_targets,
                 retracking=self.retracking,
@@ -71,7 +74,7 @@ class SeqCombat(SeqSection2D):
     def _print_arena(self, map_win: SubWindow) -> None:
         # Draw a box representing the arena on the map. The representation is one tile
         # bigger so no entities inside the actual arena are overwritten.
-        mem = get_zelda_memory()
+        mem = self.zelda_mem()
         center = mem.player.pos
 
         arena_borders = grow_box(self.arena, 1)

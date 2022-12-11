@@ -2,17 +2,12 @@ import logging
 
 from control import evo_ctrl
 from engine.mathlib import Facing, Vec2
+from engine.move2d import SeqGrabChest, SeqHoldInPlace, SeqMove2D, SeqMove2DConfirm
 from engine.seq import SeqList, SeqMashDelay
 from evo1.atb import EncounterID, SeqATBCombat, SeqATBmove2D
 from evo1.maps import GetAStar
 from evo1.memory import MapID, get_zelda_memory
-from evo1.move2d import (
-    SeqGrabChest,
-    SeqHoldInPlace,
-    SeqMove2D,
-    SeqMove2DConfirm,
-    SeqZoneTransition,
-)
+from evo1.move2d import SeqZoneTransition
 from term.window import WindowLayout
 
 logger = logging.getLogger(__name__)

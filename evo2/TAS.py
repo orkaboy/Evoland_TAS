@@ -13,7 +13,7 @@ from engine.seq import (
 )
 from evo2.checkpoints import Checkpoints
 from evo2.memory import load_zelda_memory
-from evo2.seq import MagiStart
+from evo2.route import MagiStart
 from term.window import WindowLayout
 
 logger = logging.getLogger(__name__)

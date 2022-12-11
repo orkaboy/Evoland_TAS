@@ -6,3 +6,4 @@ Pymem==1.10.0
 windows-curses==2.3.1
 Pillow==9.3
 tmx==1.10
+six==1.16.0

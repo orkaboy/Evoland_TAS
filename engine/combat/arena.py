@@ -1,7 +1,7 @@
-import logging
 import math
 
 from control import evo_ctrl
+from engine.combat.base import SeqCombat
 from engine.mathlib import (
     Vec2,
     angle_between,
@@ -9,14 +9,10 @@ from engine.mathlib import (
     find_closest_point,
     get_box_with_size,
 )
-from evo2.combat.base import SeqCombat
-from evo2.memory import GameEntity2D, get_zelda_memory
-from evo2.move2d import move_to
-
-logger = logging.getLogger(__name__)
+from engine.move2d import move_to
+from memory.zelda_base import GameEntity2D
 
 
-# TODO: A lot of overlap with Evo1
 class SeqArenaCombat(SeqCombat):
     def _get_attack_vectors(self, target: GameEntity2D) -> list[Vec2]:
         enemy_pos = target.pos
@@ -29,7 +25,7 @@ class SeqArenaCombat(SeqCombat):
 
     def _try_attack(self, target: GameEntity2D, weak_spot: Vec2) -> bool:
         ctrl = evo_ctrl()
-        mem = get_zelda_memory()
+        mem = self.zelda_mem()
         player_pos = mem.player.pos
         box = get_box_with_size(center=player_pos, half_size=self.precision)
         # Check facing (are we facing enemy)
@@ -78,7 +74,7 @@ class SeqArenaCombat(SeqCombat):
         if len(attack_vectors) == 0:
             return False
         # Find the closest point to attack
-        mem = get_zelda_memory()
+        mem = self.zelda_mem()
         player_pos = mem.player.pos
         closest_weak_spot = find_closest_point(origin=player_pos, points=attack_vectors)
         # Move towards target weak point

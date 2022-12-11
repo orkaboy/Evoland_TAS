@@ -6,9 +6,8 @@ from engine.seq import (
     SeqList,
     SeqTapDirection,
 )
-from evo2.combat import SeqArenaCombat
 from evo2.memory import get_zelda_memory
-from evo2.move2d import SeqMove2D, SeqMove2DConfirm
+from evo2.seq import SeqArenaCombat, SeqMove2D, SeqMove2DConfirm
 
 
 class MagiStart(SeqList):

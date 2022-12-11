@@ -3,11 +3,12 @@ from enum import Enum, auto
 from typing import Optional
 
 from engine.mathlib import Facing, Vec2, dist, is_close
+from engine.move2d import SeqGrabChest, SeqMove2D, move_to
 from engine.seq import SeqList
 from evo1.atb import Encounter, FarmingGoal, SeqATBmove2D, calc_next_encounter
 from evo1.maps import GetAStar
 from evo1.memory import MapID, get_memory, get_zelda_memory
-from evo1.move2d import SeqGrabChest, SeqMove2D, SeqZoneTransition, move_to
+from evo1.move2d import SeqZoneTransition
 from memory.rng import EvolandRNG
 from term.window import WindowLayout
 

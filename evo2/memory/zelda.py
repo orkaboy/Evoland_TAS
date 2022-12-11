@@ -3,13 +3,14 @@ import logging
 import math
 
 from engine.mathlib import Vec2
-from memory.core import LIBHL_OFFSET, LocProcess, mem_handle
+from memory.core import LIBHL_OFFSET, LocProcess
+from memory.zelda_base import GameEntity2D, ZeldaMemory
 
 logger = logging.getLogger(__name__)
 
 
 # Only valid when instantiated, on the screen that they live
-class PlayerEntity:
+class PlayerEntity(GameEntity2D):
     _CUR_HP_PTR = [0x64]
     _IFRAME_PTR = [0x74]
     _IN_CONTROL_PTR = [0x90]
@@ -18,8 +19,7 @@ class PlayerEntity:
     _ROTATION_PTR = [0x1A8]
 
     def __init__(self, process: LocProcess, entity_ptr: int) -> None:
-        self.process = process
-        self.entity_ptr = entity_ptr
+        super().__init__(process=process, entity_ptr=entity_ptr)
         self.setup_pointers()
 
     def setup_pointers(self) -> None:
@@ -37,6 +37,10 @@ class PlayerEntity:
         self.in_control_ptr = self.process.get_pointer(
             self.entity_ptr, offsets=self._IN_CONTROL_PTR
         )
+
+    @property
+    def ch(self) -> str:
+        return "@"
 
     @property
     def pos(self) -> Vec2:
@@ -67,7 +71,7 @@ class PlayerEntity:
         return self.process.read_u32(self.in_control_ptr) == 0
 
 
-class GameEntity2D:
+class Evo2GameEntity2D(GameEntity2D):
     # TODO: Enemy HP?
     # Note, same relative offsets as on the player
     _X_PTR = [0x130]
@@ -75,8 +79,7 @@ class GameEntity2D:
     _ROTATION_PTR = [0x150]
 
     def __init__(self, process: LocProcess, entity_ptr: int) -> None:
-        self.process = process
-        self.entity_ptr = entity_ptr
+        super().__init__(process=process, entity_ptr=entity_ptr)
         self.setup_pointers()
 
     def setup_pointers(self) -> None:
@@ -88,9 +91,13 @@ class GameEntity2D:
 
     def __eq__(self, other: object) -> bool:
         # kind_match = self.kind == other.kind
-        pos_match = self.pos.close_to(other.pos, 0.2)
+        pos_match = self.pos.close_to(other.pos, 0.2)  # TODO: Precision magic number
         # return kind_match and pos_match
         return pos_match
+
+    @property
+    def ch(self) -> str:
+        return "!"
 
     @property
     def pos(self) -> Vec2:
@@ -109,8 +116,14 @@ class GameEntity2D:
             raw_rot += 2 * math.pi
         return raw_rot
 
+    def __repr__(self) -> str:
+        # kind = self.kind
+        # hp_str = f", hp: {self.hp}" if kind == self.EKind.ENEMY else ""
+        # return f"Ent({kind.name}, {self.pos}{hp_str})"
+        return f"Ent({self.pos})"
 
-class ZeldaMemory:
+
+class Evo2ZeldaMemory(ZeldaMemory):
     # Zelda-related things:
     _ZELDA_PTR = [0x37C, 0x0, 0x58]
     _PLAYER_PTR = [0x30]
@@ -121,9 +134,7 @@ class ZeldaMemory:
     _ACTOR_BASE_ADDR = 0x18  # TODO: Verify
 
     def __init__(self):
-        mem = mem_handle()
-        self.process = mem.process
-        self.base_addr = mem.base_addr
+        super().__init__()
         self.base_offset = self.process.get_pointer(
             self.base_addr + LIBHL_OFFSET, offsets=self._ZELDA_PTR
         )
@@ -136,7 +147,7 @@ class ZeldaMemory:
         self.player = PlayerEntity(self.process, player_ptr)
 
     def _init_actors(self):
-        self.actors: list[GameEntity2D] = []
+        self.actors: list[Evo2GameEntity2D] = []
         actor_arr_size_ptr = self.process.get_pointer(
             self.base_offset, offsets=self._ACTOR_ARR_SIZE_PTR
         )
@@ -148,7 +159,7 @@ class ZeldaMemory:
             # Set enemy offsets
             actor_offset = self._ACTOR_BASE_ADDR + i * self._ACTOR_PTR_SIZE
             actor_ptr = self.process.get_pointer(actor_arr_offset, [actor_offset])
-            self.actors.append(GameEntity2D(self.process, actor_ptr))
+            self.actors.append(Evo2GameEntity2D(self.process, actor_ptr))
 
 
 _zelda_mem = None
@@ -156,8 +167,8 @@ _zelda_mem = None
 
 def load_zelda_memory() -> None:
     global _zelda_mem
-    _zelda_mem = ZeldaMemory()
+    _zelda_mem = Evo2ZeldaMemory()
 
 
-def get_zelda_memory() -> ZeldaMemory:
+def get_zelda_memory() -> Evo2ZeldaMemory:
     return _zelda_mem

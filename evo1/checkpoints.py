@@ -1,5 +1,5 @@
 from engine.seq import SeqList
-from evo1.seq import (
+from evo1.route import (
     CrystalCavern,
     MeadowFight,
     NoriaMines,

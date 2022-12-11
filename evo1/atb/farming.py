@@ -2,10 +2,10 @@ import logging
 
 from control import evo_ctrl
 from engine.mathlib import Vec2
+from engine.move2d import SeqMove2D, is_close, move_to
 from evo1.atb.base import SeqATBCombat
 from evo1.atb.encounter import Encounter, calc_next_encounter
 from evo1.memory import get_memory, get_zelda_memory
-from evo1.move2d import SeqMove2D, is_close, move_to
 from memory.rng import EvolandRNG
 from term.window import WindowLayout
 

@@ -13,7 +13,7 @@ from engine.seq import (
 from evo1.checkpoints import Checkpoints
 from evo1.memory import load_memory, load_zelda_memory
 from evo1.observer import SeqObserver2D
-from evo1.seq import (
+from evo1.route import (
     CrystalCavern,
     Edel1,
     Edel2,

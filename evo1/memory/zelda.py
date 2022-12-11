@@ -4,13 +4,14 @@ from enum import IntEnum
 from typing import Optional, Tuple
 
 from engine.mathlib import Facing, Vec2
-from memory.core import LIBHL_OFFSET, LocProcess, mem_handle
+from memory.core import LIBHL_OFFSET, LocProcess
+from memory.zelda_base import GameEntity2D, ZeldaMemory
 
 logger = logging.getLogger(__name__)
 
 
 # Only valid when instantiated, on the screen that they live
-class GameEntity2D:
+class Evo1GameEntity2D(GameEntity2D):
     _ENT_KIND_PTR = [0x4, 0x4]  # int
     _X_PTR = [0x8]  # double
     _Y_PTR = [0x10]  # double
@@ -30,8 +31,7 @@ class GameEntity2D:
     _IN_CONTROL_PTR = [0xA4]
 
     def __init__(self, process: LocProcess, entity_ptr: int):
-        self.process = process
-        self.entity_ptr = entity_ptr
+        super().__init__(process=process, entity_ptr=entity_ptr)
         self.setup_pointers()
 
     def __eq__(self, other: object) -> bool:
@@ -92,10 +92,31 @@ class GameEntity2D:
     def kind(self) -> EKind:
         kind_val = self.process.read_u32(self.ent_kind_ptr)
         try:
-            return GameEntity2D.EKind(kind_val)
+            return Evo1GameEntity2D.EKind(kind_val)
         except ValueError:
             logger.error(f"Unknown GameEntity2D EKind: {kind_val}")
-            return GameEntity2D.EKind.UNKNOWN
+            return Evo1GameEntity2D.EKind.UNKNOWN
+
+    @property
+    def ch(self) -> str:
+        actor_kind = self.kind
+        match actor_kind:
+            case Evo1GameEntity2D.EKind.PLAYER:
+                return "@"
+            case Evo1GameEntity2D.EKind.ENEMY:
+                return "!"
+            case Evo1GameEntity2D.EKind.CHEST:
+                return "C"
+            case Evo1GameEntity2D.EKind.ITEM:
+                return "$"
+            case Evo1GameEntity2D.EKind.NPC:
+                return "&"
+            case Evo1GameEntity2D.EKind.PARTICLE:
+                return "%"
+            case Evo1GameEntity2D.EKind.SPECIAL:
+                return "*"
+            case _:
+                return "?"
 
     @property
     def pos(self) -> Vec2:
@@ -165,7 +186,7 @@ class GameEntity2D:
         return f"Ent({kind.name}, {self.pos}{hp_str})"
 
 
-class ZeldaMemory:
+class Evo1ZeldaMemory(ZeldaMemory):
 
     # Zelda-related things:
     _ZELDA_PTR = [0x7C8, 0x8, 0x3C]
@@ -177,9 +198,7 @@ class ZeldaMemory:
     _ACTOR_BASE_ADDR = 0x10
 
     def __init__(self):
-        mem = mem_handle()
-        self.process = mem.process
-        self.base_addr = mem.base_addr
+        super().__init__()
         self.base_offset = self.process.get_pointer(
             self.base_addr + LIBHL_OFFSET, offsets=self._ZELDA_PTR
         )
@@ -189,10 +208,10 @@ class ZeldaMemory:
 
     def _init_player(self):
         player_ptr = self.process.get_pointer(self.base_offset, self._PLAYER_PTR)
-        self.player = GameEntity2D(self.process, player_ptr)
+        self.player = Evo1GameEntity2D(self.process, player_ptr)
 
     def _init_actors(self):
-        self.actors: list[GameEntity2D] = []
+        self.actors: list[Evo1GameEntity2D] = []
         actor_arr_size_ptr = self.process.get_pointer(
             self.base_offset, offsets=self._ACTOR_ARR_SIZE_PTR
         )
@@ -204,7 +223,7 @@ class ZeldaMemory:
             # Set enemy offsets
             actor_offset = self._ACTOR_BASE_ADDR + i * self._ACTOR_PTR_SIZE
             actor_ptr = self.process.get_pointer(actor_arr_offset, [actor_offset])
-            self.actors.append(GameEntity2D(self.process, actor_ptr))
+            self.actors.append(Evo1GameEntity2D(self.process, actor_ptr))
 
 
 _zelda_mem = None
@@ -212,8 +231,8 @@ _zelda_mem = None
 
 def load_zelda_memory() -> None:
     global _zelda_mem
-    _zelda_mem = ZeldaMemory()
+    _zelda_mem = Evo1ZeldaMemory()
 
 
-def get_zelda_memory() -> ZeldaMemory:
+def get_zelda_memory() -> Evo1ZeldaMemory:
     return _zelda_mem
