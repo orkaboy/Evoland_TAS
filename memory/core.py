@@ -71,6 +71,13 @@ class LocProcess(Process):
         lp_buffer = ctypes.c_uint64()
         return self._read_val(lp_base_address=lp_base_address, lp_buffer=lp_buffer)
 
+    def read_string(self, lp_base_address: int, str_len: int) -> str:
+        ret = ""
+        for i in range(str_len):
+            unicode_val = self.read_u16(lp_base_address + 2 * i)
+            ret += chr(unicode_val)
+        return ret
+
 
 # Process Permissions
 PROCESS_QUERY_INFORMATION = 0x0400

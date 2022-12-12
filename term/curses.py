@@ -55,7 +55,7 @@ class CursesWindow(SubWindow):
 
 class CursesLayout(WindowLayout):
     LOGGER_H = 25
-    STATS_W = 25
+    STATS_W = 40
     MAP_W = 30
 
     def __init__(self, screen, config_data: dict) -> None:

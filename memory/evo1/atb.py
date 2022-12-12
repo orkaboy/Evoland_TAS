@@ -19,6 +19,11 @@ class BattleEntity:
     _TURN_GAUGE_PTR = [0x110]  # double: [0-1.0]
     _TURN_COUNTER_PTR = [0x154]  # int
 
+    _NAME_BUF_PTR = [0x3C, 0x4, 0x0]  # string buffer
+    _NAME_LEN_PTR = [0x3C, 0x8]  # string buffer len
+
+    # 0x3C seems to be the name structure. Followed by 0x4 the string buffer, 0x8 the amount of chars
+
     def __init__(self, process: LocProcess, entity_ptr: int):
         self.process = process
         self.entity_ptr = entity_ptr
@@ -48,6 +53,19 @@ class BattleEntity:
         self.timer_since_turn_ptr = self.process.get_pointer(
             self.entity_ptr, offsets=self._TIMER_SINCE_TURN_PTR
         )
+        self.name_buf_ptr = self.process.get_pointer(
+            self.entity_ptr, offsets=self._NAME_BUF_PTR
+        )
+        self.name_len_ptr = self.process.get_pointer(
+            self.entity_ptr, offsets=self._NAME_LEN_PTR
+        )
+
+    @property
+    def name(self) -> str:
+        # TODO: Verify, doesn't work yet
+        num_chars = self.process.read_u32(self.name_len_ptr)
+        name_str = self.process.read_string(self.name_buf_ptr, num_chars)
+        return name_str
 
     @property
     def max_hp(self) -> int:

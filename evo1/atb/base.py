@@ -118,7 +118,7 @@ class SeqATBCombat(SeqBase):
             y_pos = y_offset + i
             window.stats.addstr(
                 Vec2(2, y_pos),
-                f"{entity.cur_hp}/{entity.max_hp} [{entity.turn_gauge:.02f}]",
+                f"{entity.name}: {entity.cur_hp}/{entity.max_hp} [{entity.turn_gauge:.02f}]",
             )
 
     def __repr__(self) -> str:

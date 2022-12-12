@@ -1,5 +1,14 @@
 # TODO list
 
+* Next:
+  * Killing 3 skellies (knight-like logic, but in 3d, using modified rotation angle)
+    * This logic can be applied to knights combat also
+  * Skip past the first skeleton without fighting it
+  * Push armored enemy into pit
+  * Navigate the maze/fireballs
+  * Deathwarp? Some issues reloading currently
+  * Bossfight
+
 * Clean up main menu navigation code? This logic should be reusable for evo2 as well, shouldn't be in the "start" sequence of evo1
 * Pathfinding
   * Fix the pathfinding so it works for sub-tile movement (approximate, then inject real goal at last node)
@@ -22,11 +31,6 @@
   * Handle pathfinding past breakable objects (bushes/pots). Can do this manually, but it's less elegant
 * Routing
   * Route Noria mines
-  * Killing bats (some detection issues atm)
-    * Could also use improvement; currently tries to move away from the bats rather than killing them if they're too close. Check radial collision (use same code as Evoland 2 bots)
-  * Killing 3 skellies (knight-like logic, but in 3d, using modified rotation angle)
-  * Push armored enemy into pit
-  * Skip past the first skeleton without fighting it
   * Start doing cutscene skips with menu-glitch
 
 * Terminal improvements
