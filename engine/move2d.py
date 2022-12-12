@@ -161,7 +161,7 @@ class SeqSection2D(SeqBase):
     _map_start_y = 2
 
     def _print_player_stats(self, window: WindowLayout) -> None:
-        window.stats.write_centered(line=1, text="Evoland 1 TAS")
+        window.stats.write_centered(line=1, text="Evoland TAS")
         window.stats.write_centered(line=2, text="2D section")
         mem = self.zelda_mem()
         pos = mem.player.pos

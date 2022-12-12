@@ -36,7 +36,8 @@ class SeqArenaCombat(SeqCombat):
         player_rot = mem.player.rotation
         angle = angle_between(player_rot, rot_to_enemy)
         # Check position (must be in range, in a weak spot)
-        if box.contains(weak_spot) or dist(player_pos, enemy_pos) < 1.2:
+        # TODO: Magic number distance
+        if box.contains(weak_spot) or dist(player_pos, enemy_pos) < self.MIN_DISTANCE:
             if abs(angle) < math.pi / 4:
                 # We are aligned and in position. Attack!
                 ctrl.dpad.none()

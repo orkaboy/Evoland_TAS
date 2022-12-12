@@ -10,6 +10,9 @@ logger = logging.getLogger(__name__)
 
 
 class SeqMove2DClunkyCombat(SeqMove2D):
+
+    DETECTION_DISTANCE = 1.5
+
     def execute(self, delta: float) -> bool:
         self._navigate_to_checkpoint()
 
@@ -48,8 +51,7 @@ class SeqMove2DClunkyCombat(SeqMove2D):
                     continue
                 enemy_pos = actor.pos
                 dist_to_player = dist(player_pos, enemy_pos)
-                # TODO Arbitrary magic number, distance to enemy
-                if dist_to_player < 1.5:
+                if dist_to_player < self.DETECTION_DISTANCE:
                     enemy_angle = (enemy_pos - player_pos).angle
                     angle = angle_between(enemy_angle, player_angle)
                     # logger.debug(f"Enemy {i} dist: {dist_to_player}, angle_to_e: {enemy_angle}. angle: {angle}")

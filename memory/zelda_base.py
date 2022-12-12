@@ -1,4 +1,4 @@
-from engine.mathlib import Vec2
+from engine.mathlib import Facing, Vec2
 from memory.core import LocProcess, mem_handle
 
 
@@ -14,6 +14,11 @@ class GameEntity2D:
     @property
     def rotation(self) -> float:
         return 0.0
+
+    # 0=left,1=right,2=up,3=down. Doesn't do diagonal facings.
+    @property
+    def facing(self) -> Facing:
+        return Facing.DOWN
 
     @property
     def in_control(self) -> bool:

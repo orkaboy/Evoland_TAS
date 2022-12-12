@@ -3,7 +3,13 @@ import math
 
 from control import evo_ctrl
 from engine.combat.base import SeqCombat
-from engine.mathlib import Vec2, angle_between, find_closest_point, get_box_with_size
+from engine.mathlib import (
+    Vec2,
+    angle_between,
+    dist,
+    find_closest_point,
+    get_box_with_size,
+)
 from engine.move2d import move_to
 from memory.zelda_base import GameEntity2D
 
@@ -14,7 +20,6 @@ logger = logging.getLogger(__name__)
 # TODO: This class can be used as the base of 3D combat, both for killing bats, skeletons/mages and even Dark Clink
 class SeqCombat3D(SeqCombat):
 
-    # TODO: Implement combat using rotation instead of facing
     # TODO: This isn't going to work for the skeletons (need to attack them from the sides/behind, just like the knights)
     def _get_attack_vectors(self, target: GameEntity2D) -> list[Vec2]:
         mem = self.zelda_mem()
@@ -24,20 +29,18 @@ class SeqCombat3D(SeqCombat):
         direction = (player_pos - enemy_pos).normalized
         # TODO: Make this more intelligent/give more options
         # For the time being, beeline for the enemy
-        distance_to_enemy = 1.2  # TODO: Test if this is a good distance or if we should be closer/farther away
-        attack_vector = enemy_pos + (direction * distance_to_enemy)
+        attack_vector = enemy_pos + (direction * self.MIN_DISTANCE)
         return [attack_vector]
 
-    # TODO: Implement combat using rotation instead of facing
     def _try_attack(self, target: GameEntity2D, weak_spot: Vec2) -> bool:
         ctrl = evo_ctrl()
         mem = self.zelda_mem()
         player_pos = mem.player.pos
         box = get_box_with_size(center=player_pos, half_size=self.precision)
+        # Check angle to enemy
+        enemy_pos = target.pos
         # Check position (must be in range, in a weak spot)
-        if box.contains(weak_spot):
-            # Check angle to enemy
-            enemy_pos = target.pos
+        if box.contains(weak_spot) or dist(player_pos, enemy_pos) < self.MIN_DISTANCE:
             angle_to_enemy = (enemy_pos - player_pos).angle
             # The rotation is stored somewhat strangely in memory
             rot = mem.player.rotation

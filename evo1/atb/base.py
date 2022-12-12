@@ -81,7 +81,7 @@ class SeqATBCombat(SeqBase):
             return
         window.stats.erase()
         # Render header
-        window.stats.write_centered(line=1, text="Evoland 1 TAS")
+        window.stats.write_centered(line=1, text="Evoland TAS")
         window.stats.write_centered(line=2, text="ATB Combat")
         # Render party and enemy stats
         window.stats.addstr(Vec2(1, 4), "Party:")

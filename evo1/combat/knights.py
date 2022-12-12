@@ -5,6 +5,7 @@ from memory.evo1 import Evo1GameEntity2D
 
 
 class SeqKnight2D(SeqArenaCombat):
+    # TODO: Refactor to use rotation, so this can be used for Skellies
     def _get_attack_vectors(self, target: Evo1GameEntity2D) -> list[Vec2]:
         enemy_facing = target.facing
         enemy_pos = target.pos
