@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 class BattleEntity:
 
-    _TIMER_SINCE_TURN_PTR = [0xD0]  # double
+    _TIMER_SINCE_TURN_PTR = [0xD0]  # double (could also be animation frame counter?)
     _MAX_HP_PTR = [0xF0]  # int
     _CUR_HP_PTR = [0xF4]  # int
     _ATK_PTR = [0xF8]  # int
@@ -17,9 +17,11 @@ class BattleEntity:
     _EVADE_PTR = [0x100]  # int
     _MAGIC_PTR = [0x104]  # int
     _TURN_GAUGE_PTR = [0x110]  # double: [0-1.0]
+    _TURN_GAUGE_SPEED_PTR = [0x118]  # double
     _TURN_COUNTER_PTR = [0x154]  # int
+    _IS_RUNNING_PTR = [0x109]  # byte
 
-    _NAME_BUF_PTR = [0x3C, 0x4, 0x0]  # string buffer
+    _NAME_BUF_PTR = [0x3C, 0x4, 0x0]  # string buffer (2-byte unicode)
     _NAME_LEN_PTR = [0x3C, 0x8]  # string buffer len
 
     # 0x3C seems to be the name structure. Followed by 0x4 the string buffer, 0x8 the amount of chars
@@ -47,6 +49,9 @@ class BattleEntity:
         self.turn_gauge_ptr = self.process.get_pointer(
             self.entity_ptr, offsets=self._TURN_GAUGE_PTR
         )
+        self.turn_gauge_speed_ptr = self.process.get_pointer(
+            self.entity_ptr, offsets=self._TURN_GAUGE_SPEED_PTR
+        )
         self.turn_counter_ptr = self.process.get_pointer(
             self.entity_ptr, offsets=self._TURN_COUNTER_PTR
         )
@@ -58,6 +63,9 @@ class BattleEntity:
         )
         self.name_len_ptr = self.process.get_pointer(
             self.entity_ptr, offsets=self._NAME_LEN_PTR
+        )
+        self.is_running_ptr = self.process.get_pointer(
+            self.entity_ptr, offsets=self._IS_RUNNING_PTR
         )
 
     @property
@@ -96,12 +104,20 @@ class BattleEntity:
         return self.process.read_double(self.turn_gauge_ptr)
 
     @property
+    def turn_gauge_speed(self) -> float:
+        return self.process.read_double(self.turn_gauge_speed_ptr)
+
+    @property
     def timer_since_turn(self) -> float:
         return self.process.read_double(self.timer_since_turn_ptr)
 
     @property
     def turn_counter(self) -> int:
         return self.process.read_u32(self.turn_counter_ptr)
+
+    @property
+    def running(self) -> bool:
+        return self.process.read_u8(self.is_running_ptr) == 1
 
 
 class BattleMemory:
