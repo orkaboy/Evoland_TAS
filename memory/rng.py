@@ -1,11 +1,9 @@
 # Libraries and Core Files
 import logging
 
-import memory.core
+from memory.core import LIBHL_OFFSET, mem_handle
 
 logger = logging.getLogger(__name__)
-
-_LIBHL_OFFSET = 0x0004914C
 
 
 class EvolandRNG:
@@ -26,17 +24,17 @@ class EvolandRNG:
     _RNG_CURSOR_PTR = [0x7F4, 0x0, 0x18, 0x64]
 
     def __init__(self) -> None:
-        mem_handle = memory.core.handle()
-        self.process = mem_handle.process
-        self.base_addr = mem_handle.base_addr
+        mem = mem_handle()
+        self.process = mem.process
+        self.base_addr = mem.base_addr
         self.setup_pointers()
 
     def setup_pointers(self):
         self.rng_cursor_ptr = self.process.get_pointer(
-            self.base_addr + _LIBHL_OFFSET, offsets=self._RNG_CURSOR_PTR
+            self.base_addr + LIBHL_OFFSET, offsets=self._RNG_CURSOR_PTR
         )
         self.rng_base_ptr = self.process.get_pointer(
-            self.base_addr + _LIBHL_OFFSET, offsets=self._RNG_BASE_PTR
+            self.base_addr + LIBHL_OFFSET, offsets=self._RNG_BASE_PTR
         )
 
     class RNGStruct:

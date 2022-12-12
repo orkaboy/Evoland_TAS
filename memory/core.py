@@ -10,6 +10,9 @@ from ReadWriteMemory import Process, ReadWriteMemory, ReadWriteMemoryError
 logger = logging.getLogger(__name__)
 
 
+LIBHL_OFFSET = 0x0004914C
+
+
 class LocProcess(Process):
     def __init__(self, *args, **kwargs):
         super(LocProcess, self).__init__(*args, **kwargs)
@@ -136,5 +139,5 @@ _mem = EvolandMemory()
 _mem.initialize("Evoland.exe", "libhl.dll")
 
 
-def handle() -> EvolandMemory:
+def mem_handle() -> EvolandMemory:
     return _mem

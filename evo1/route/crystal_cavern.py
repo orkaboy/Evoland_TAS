@@ -1,19 +1,13 @@
 import logging
 
-import evo1.control
+from control import evo_ctrl
 from engine.mathlib import Facing, Vec2
-from engine.seq import SeqList
+from engine.move2d import SeqGrabChest, SeqHoldInPlace, SeqMove2D, SeqMove2DConfirm
+from engine.seq import SeqList, SeqMashDelay
 from evo1.atb import EncounterID, SeqATBCombat, SeqATBmove2D
-from evo1.interact import SeqMashDelay
-from evo1.maps import GetAStar
-from evo1.memory import MapID, get_zelda_memory
-from evo1.move2d import (
-    SeqGrabChest,
-    SeqHoldInPlace,
-    SeqMove2D,
-    SeqMove2DConfirm,
-    SeqZoneTransition,
-)
+from evo1.move2d import SeqZoneTransition
+from maps.evo1 import GetAStar
+from memory.evo1 import MapID, get_zelda_memory
 from term.window import WindowLayout
 
 logger = logging.getLogger(__name__)
@@ -60,7 +54,7 @@ class CrystalCavernEncManip(SeqATBmove2D):
             return False
 
         # Wait until a better encounter
-        ctrl = evo1.control.handle()
+        ctrl = evo_ctrl()
         ctrl.dpad.none()
 
         return True
@@ -87,7 +81,7 @@ class SeqKefkasGhost(SeqATBCombat):
         if self._is_invincible():
             return
         # TODO: Very, very dumb combat. Should maybe check for healing
-        ctrl = evo1.control.handle()
+        ctrl = evo_ctrl()
         ctrl.dpad.none()
         ctrl.confirm(tapping=True)
 

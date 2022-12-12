@@ -22,6 +22,14 @@ class Vec2(NamedTuple):
     def __rmul__(self, scalar: float):
         return self * scalar
 
+    def close_to(self, other: object, precision: float) -> bool:
+        return (
+            self.x < other.x + precision
+            and self.x > other.x - precision
+            and self.y < other.y + precision
+            and self.y > other.y - precision
+        )
+
     def rotated(self, rad_angle: float, center=None):
         s = math.sin(rad_angle)
         c = math.cos(rad_angle)

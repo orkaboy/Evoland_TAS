@@ -1,16 +1,11 @@
+from engine.combat import SeqMove2DClunkyCombat
 from engine.mathlib import Box2, Facing, Vec2
-from engine.seq import SeqList
-from evo1.combat import SeqKnight2D, SeqMove2DClunkyCombat
-from evo1.maps import GetAStar
-from evo1.memory import MapID
-from evo1.move2d import (
-    SeqAttack,
-    SeqGrabChest,
-    SeqGrabChestKeyItem,
-    SeqMove2D,
-    SeqMove2DConfirm,
-    SeqZoneTransition,
-)
+from engine.move2d import SeqGrabChest, SeqGrabChestKeyItem, SeqMove2D, SeqMove2DConfirm
+from engine.seq import SeqAttack, SeqList
+from evo1.combat import SeqKnight2D
+from evo1.move2d import SeqZoneTransition
+from maps.evo1 import GetAStar
+from memory.evo1 import MapID
 
 _edel_vale_astar = GetAStar(MapID.EDEL_VALE)
 

@@ -2,6 +2,7 @@
 import contextlib
 import logging
 
+from engine.game import GameVersion, set_game_version
 from engine.mathlib import Vec2
 from engine.seq import (
     EvolandStartGame,
@@ -11,9 +12,8 @@ from engine.seq import (
     wait_seconds,
 )
 from evo1.checkpoints import Checkpoints
-from evo1.memory import load_memory, load_zelda_memory
 from evo1.observer import SeqObserver2D
-from evo1.seq import (
+from evo1.route import (
     CrystalCavern,
     Edel1,
     Edel2,
@@ -25,6 +25,7 @@ from evo1.seq import (
     OverworldToNoria,
     PapurikaVillage,
 )
+from memory.evo1 import load_memory, load_zelda_memory
 from term.window import WindowLayout
 
 logger = logging.getLogger("SYSTEM")
@@ -37,6 +38,8 @@ def setup_memory() -> None:
 
 
 def observer(window: WindowLayout):
+    set_game_version(GameVersion.EVOLAND_1)
+
     observer = SeqObserver2D("Observer", func=setup_memory)
 
     engine = SequencerEngine(
@@ -55,6 +58,7 @@ def observer(window: WindowLayout):
 
 
 def perform_TAS(window: WindowLayout):
+    set_game_version(GameVersion.EVOLAND_1)
 
     # Print loading
     window.main.erase()

@@ -1,8 +1,8 @@
 # Libraries and Core Files
 from enum import IntEnum
 
-from control.controller import Buttons as VgButtons
-from control.controller import VgTranslator, handle
+from control.base import Buttons as VgButtons
+from control.base import VgTranslator, handle
 from engine.seq import SeqBase
 from engine.seq.time import wait_seconds
 

@@ -1,10 +1,10 @@
 import contextlib
 import logging
 
+from engine.combat.plan import CombatPlan
 from engine.mathlib import Box2, Vec2, grow_box
-from evo1.combat.plan import CombatPlan
-from evo1.memory import GameEntity2D, get_zelda_memory
-from evo1.move2d import SeqSection2D
+from engine.move2d import SeqSection2D
+from memory.zelda_base import GameEntity2D
 from term.window import SubWindow, WindowLayout
 
 logger = logging.getLogger(__name__)
@@ -12,6 +12,9 @@ logger = logging.getLogger(__name__)
 
 # Base class for combat. Mostly handles target selection and rendering
 class SeqCombat(SeqSection2D):
+
+    MIN_DISTANCE = 1.2
+
     def __init__(
         self,
         name: str,
@@ -71,7 +74,7 @@ class SeqCombat(SeqSection2D):
     def _print_arena(self, map_win: SubWindow) -> None:
         # Draw a box representing the arena on the map. The representation is one tile
         # bigger so no entities inside the actual arena are overwritten.
-        mem = get_zelda_memory()
+        mem = self.zelda_mem()
         center = mem.player.pos
 
         arena_borders = grow_box(self.arena, 1)

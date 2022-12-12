@@ -1,9 +1,10 @@
 from engine.mathlib import Box2, Facing, Vec2
-from engine.seq import SeqList, SeqLog, SeqOptional
+from engine.move2d import SeqGrabChest, SeqMove2D
+from engine.seq import SeqInteract, SeqList, SeqLog, SeqOptional
 from evo1.combat import SeqKnight2D
-from evo1.interact import SeqInteract, SeqShopBuy
-from evo1.memory import MapID, get_memory
-from evo1.move2d import SeqGrabChest, SeqMove2D, SeqZoneTransition
+from evo1.move2d import SeqZoneTransition
+from evo1.shop import SeqShopBuy
+from memory.evo1 import MapID, get_memory
 
 
 class MeadowFight(SeqList):

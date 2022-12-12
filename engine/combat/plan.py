@@ -2,14 +2,20 @@ import contextlib
 import logging
 from typing import Optional
 
+from engine.game import get_zelda_memory
 from engine.mathlib import Box2, dist
-from evo1.memory import GameEntity2D, get_zelda_memory
+from memory.zelda_base import GameEntity2D
 
 logger = logging.getLogger(__name__)
 
 
 class CombatPlan:
-    def __init__(self, arena: Box2, num_targets: int, retracking: bool = False) -> None:
+    def __init__(
+        self,
+        arena: Box2,
+        num_targets: int,
+        retracking: bool = False,
+    ) -> None:
         self.next_target: Optional[GameEntity2D] = None
         self.num_targets = num_targets
         self.total_enemies: int = 0
@@ -28,7 +34,7 @@ class CombatPlan:
         # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
         with contextlib.suppress(ReferenceError):
             for actor in mem.actors:
-                if actor.kind != GameEntity2D.EKind.ENEMY:
+                if not actor.is_enemy:
                     continue
                 enemy_pos = actor.pos
                 # Check if target is found. If so, initialize the tracking entity
@@ -60,7 +66,7 @@ class CombatPlan:
             scan = self.track_targets()
             self.targets = [enemy for enemy in self.targets if enemy in scan]
         else:
-            self.targets = [enemy for enemy in self.targets if enemy.hp > 0]
+            self.targets = [enemy for enemy in self.targets if enemy.is_alive]
         if self.next_target not in self.targets:
             self.next_target = None
 

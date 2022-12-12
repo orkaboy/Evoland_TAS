@@ -3,7 +3,7 @@ import logging
 
 from engine.mathlib import Vec2, dist
 from evo1.atb import SeqATBCombatManual, SeqATBmove2D
-from evo1.memory import get_zelda_memory
+from memory.evo1 import get_zelda_memory
 from term.window import WindowLayout
 
 logger = logging.getLogger(__name__)

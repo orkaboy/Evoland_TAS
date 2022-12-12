@@ -1,16 +1,16 @@
+from engine.combat import SeqCombat3D, SeqMove2DClunkyCombat
 from engine.mathlib import Box2, Facing, Vec2
-from engine.seq import SeqList
-from evo1.combat import SeqCombat3D, SeqMove2DClunkyCombat
-from evo1.maps import GetAStar
-from evo1.memory import MapID
-from evo1.move2d import (
+from engine.move2d import (
     SeqGrabChest,
     SeqHoldInPlace,
     SeqManualUntilClose,
     SeqMove2D,
     SeqMove2DConfirm,
-    SeqZoneTransition,
 )
+from engine.seq import SeqList
+from evo1.move2d import SeqZoneTransition
+from maps.evo1 import GetAStar
+from memory.evo1 import MapID
 
 _noria_astar = GetAStar(MapID.NORIA)
 _noria_start_astar = GetAStar(MapID.NORIA_CLOSED)

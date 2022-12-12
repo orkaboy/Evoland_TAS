@@ -3,7 +3,7 @@ from enum import Enum, auto
 
 from evo1.atb.entity import ATBEntity, ATBEntityID, atb_stats_from_id
 from evo1.atb.predict import AttackPrediction, predict_attack
-from evo1.memory import MapID, get_memory
+from memory.evo1 import MapID, get_memory
 from memory.rng import EvolandRNG
 
 logger = logging.getLogger(__name__)

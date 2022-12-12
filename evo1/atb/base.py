@@ -1,12 +1,12 @@
 import logging
 from enum import Enum, auto
 
-import evo1.control
+from control import evo_ctrl
 from engine.mathlib import Vec2
 from engine.seq import SeqBase
 from evo1.atb.entity import atb_stats_from_memory
 from evo1.atb.predict import predict_attack
-from evo1.memory import BattleEntity, BattleMemory
+from memory.evo1 import BattleEntity, BattleMemory
 from memory.rng import EvolandRNG
 from term.window import WindowLayout
 
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 def _tap_confirm() -> None:
-    ctrl = evo1.control.handle()
+    ctrl = evo_ctrl()
     ctrl.dpad.none()
     ctrl.confirm(tapping=True)
 
@@ -81,7 +81,7 @@ class SeqATBCombat(SeqBase):
             return
         window.stats.erase()
         # Render header
-        window.stats.write_centered(line=1, text="Evoland 1 TAS")
+        window.stats.write_centered(line=1, text="Evoland TAS")
         window.stats.write_centered(line=2, text="ATB Combat")
         # Render party and enemy stats
         window.stats.addstr(Vec2(1, 4), "Party:")

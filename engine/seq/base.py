@@ -1,7 +1,10 @@
 # Libraries and Core Files
 import logging
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
+from engine.game import get_current_tilemap, get_zelda_memory
+from engine.pathing import TileMap
+from memory.zelda_base import ZeldaMemory
 from term.window import WindowLayout
 
 logger = logging.getLogger(__name__)
@@ -30,6 +33,12 @@ class SeqBase(object):
     # Should be overloaded
     def __repr__(self) -> str:
         return self.name
+
+    def zelda_mem(self) -> ZeldaMemory:
+        return get_zelda_memory()
+
+    def get_tilemap(self) -> Optional[TileMap]:
+        return get_current_tilemap()
 
 
 class SeqList(SeqBase):

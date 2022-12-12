@@ -1,0 +1,16 @@
+# Evo2
+
+Try to get started with Ghidra
+
+## TODO
+
+* Player stats
+* Actor/enemy zelda array
+* Gli, exp, level
+
+## Done
+
+* Player zelda position, rotation, cur_hp, IFrame
+* One enemy pos/rot (kinda the structure of the array)
+  * Array size?
+
