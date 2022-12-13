@@ -5,7 +5,13 @@ from typing import Optional
 from engine.mathlib import Facing, Vec2, dist, is_close
 from engine.move2d import SeqGrabChest, SeqMove2D, move_to
 from engine.seq import SeqList
-from evo1.atb import Encounter, FarmingGoal, SeqATBmove2D, calc_next_encounter
+from evo1.atb import (
+    Encounter,
+    EncounterID,
+    FarmingGoal,
+    SeqATBmove2D,
+    calc_next_encounter,
+)
 from evo1.move2d import SeqZoneTransition
 from maps.evo1 import GetAStar
 from memory.evo1 import MapID, get_memory, get_zelda_memory
@@ -50,9 +56,17 @@ class OverworldGliFarm(SeqATBmove2D):
         # TODO: Check if this logic is sound
         # The idea is that if both encounters are able to get us to the goal, prefer the easier one
         # Fewer enemies are generally easier
-        # Slime is generally easier than emuk
         # Doing the manip is generally worse
-        if next_gli >= gli_remaining and manip_gli >= gli_remaining:
+        if gli_remaining <= 0:
+            # Don't manip if we're already done farming
+            return False
+        elif (
+            self.next_enc.enc_id == EncounterID.EMUK
+            and self.manipulated_enc.enc_id == EncounterID.SLIME
+        ):
+            # Slime is generally faster than emuk
+            return True
+        elif next_gli >= gli_remaining and manip_gli >= gli_remaining:
             # If both encounters fill up the gli, prefer the fewer enemies
             return manip_gli < next_gli
         else:
