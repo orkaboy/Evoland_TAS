@@ -5,6 +5,7 @@
 * Improved on ATB combat detection and state tracking
 * TAS can now kill Kefka's Ghost on its own
 * A very minimal Evoland 2 TAS
+* Early game, prevented running headlong into enemies before free move
 
 # Older changelogs
 
