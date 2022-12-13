@@ -3,6 +3,7 @@ import datetime
 import logging
 import time
 
+from control import evo_ctrl
 from engine.mathlib import Vec2
 from engine.seq.base import SeqBase
 from term.window import WindowLayout
@@ -30,7 +31,8 @@ class SequencerEngine(object):
         self.root.reset()
 
     def pause(self) -> None:
-        # TODO: Should restore controls to neutral state
+        # Restore controls to neutral state
+        evo_ctrl().dpad.none()
         self.paused = True
         logger.info("------------------------")
         logger.info("  TAS EXECUTION PAUSED  ")
