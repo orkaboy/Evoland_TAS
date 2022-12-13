@@ -13,13 +13,9 @@
 * Pathfinding
   * Fix the pathfinding so it works for sub-tile movement (approximate, then inject real goal at last node)
   * Fix the pathfinding to reduce the number of nav nodes/checkpoints, and have the TAS beeline for objectives when possible (use rays to detect map collision)
-* Finish entire Edel1 segment
-  * Fix combat to more consistently survive the pre-free move section
-    * Predict where enemies will be/what areas are threatened
-    * Incorporate the waittimer to path more efficiently
-    * Use target value for enemies
 * Improve knights combat logic
   * Account for spaces that are invalid (not passable). Can use navmap here
+  * Prevent standing next to the knight while it's invulnerable
 * Cavern
   * Fix smarter ATB combat (run/heal)
 * Do more memory hunting
