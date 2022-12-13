@@ -1,3 +1,6 @@
+import contextlib
+
+from control import evo_ctrl
 from engine.combat import SeqMove2DClunkyCombat
 from engine.mathlib import Box2, Facing, Vec2
 from engine.move2d import SeqGrabChest, SeqGrabChestKeyItem, SeqMove2D, SeqMove2DConfirm
@@ -5,9 +8,29 @@ from engine.seq import SeqAttack, SeqList
 from evo1.combat import SeqKnight2D
 from evo1.move2d import SeqZoneTransition
 from maps.evo1 import GetAStar
-from memory.evo1 import MapID
+from memory.evo1 import Evo1GameEntity2D, MapID
 
 _edel_vale_astar = GetAStar(MapID.EDEL_VALE)
+
+
+class SeqGridLockedCombat(SeqMove2DClunkyCombat):
+    def should_move(self) -> bool:
+        # Check that we are not running into where the enemy is going
+        if self.step >= len(self.coords):
+            return True
+        target = self.coords[self.step]
+
+        mem = self.zelda_mem()
+        with contextlib.suppress(ReferenceError):
+            actor: Evo1GameEntity2D
+            for actor in mem.actors:
+                if not actor.is_enemy:
+                    continue
+                enemy_target = actor.target
+                if enemy_target is not None and enemy_target == target:
+                    evo_ctrl().dpad.none()
+                    return False
+        return True
 
 
 class Edel1(SeqList):
@@ -44,17 +67,18 @@ class Edel1(SeqList):
                 SeqAttack("Bush"),
                 SeqMove2D("Move to chest", coords=[Vec2(32, 55)]),
                 SeqGrabChest("Monsters", direction=Facing.RIGHT),
-                SeqMove2DClunkyCombat(
+                # From here, use grid locked combat until we get free move
+                SeqGridLockedCombat(
                     "Dodge enemies",
                     coords=_edel_vale_astar.calculate(
                         start=Vec2(32, 55), goal=Vec2(39, 52), free_move=False
                     ),
                 ),
-                # TODO: optionally grab? (Getting it is marginally slower, but more entertaining)
+                # TODO: optionally grab music? (Getting it is marginally slower, but more entertaining)
                 SeqGrabChest("Music", direction=Facing.RIGHT),
                 SeqAttack("Bush"),
                 SeqMove2D("Move past bush", coords=[Vec2(39, 50)]),
-                SeqMove2DClunkyCombat(
+                SeqGridLockedCombat(
                     "Move to chest",
                     coords=_edel_vale_astar.calculate(
                         start=Vec2(39, 50), goal=Vec2(44, 49), free_move=False
@@ -62,14 +86,14 @@ class Edel1(SeqList):
                     # TODO Optional, chest to the north, save (move to Vec2(39, 45), then open chest N)
                 ),
                 SeqGrabChest("16-bit", direction=Facing.DOWN),
-                # TODO: Some enemies here, will probably fail
-                SeqMove2DClunkyCombat(
+                SeqGridLockedCombat(
                     "Dodge enemies",
                     coords=_edel_vale_astar.calculate(
                         start=Vec2(44, 49), goal=Vec2(35, 33), free_move=False
                     ),
                 ),
                 SeqMove2D("Move to chest", coords=[Vec2(34, 33)]),
+                # We now have free move
                 SeqGrabChest("Free move", direction=Facing.LEFT),
                 # TODO: At this point we can move more freely, could implement a better move2d (or improve current)
                 SeqMove2DClunkyCombat(

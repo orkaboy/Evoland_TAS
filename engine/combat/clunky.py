@@ -13,8 +13,13 @@ class SeqMove2DClunkyCombat(SeqMove2D):
 
     DETECTION_DISTANCE = 1.5
 
+    # OVERRIDE
+    def should_move(self) -> bool:
+        return True
+
     def execute(self, delta: float) -> bool:
-        self._navigate_to_checkpoint()
+        if self.should_move():
+            self._navigate_to_checkpoint()
 
         target = (
             self.coords[self.step] if self.step < len(self.coords) else self.coords[-1]
