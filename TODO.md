@@ -1,33 +1,49 @@
 # TODO list
 
 * Next:
+  * Go ahead a bit in the run and do a rough routing of the later parts (Aogai, Sacred Grove, Sarudnahk). Verify using saves
+  * Display hp in zelda mode
+  * Clink attacks from just out of range, swinging in the air
   * Killing 3 skellies (knight-like logic, but in 3d, using modified rotation angle)
     * This logic can be applied to knights combat also
   * Skip past the first skeleton without fighting it
+  * Juke the two skellies before push block
   * Push armored enemy into pit
-  * Navigate the maze/fireballs
-  * Deathwarp? Some issues reloading currently
-  * Bossfight
+  * Navigate the maze (easy)/fireballs/wind traps
+  * Knight combat: Prevent standing next to the knight while it's invulnerable
+  * Start doing cutscene skips with menu-glitch
+  * Deathwarp? Some issues reloading currently (need to know which save slot we are using. For now, require use of slot 1?)
+  * Bossfight Dark Clink
 
-* Clean up main menu navigation code? This logic should be reusable for evo2 as well, shouldn't be in the "start" sequence of evo1
+* Do more memory hunting
+  * Dark Clink attack/vulnerable state
+  * ATB
+    * Cursor position in menues
+    * Potion/phoenix down usage (item amount/pos in menu)
+    * Logic for the current active turn (use turn gauge)
+  * Handle position/state of Zephyros golem, arms and core
+  * Handle detection of Zephyros fireballs/blue
+
+* Clean up main menu navigation code? Checking for if New game is available
 * Pathfinding
   * Fix the pathfinding so it works for sub-tile movement (approximate, then inject real goal at last node)
   * Fix the pathfinding to reduce the number of nav nodes/checkpoints, and have the TAS beeline for objectives when possible (use rays to detect map collision)
 * Improve knights combat logic
   * Account for spaces that are invalid (not passable). Can use navmap here
-  * Prevent standing next to the knight while it's invulnerable
 * Cavern
   * Fix smarter ATB combat (run/heal)
-* Do more memory hunting
-  * Cursor position in menues
-  * Logic for the current active turn (use turn gauge)
+    * Should take any low damage encounter and run before the exp chest
+  * Improve on encounter manip logic
+    * Read chest timers from memory and avoid moving just before they advance RNG
 * 3D Movement and combat
-  * Clink attacks from just out of range, swinging in the air
-  * Handle 3D enemy detection/tracking (Skellies/Mages)
   * Handle pathfinding past breakable objects (bushes/pots). Can do this manually, but it's less elegant
 * Routing
   * Route Noria mines
-  * Start doing cutscene skips with menu-glitch
+  * Route Aogai/Bomb skip
+  * Route Sacred Grove
+  * Route Sarudnahk
+  * Zephyros ATB fight
+  * Final boss fights
 
 * Terminal improvements
   * Experiment more with Textual/Rich

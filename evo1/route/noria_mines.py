@@ -113,13 +113,12 @@ class NoriaMines(SeqList):
                 # Get in position for chest
                 SeqMove2D("Move to chest", coords=[Vec2(41, 39.6)]),
                 SeqGrabChest("Skellies", direction=Facing.UP),
-                SeqMove2DClunkyCombat(
+                SeqMove2DConfirm(
                     "Move to trigger",
                     coords=_noria_astar.calculate(
-                        start=Vec2(41, 40), goal=Vec2(31, 38)
+                        start=Vec2(41, 40), goal=Vec2(30, 40)
                     ),
                 ),
-                SeqMove2DConfirm("Talking", coords=[Vec2(30, 40)], precision=0.4),
                 # TODO: Deal with mage enemy here?
                 SeqMove2DClunkyCombat(
                     "Trigger plate",
@@ -190,6 +189,7 @@ class NoriaMines(SeqList):
                     coords=_noria_astar.calculate(start=Vec2(11, 4), goal=Vec2(22, 15)),
                 ),
                 # TODO: Kill skellies (reuse knight combat) [19|20|21, 12]
+                # TODO: Can also skip past this entirely with glitch
                 SeqManualUntilClose("KILL SKELLIES", target=Vec2(22, 17)),
                 # TODO: Remove manual
                 SeqMove2DClunkyCombat(
@@ -248,6 +248,7 @@ class NoriaMines(SeqList):
                 SeqManualUntilClose("SOLVE PUZZLE", target=Vec2(61, 27)),
                 # TODO: Remove manual
                 # Get in position for chest
+                # TODO: Can ignore this key?
                 SeqMove2D("Move to chest", coords=[Vec2(61.4, 27)]),
                 SeqGrabChest("Key", direction=Facing.RIGHT),
                 SeqMove2DClunkyCombat(

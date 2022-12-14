@@ -14,9 +14,13 @@ from engine.seq import (
 from evo1.checkpoints import Checkpoints
 from evo1.observer import SeqObserver2D
 from evo1.route import (
+    Aogai1,
+    Aogai2,
+    BlackCitadel,
     CrystalCavern,
     Edel1,
     Edel2,
+    ManaTree,
     MeadowFight,
     NoriaMines,
     OverworldToAogai,
@@ -24,6 +28,8 @@ from evo1.route import (
     OverworldToMeadow,
     OverworldToNoria,
     PapurikaVillage,
+    SacredGrove,
+    Sarudnahk,
 )
 from memory.evo1 import load_memory, load_zelda_memory
 from term.window import WindowLayout
@@ -106,27 +112,19 @@ def perform_TAS(window: WindowLayout):
                             Edel2(),
                             OverworldToNoria(),
                             NoriaMines(),
-                            # TODO: Glitch around the 3D combat chest to avoid more overworld encounters (watch speedrun)
-                            # TODO: Navigate to Aogai village
                             OverworldToAogai(),
-                            # TODO: Have a long conversation with Sid
-                            # TODO: Get the text glitch from card player in Aogai
-                            # TODO: Get bombs by talking to everyone
+                            Aogai1(),
                             # TODO: Navigate through the overworld to the sacred grove
-                            # TODO: Solve puzzles in sacred grove (bow, lava mazes, dimension stones and time-warp crystals)
-                            # TODO: Fight skeletons and mages
-                            # TODO: Grab first part of amulet, then exit to the south
-                            # TODO: Navigate to Aogai, get heal bug (card player, healer) Exit north
-                            # TODO: Navigate to Sarudnahk, switch to Kaeris
-                            # TODO: Navigate through the Diablo section (Boid behavior?)
-                            # TODO: Fight the Undead King boss (abuse gravestone hitbox)
-                            # TODO: Navigate past enemies in the Diablo section and grab the second part of the amulet
-                            # TODO: Navigate to the black citadel and fight Zephyros. Need to track health until he does his super move
-                            # TODO: Summon Babamut and chase away Zephyros
+                            SacredGrove(),
+                            # TODO: Navigate to Aogai
+                            Aogai2(),
+                            # TODO: Navigate to Sarudnahk
+                            Sarudnahk(),
+                            # TODO: Navigate to the black citadel
+                            BlackCitadel(),
                             # TODO: Get airship in Aogai
-                            # TODO: Go to the Mana Tree and fight Zephyros
-                            # TODO: Fight final boss (Golem form)
-                            # TODO: Fight final boss (Ganon form)
+                            # TODO: Go to the Mana Tree
+                            ManaTree(),
                             # TODO: End of game! Watch credits.
                         ],
                     ),
