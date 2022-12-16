@@ -54,7 +54,7 @@ class CursesWindow(SubWindow):
 
 
 class CursesLayout(WindowLayout):
-    LOGGER_H = 25
+    LOGGER_H = 20
     STATS_W = 40
     MAP_W = 30
 

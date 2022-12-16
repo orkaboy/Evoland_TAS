@@ -1,17 +1,20 @@
 import contextlib
+import itertools
 import logging
+import math
 from enum import Enum, auto
 from typing import Optional
 
+from control import evo_ctrl
 from engine.mathlib import Vec2
 from engine.seq import SeqBase, SeqList
-from memory.evo1 import get_zelda_memory, load_zelda_memory
+from memory.evo1 import get_zelda_memory
 from memory.evo1.zephy import (
     ZephyrosGanonMemory,
     ZephyrosGolemMemory,
     ZephyrosPlayerMemory,
 )
-from term.window import WindowLayout
+from term.window import SubWindow, WindowLayout
 
 logger = logging.getLogger(__name__)
 
@@ -21,8 +24,7 @@ class ManaTree(SeqList):
         super().__init__(
             name="Mana Tree",
             children=[
-                # TODO: Fight final boss (Golem form)
-                # TODO: Fight final boss (Ganon form)
+                SeqZephyrosFight(),
             ],
         )
 
@@ -67,12 +69,13 @@ class SeqZephyrosObserver(SeqBase):
         GOLEM_ARMLESS_FIGHT = auto()
         GANON_WAIT = auto()
         GANON_FIGHT = auto()
+        GANON_DEATH = auto()
         ENDING = auto()
 
-    def __init__(self):
+    def __init__(self, name="Zephyros Observer", func=None):
         super().__init__(
-            name="Zephyros Observer",
-            func=load_zelda_memory,
+            name=name,
+            func=func,
         )
         self.state = self.FightState.NOT_STARTED
         self.golem: Optional[ZephyrosGolemEntity] = None
@@ -111,6 +114,7 @@ class SeqZephyrosObserver(SeqBase):
 
     _GOLEM_NUM_DIALOGS = 8
     _GANON_NUM_DIALOGS = 3
+    _ENDING_NUM_DIALOGS = 4
     _GOLEM_CORE_HP = 4
     _GANON_HP = 4
 
@@ -118,7 +122,7 @@ class SeqZephyrosObserver(SeqBase):
         mem = get_zelda_memory()
 
         match self.state:
-            case self.FightState.NOT_STARTED | self.FightState.ENDING:
+            case self.FightState.NOT_STARTED | self.FightState.GANON_DEATH | self.FightState.ENDING:
                 self.player = None
             case _:
                 self.player = mem.zephy_player
@@ -190,14 +194,61 @@ class SeqZephyrosObserver(SeqBase):
                 case self.FightState.GANON_FIGHT:
                     self.ganon = ZephyrosGanonEntity(mem.zephy_ganon)
                     if self.ganon.done:
-                        self.state = self.FightState.ENDING
+                        self.state = self.FightState.GANON_DEATH
+                        self.dialog_cnt = 0
                         logger.info("Zephyros Ganon defeated.")
 
+        if self.state == self.FightState.GANON_DEATH:
+            dialog = mem.zephy_dialog
+            if dialog != self.dialog:
+                self.dialog = dialog
+                if dialog != 0:
+                    self.dialog_cnt += 1
+                # If we have gotten enough text and dialog is 0, the fight is on
+                if self.dialog_cnt >= self._ENDING_NUM_DIALOGS and dialog == 0:
+                    self.state = self.FightState.ENDING
+                    logger.info("Final input.")
+
+    # Override for TAS logic
     def execute(self, delta: float) -> bool:
         super().execute(delta=delta)
         self._update_state()
+        return self.done()
 
-        return False  # Never finishes
+    # Map starts at line 2 and fills the rest of the map window
+    _map_start_y = 2
+    _Y_SCALE = 2
+
+    _ARENA_OUTER_RADIUS = 15
+    _ARENA_INNER_RADIUS = 13
+    _GOLEM_SIZE = 7
+
+    # (0,0) is at center of map. Y-axis increases going down the screen.
+    def _print_ch_in_map(self, map_win: SubWindow, pos: Vec2, ch: str):
+        size = map_win.size
+        centerx, centery = (
+            size.x / 2,
+            self._map_start_y + (size.y - self._map_start_y) / 2,
+        )
+        draw_x, draw_y = int(centerx + pos.x), int(centery + (pos.y / self._Y_SCALE))
+        with contextlib.suppress(Exception):
+            if draw_x in range(size.x) and draw_y in range(self._map_start_y, size.y):
+                map_win.addch(Vec2(draw_x, draw_y), ch)
+
+    def _render_map(self, map_win: SubWindow) -> None:
+        map_win.write_centered(0, "Mana Tree")
+        for y, x in itertools.product(
+            range(
+                self._Y_SCALE * -self._ARENA_OUTER_RADIUS,
+                self._Y_SCALE * self._ARENA_OUTER_RADIUS,
+                self._Y_SCALE,
+            ),
+            range(-self._ARENA_OUTER_RADIUS, self._ARENA_OUTER_RADIUS),
+        ):
+            draw_pos = Vec2(x, y)
+            norm = draw_pos.norm
+            if norm >= self._ARENA_INNER_RADIUS and norm <= self._ARENA_OUTER_RADIUS:
+                self._print_ch_in_map(map_win=map_win, pos=draw_pos, ch=".")
 
     def _render_player(self, window: WindowLayout) -> None:
         window.stats.addstr(pos=Vec2(1, 4), text=f"Player HP: {self.player.hp}")
@@ -205,6 +256,7 @@ class SeqZephyrosObserver(SeqBase):
             pos=Vec2(2, 5),
             text=f"{self.player.polar}",
         )
+        self._print_ch_in_map(map_win=window.map, pos=self.player.pos, ch="@")
 
     def _render_golem(self, window: WindowLayout) -> None:
         window.stats.addstr(
@@ -217,8 +269,27 @@ class SeqZephyrosObserver(SeqBase):
         window.stats.addstr(pos=Vec2(1, 10), text=f"Armor: {self.golem.hp_armor}")
         window.stats.addstr(pos=Vec2(1, 11), text=f"Core: {self.golem.hp_core}")
 
+        for y, x in itertools.product(
+            range(
+                self._Y_SCALE * -self._GOLEM_SIZE,
+                self._Y_SCALE * self._GOLEM_SIZE,
+                self._Y_SCALE,
+            ),
+            range(-self._GOLEM_SIZE, self._GOLEM_SIZE),
+        ):
+            boss_fragment = Vec2(x, y)
+            if boss_fragment.norm <= self._GOLEM_SIZE:
+                self._print_ch_in_map(map_win=window.map, pos=boss_fragment, ch="!")
+
+        direction_indicator = Vec2(
+            math.cos(self.golem.rotation) * (self._GOLEM_SIZE + 2),
+            math.sin(self.golem.rotation) * (self._GOLEM_SIZE + 2),
+        )
+        self._print_ch_in_map(map_win=window.map, pos=direction_indicator, ch="+")
+
     def _render_ganon(self, window: WindowLayout) -> None:
         zephy_pos = self.ganon.pos
+        self._print_ch_in_map(map_win=window.map, pos=zephy_pos, ch="!")
         window.stats.addstr(pos=Vec2(1, 7), text=f"Zephy pos: {zephy_pos}")
         window.stats.addstr(pos=Vec2(1, 8), text=f"Zephy HP: {self.ganon.hp}")
         window.stats.addstr(pos=Vec2(1, 10), text="Projectiles:")
@@ -228,10 +299,14 @@ class SeqZephyrosObserver(SeqBase):
                 y = i + 11
                 if y >= 15:
                     break
-                blue = "blue" if proj.is_blue else "red"
+                blue = proj.is_blue
+                blue_str = "blue" if blue else "red"
                 countered = ", counter!" if proj.is_countered else ""
                 window.stats.addstr(
-                    pos=Vec2(2, y), text=f"{proj.pos}, {blue}{countered}"
+                    pos=Vec2(2, y), text=f"{proj.pos}, {blue_str}{countered}"
+                )
+                self._print_ch_in_map(
+                    map_win=window.map, pos=proj.pos, ch="O" if blue else "*"
                 )
 
     def render(self, window: WindowLayout) -> None:
@@ -240,6 +315,7 @@ class SeqZephyrosObserver(SeqBase):
 
         window.stats.write_centered(line=1, text="Evoland TAS")
         window.stats.write_centered(line=2, text="Zephyros Battle")
+        self._render_map(map_win=window.map)
 
         if self.player is not None:
             self._render_player(window=window)
@@ -251,5 +327,57 @@ class SeqZephyrosObserver(SeqBase):
         elif self.state == self.FightState.ENDING:
             window.stats.write_centered(line=5, text="Good Game!")
 
+    def done(self) -> bool:
+        return self.state == self.FightState.ENDING
+
     def __repr__(self) -> str:
-        return f"Zephyros: {self.state.name}"
+        return f"Zephyros final battle: {self.state.name}"
+
+
+class SeqZephyrosFight(SeqZephyrosObserver):
+    def __init__(self):
+        super().__init__(
+            name="Zephyros Final Battle",
+            func=None,
+        )
+
+    def execute(self, delta: float) -> bool:
+        # Updates the state of the battle
+        super().execute(delta)
+        ctrl = evo_ctrl()
+
+        match self.state:
+            case self.FightState.GOLEM_FIGHT:
+                self.golem_fight()
+            case self.FightState.GOLEM_ARMLESS_FIGHT:
+                self.golem_armless_fight()
+            case self.FightState.GANON_FIGHT:
+                self.ganon_fight()
+            case _:
+                # Tap to skip cutcenes
+                ctrl.confirm(tapping=True)
+        return self.done()
+
+    def golem_fight(self) -> None:
+        # TODO: Track boss attack/wait state
+        # TODO: Juke boss to move to correct side
+        # TODO: Close in and attack the arm as it comes down
+        # TODO: Swap to attacking other side until both arms are done
+        pass
+
+    def golem_armless_fight(self) -> None:
+        # TODO: At start of phase, move behind golem to avoid getting hit
+        # TODO: Calculate where the golem will end its rotation
+        # TODO: Avoid getting hit while the golem attacks
+        # TODO: Attack the armor (verify hit by checking armor hp)
+        # TODO: Identify the core position/trajectory
+        # TODO: Attack the core
+        pass
+
+    def ganon_fight(self) -> None:
+        # TODO: Align against closest position opposite to Zephyros
+        # TODO: Face towards Zephyros
+        # TODO: Detect when projectiles spawn and track them
+        # TODO: If red, dodge? Or don't bother?
+        # TODO: If blue, counter when the projectile is in range.
+        pass

@@ -67,7 +67,7 @@ def observer(window: WindowLayout):
 def zephy_observer(window: WindowLayout):
     set_game_version(GameVersion.EVOLAND_1)
 
-    obs = SeqZephyrosObserver()
+    obs = SeqZephyrosObserver(func=load_zelda_memory)
 
     engine = SequencerEngine(
         window=window,

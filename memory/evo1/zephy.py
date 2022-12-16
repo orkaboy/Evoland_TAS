@@ -3,6 +3,8 @@ from memory.core import LocProcess
 
 
 class ZephyrosPlayerMemory:
+    """Tracks the player stats for the Zephyros fight."""
+
     _X_PTR = [0x8]  # double
     _Y_PTR = [0x10]  # double
     _POLAR_ANGLE_PTR = [0x20]  # double
@@ -51,6 +53,7 @@ class ZephyrosPlayerMemory:
 
     @property
     def polar(self) -> Polar:
+        """Return the position of the player in polar coordinates."""
         return Polar(
             r=self.process.read_double(self.polar_dist_ptr),
             theta=self.process.read_double(self.polar_angle_ptr),
@@ -62,6 +65,8 @@ class ZephyrosPlayerMemory:
 
 
 class ZephyrosGolemMemory:
+    """Tracks the state of the Zephyros Golem fight."""
+
     _ROTATION_PTR = [0x20]  # double (polar rotation)
 
     _ANIM_TIMER_PTR = [
@@ -79,7 +84,9 @@ class ZephyrosGolemMemory:
         self.process = process
         self.base_ptr = base_ptr
         self.armless = armless
+        self.setup_pointers()
 
+    def setup_pointers(self) -> None:
         self.anim_timer_ptr = self.process.get_pointer(
             self.base_ptr, offsets=self._ANIM_TIMER_PTR
         )
@@ -89,7 +96,7 @@ class ZephyrosGolemMemory:
         self.facing_ptr = self.process.get_pointer(
             self.base_ptr, offsets=self._FACING_PTR
         )
-        if armless:
+        if self.armless:
             self.hp_armor_ptr = self.process.get_pointer(
                 self.base_ptr, offsets=self._HP_BP0_PTR
             )
@@ -156,7 +163,9 @@ class ZephyrosProjectile:
     def __init__(self, process: LocProcess, base_ptr: int) -> None:
         self.process = process
         self.base_ptr = base_ptr
+        self.setup_pointers()
 
+    def setup_pointers(self) -> None:
         self.id_ptr = self.process.get_pointer(self.base_ptr, offsets=self._ID_PTR)
         self.x_ptr = self.process.get_pointer(self.base_ptr, offsets=self._X_PTR)
         self.y_ptr = self.process.get_pointer(self.base_ptr, offsets=self._Y_PTR)
@@ -202,6 +211,8 @@ class ZephyrosProjectile:
 
 
 class ZephyrosGanonMemory:
+    """Tracks the state of the Zephyros Ganon fight, including projectiles fired."""
+
     _X_PTR = [0x30]
     _Y_PTR = [0x38]
     _Z_PTR = [0x40]
