@@ -5,7 +5,11 @@ from typing import Optional
 from engine.mathlib import Vec2
 from engine.seq import SeqBase, SeqList
 from memory.evo1 import get_zelda_memory, load_zelda_memory
-from memory.evo1.zephy import ZephyrosGanonMemory, ZephyrosGolemMemory
+from memory.evo1.zephy import (
+    ZephyrosGanonMemory,
+    ZephyrosGolemMemory,
+    ZephyrosPlayerMemory,
+)
 from term.window import WindowLayout
 
 logger = logging.getLogger(__name__)
@@ -81,6 +85,7 @@ class SeqZephyrosObserver(SeqBase):
         self.state = self.FightState.NOT_STARTED
         self.golem: Optional[ZephyrosGolemEntity] = None
         self.ganon: Optional[ZephyrosGanonEntity] = None
+        self.player: Optional[ZephyrosPlayerMemory] = None
         self.dialog: int = 0
         self.dialog_cnt: int = 0
 
@@ -88,6 +93,7 @@ class SeqZephyrosObserver(SeqBase):
         self.state = self.FightState.NOT_STARTED
         self.golem: Optional[ZephyrosGolemEntity] = None
         self.ganon: Optional[ZephyrosGanonEntity] = None
+        self.player: Optional[ZephyrosPlayerMemory] = None
         self.dialog: int = 0
         self.dialog_cnt: int = 0
 
@@ -119,6 +125,13 @@ class SeqZephyrosObserver(SeqBase):
 
     def _update_state(self) -> None:
         mem = get_zelda_memory()
+
+        match self.state:
+            case self.FightState.NOT_STARTED | self.FightState.ENDING:
+                self.player = None
+            case _:
+                self.player = mem.zephy_player
+
         # Handle initial cutscene part of the fight
         if self._start_state():
             match self.state:
@@ -198,6 +211,13 @@ class SeqZephyrosObserver(SeqBase):
 
         return False  # Never finishes
 
+    def _render_player(self, window: WindowLayout) -> None:
+        window.stats.addstr(pos=Vec2(1, 4), text=f"Player HP: {self.player.hp}")
+        window.stats.addstr(
+            pos=Vec2(1, 5),
+            text=f" Polar: r={self.player.polar_dist:.2f} theta={self.player.polar_angle:.3f}",
+        )
+
     def render(self, window: WindowLayout) -> None:
         window.stats.erase()
         window.map.erase()
@@ -205,24 +225,29 @@ class SeqZephyrosObserver(SeqBase):
         window.stats.write_centered(line=1, text="Evoland TAS")
         window.stats.write_centered(line=2, text="Zephyros Battle")
 
+        if self.player is not None:
+            self._render_player(window=window)
+
         if self._golem_state():
             # TODO: Render player pos, render golem pose
-            window.stats.addstr(pos=Vec2(1, 4), text=f"Rotation: {self.golem.rotation}")
+            window.stats.addstr(
+                pos=Vec2(1, 7), text=f"Golem theta={self.golem.rotation:.3f}"
+            )
 
             window.stats.addstr(
-                pos=Vec2(1, 6), text=f"Left arm: {self.golem.hp_left_arm}"
+                pos=Vec2(1, 8), text=f"Left arm: {self.golem.hp_left_arm}"
             )
             window.stats.addstr(
-                pos=Vec2(1, 7), text=f"Right arm: {self.golem.hp_right_arm}"
+                pos=Vec2(1, 9), text=f"Right arm: {self.golem.hp_right_arm}"
             )
-            window.stats.addstr(pos=Vec2(1, 8), text=f"Armor: {self.golem.hp_armor}")
-            window.stats.addstr(pos=Vec2(1, 9), text=f"Core: {self.golem.hp_core}")
+            window.stats.addstr(pos=Vec2(1, 10), text=f"Armor: {self.golem.hp_armor}")
+            window.stats.addstr(pos=Vec2(1, 11), text=f"Core: {self.golem.hp_core}")
         elif self._ganon_state():
             # TODO: Render player pos, render zephy pos, render zephy hp
             zephy_pos = self.ganon.pos
-            window.stats.addstr(pos=Vec2(1, 4), text=f"Zephy pos: {zephy_pos}")
+            window.stats.addstr(pos=Vec2(1, 7), text=f"Zephy pos: {zephy_pos}")
             if self.state != self.FightState.GANON_WAIT:
-                window.stats.addstr(pos=Vec2(1, 6), text=f"HP: {self.ganon.hp}")
+                window.stats.addstr(pos=Vec2(1, 8), text=f"HP: {self.ganon.hp}")
         elif self.state == self.FightState.ENDING:
             window.stats.write_centered(line=5, text="Good Game!")
 

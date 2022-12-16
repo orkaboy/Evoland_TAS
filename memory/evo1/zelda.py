@@ -5,7 +5,11 @@ from typing import Optional, Tuple
 
 from engine.mathlib import Facing, Vec2
 from memory.core import LIBHL_OFFSET, LocProcess
-from memory.evo1.zephy import ZephyrosGanonMemory, ZephyrosGolemMemory
+from memory.evo1.zephy import (
+    ZephyrosGanonMemory,
+    ZephyrosGolemMemory,
+    ZephyrosPlayerMemory,
+)
 from memory.zelda_base import GameEntity2D, ZeldaMemory
 
 logger = logging.getLogger(__name__)
@@ -208,6 +212,7 @@ class Evo1ZeldaMemory(ZeldaMemory):
 
     # Nested
     _ZEPHY_FIGHT_PTR = [0x88]  # Will be zero when not in the fight
+    _ZEPHY_PLAYER_PTR = [0x20]
     _ZEPHY_PTR = [0x24]
     _ZEPHY_DIALOG_PTR = [0x4]
 
@@ -221,6 +226,9 @@ class Evo1ZeldaMemory(ZeldaMemory):
             self.base_offset, self._ZEPHY_FIGHT_PTR
         )
         if self.in_zephy_fight:
+            self.zephy_player_ptr = self.process.get_pointer(
+                self.zephy_fight_ptr, self._ZEPHY_PLAYER_PTR
+            )
             self.zephy_ptr = self.process.get_pointer(
                 self.zephy_fight_ptr, self._ZEPHY_PTR
             )
@@ -254,6 +262,13 @@ class Evo1ZeldaMemory(ZeldaMemory):
     def in_zephy_fight(self) -> bool:
         zephy_fight = self.process.read_u32(self.zephy_fight_ptr)
         return zephy_fight != 0
+
+    @property
+    def zephy_player(self) -> Optional[ZephyrosPlayerMemory]:
+        player = self.process.read_u32(self.zephy_player_ptr)
+        if player != 0:
+            return ZephyrosPlayerMemory(self.process, self.zephy_player_ptr)
+        return None
 
     def zephy_golem(self, armless: bool) -> Optional[ZephyrosGolemMemory]:
         zephy = self.process.read_u32(self.zephy_ptr)

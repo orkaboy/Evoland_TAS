@@ -2,6 +2,66 @@ from engine.mathlib import Vec2
 from memory.core import LocProcess
 
 
+class ZephyrosPlayerMemory:
+    _X_PTR = [0x8]  # double
+    _Y_PTR = [0x10]  # double
+    _POLAR_ANGLE_PTR = [0x20]  # double
+    _POLAR_DIST_PTR = [0x28]  # double
+    _MOVING_PTR = [0x38]  # int (0/1)
+    _HP_PTR = [0x48]  # int (0-12/16)
+    _ROTATION_PTR = [0x90]  # double (abs rotation of player in world space)
+
+    def __init__(self, process: LocProcess, base_ptr: int) -> None:
+        self.process = process
+        self.base_ptr = base_ptr
+
+        self.setup_pointers()
+
+    def setup_pointers(self) -> None:
+        self.x_ptr = self.process.get_pointer(self.base_ptr, offsets=self._X_PTR)
+        self.y_ptr = self.process.get_pointer(self.base_ptr, offsets=self._Y_PTR)
+        self.polar_angle_ptr = self.process.get_pointer(
+            self.base_ptr, offsets=self._POLAR_ANGLE_PTR
+        )
+        self.polar_dist_ptr = self.process.get_pointer(
+            self.base_ptr, offsets=self._POLAR_DIST_PTR
+        )
+        self.moving_ptr = self.process.get_pointer(
+            self.base_ptr, offsets=self._MOVING_PTR
+        )
+        self.hp_ptr = self.process.get_pointer(self.base_ptr, offsets=self._HP_PTR)
+        self.rotation_ptr = self.process.get_pointer(
+            self.base_ptr, offsets=self._ROTATION_PTR
+        )
+
+    @property
+    def pos(self) -> Vec2:
+        return Vec2(
+            self.process.read_double(self.x_ptr),
+            self.process.read_double(self.y_ptr),
+        )
+
+    @property
+    def rotation(self) -> float:
+        return self.process.read_double(self.rotation_ptr)
+
+    @property
+    def hp(self) -> int:
+        return self.process.read_u32(self.hp_ptr)
+
+    @property
+    def polar_angle(self) -> float:
+        return self.process.read_double(self.polar_angle_ptr)
+
+    @property
+    def polar_dist(self) -> float:
+        return self.process.read_double(self.polar_dist_ptr)
+
+    @property
+    def moving(self) -> bool:
+        return self.process.read_u32(self.moving_ptr) == 1
+
+
 class ZephyrosGolemMemory:
     _ROTATION_PTR = [0x20]  # double
 
