@@ -32,19 +32,27 @@ class ManaTree(SeqList):
 class ZephyrosGolemEntity:
     def __init__(self, mem: ZephyrosGolemMemory) -> None:
         self.rotation = mem.rotation
-        self.hp_left_arm = mem.hp_left_arm
-        self.hp_right_arm = mem.hp_right_arm
-        self.hp_armor = mem.hp_armor
-        self.hp_core = mem.hp_core
+        self.left_arm = mem.left
+        self.right_arm = mem.right
+        self.armor = mem.armor
+        self.core = mem.core
         self.anim_timer = mem.anim_timer
 
     @property
     def armless(self) -> bool:
-        return self.hp_left_arm == 0 and self.hp_right_arm == 0
+        return self.hp_left == 0 and self.hp_right == 0
+
+    @property
+    def hp_left(self) -> int:
+        return 0 if self.left_arm is None else self.left_arm.hp
+
+    @property
+    def hp_right(self) -> int:
+        return 0 if self.right_arm is None else self.right_arm.hp
 
     @property
     def done(self) -> bool:
-        return self.armless and self.hp_core == 0
+        return self.armless and self.core.hp == 0
 
 
 class ZephyrosGanonEntity:
@@ -168,7 +176,7 @@ class SeqZephyrosObserver(SeqBase):
                         logger.info("Zephyros Golem arms defeated.")
                         self.state = self.FightState.GOLEM_ARMLESS_SETUP
                 case self.FightState.GOLEM_ARMLESS_SETUP:
-                    if self.golem.hp_core == self._GOLEM_CORE_HP:
+                    if self.golem.core.hp == self._GOLEM_CORE_HP:
                         self.state = self.FightState.GOLEM_ARMLESS_FIGHT
                         logger.info("Zephyros Golem armless phase.")
                 case self.FightState.GOLEM_ARMLESS_FIGHT:
@@ -262,12 +270,10 @@ class SeqZephyrosObserver(SeqBase):
         window.stats.addstr(
             pos=Vec2(1, 7), text=f"Golem theta={self.golem.rotation:.3f}"
         )
-        window.stats.addstr(pos=Vec2(1, 8), text=f"Left arm: {self.golem.hp_left_arm}")
-        window.stats.addstr(
-            pos=Vec2(1, 9), text=f"Right arm: {self.golem.hp_right_arm}"
-        )
-        window.stats.addstr(pos=Vec2(1, 10), text=f"Armor: {self.golem.hp_armor}")
-        window.stats.addstr(pos=Vec2(1, 11), text=f"Core: {self.golem.hp_core}")
+        window.stats.addstr(pos=Vec2(1, 8), text=f"Left arm: {self.golem.hp_left}")
+        window.stats.addstr(pos=Vec2(1, 9), text=f"Right arm: {self.golem.hp_right}")
+        window.stats.addstr(pos=Vec2(1, 10), text=f"Armor: {self.golem.armor.hp}")
+        window.stats.addstr(pos=Vec2(1, 11), text=f"Core: {self.golem.core.hp}")
 
         for y, x in itertools.product(
             range(
@@ -286,6 +292,8 @@ class SeqZephyrosObserver(SeqBase):
             math.sin(self.golem.rotation) * (self._GOLEM_SIZE + 2),
         )
         self._print_ch_in_map(map_win=window.map, pos=direction_indicator, ch="+")
+        # Draw core weak point
+        self._print_ch_in_map(map_win=window.map, pos=self.golem.core.pos, ch="O")
 
     def _render_ganon(self, window: WindowLayout) -> None:
         zephy_pos = self.ganon.pos

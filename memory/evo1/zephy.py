@@ -64,6 +64,35 @@ class ZephyrosPlayerMemory:
         return self.process.read_u32(self.moving_ptr) == 1
 
 
+class ZephyrosGolemBodypart:
+    _X_PTR = [0x8, 0x18]  # double
+    _Y_PTR = [0x8, 0x20]  # double
+    _Z_PTR = [0x8, 0x28]  # double
+    _HP_PTR = [0x18]
+
+    def __init__(self, process: LocProcess, base_ptr: int) -> None:
+        self.process = process
+        self.base_ptr = base_ptr
+        self.setup_pointers()
+
+    def setup_pointers(self) -> None:
+        self.x_ptr = self.process.get_pointer(self.base_ptr, offsets=self._X_PTR)
+        self.y_ptr = self.process.get_pointer(self.base_ptr, offsets=self._Y_PTR)
+        # self.z_ptr = self.process.get_pointer(self.base_ptr, offsets=self._Z_PTR)
+        self.hp_ptr = self.process.get_pointer(self.base_ptr, offsets=self._HP_PTR)
+
+    @property
+    def pos(self) -> Vec2:
+        return Vec2(
+            self.process.read_double(self.x_ptr),
+            self.process.read_double(self.y_ptr),
+        )
+
+    @property
+    def hp(self) -> int:
+        return self.process.read_u32(self.hp_ptr)
+
+
 class ZephyrosGolemMemory:
     """Tracks the state of the Zephyros Golem fight."""
 
@@ -75,10 +104,10 @@ class ZephyrosGolemMemory:
 
     _FACING_PTR = [0xB8]  # double (rotation from golem perspective)
 
-    _HP_BP0_PTR = [0x48, 0x8, 0x10, 0x18]
-    _HP_BP1_PTR = [0x48, 0x8, 0x14, 0x18]
-    _HP_BP2_PTR = [0x48, 0x8, 0x18, 0x18]
-    _HP_BP3_PTR = [0x48, 0x8, 0x1C, 0x18]
+    _BP0_PTR = [0x48, 0x8, 0x10]
+    _BP1_PTR = [0x48, 0x8, 0x14]
+    _BP2_PTR = [0x48, 0x8, 0x18]
+    _BP3_PTR = [0x48, 0x8, 0x1C]
 
     def __init__(self, process: LocProcess, base_ptr: int, armless: bool) -> None:
         self.process = process
@@ -97,28 +126,34 @@ class ZephyrosGolemMemory:
             self.base_ptr, offsets=self._FACING_PTR
         )
         if self.armless:
-            self.hp_armor_ptr = self.process.get_pointer(
-                self.base_ptr, offsets=self._HP_BP0_PTR
+            self.armor_ptr = self.process.get_pointer(
+                self.base_ptr, offsets=self._BP0_PTR
             )
-            self.hp_core_ptr = self.process.get_pointer(
-                self.base_ptr, offsets=self._HP_BP1_PTR
+            self.core_ptr = self.process.get_pointer(
+                self.base_ptr, offsets=self._BP1_PTR
             )
+            self.left = None
+            self.right = None
         else:
             # NOTE: These will be invalid and overwritten with something else
             # after the golem phase ends. Don't use once all 3 hp bars are exhausted
-            self.hp_left_arm_ptr = self.process.get_pointer(
-                self.base_ptr, offsets=self._HP_BP0_PTR
+            self.left_arm_ptr = self.process.get_pointer(
+                self.base_ptr, offsets=self._BP0_PTR
             )
-            self.hp_right_arm_ptr = self.process.get_pointer(
-                self.base_ptr, offsets=self._HP_BP1_PTR
+            self.right_arm_ptr = self.process.get_pointer(
+                self.base_ptr, offsets=self._BP1_PTR
             )
+            self.left = ZephyrosGolemBodypart(self.process, self.left_arm_ptr)
+            self.right = ZephyrosGolemBodypart(self.process, self.right_arm_ptr)
             # NOTE: These are adjusted when the first phase ends, they are no longer valid
-            self.hp_armor_ptr = self.process.get_pointer(
-                self.base_ptr, offsets=self._HP_BP2_PTR
+            self.armor_ptr = self.process.get_pointer(
+                self.base_ptr, offsets=self._BP2_PTR
             )
-            self.hp_core_ptr = self.process.get_pointer(
-                self.base_ptr, offsets=self._HP_BP3_PTR
+            self.core_ptr = self.process.get_pointer(
+                self.base_ptr, offsets=self._BP3_PTR
             )
+        self.armor = ZephyrosGolemBodypart(self.process, self.armor_ptr)
+        self.core = ZephyrosGolemBodypart(self.process, self.core_ptr)
 
     @property
     def rotation(self) -> float:
@@ -131,22 +166,6 @@ class ZephyrosGolemMemory:
     @property
     def anim_timer(self) -> float:
         return self.process.read_double(self.anim_timer_ptr)
-
-    @property
-    def hp_left_arm(self) -> int:
-        return 0 if self.armless else self.process.read_u32(self.hp_left_arm_ptr)
-
-    @property
-    def hp_right_arm(self) -> int:
-        return 0 if self.armless else self.process.read_u32(self.hp_right_arm_ptr)
-
-    @property
-    def hp_armor(self) -> int:
-        return self.process.read_u32(self.hp_armor_ptr)
-
-    @property
-    def hp_core(self) -> int:
-        return self.process.read_u32(self.hp_core_ptr)
 
 
 class ZephyrosProjectile:
