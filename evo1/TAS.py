@@ -31,6 +31,7 @@ from evo1.route import (
     SacredGrove,
     Sarudnahk,
 )
+from evo1.route.mana_tree import SeqZephyrosObserver
 from memory.evo1 import load_memory, load_zelda_memory
 from term.window import WindowLayout
 
@@ -46,11 +47,31 @@ def setup_memory() -> None:
 def observer(window: WindowLayout):
     set_game_version(GameVersion.EVOLAND_1)
 
-    observer = SeqObserver2D("Observer", func=setup_memory)
+    obs = SeqObserver2D("Observer", func=setup_memory)
 
     engine = SequencerEngine(
         window=window,
-        root=observer,
+        root=obs,
+    )
+
+    window.main.erase()
+    window.stats.erase()
+    window.update()
+
+    while engine.active():
+        engine.run()
+
+    wait_seconds(3)
+
+
+def zephy_observer(window: WindowLayout):
+    set_game_version(GameVersion.EVOLAND_1)
+
+    obs = SeqZephyrosObserver()
+
+    engine = SequencerEngine(
+        window=window,
+        root=obs,
     )
 
     window.main.erase()

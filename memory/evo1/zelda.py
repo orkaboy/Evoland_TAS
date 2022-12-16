@@ -5,6 +5,7 @@ from typing import Optional, Tuple
 
 from engine.mathlib import Facing, Vec2
 from memory.core import LIBHL_OFFSET, LocProcess
+from memory.evo1.zephy import ZephyrosGanonMemory, ZephyrosGolemMemory
 from memory.zelda_base import GameEntity2D, ZeldaMemory
 
 logger = logging.getLogger(__name__)
@@ -205,11 +206,23 @@ class Evo1ZeldaMemory(ZeldaMemory):
     _ACTOR_PTR_SIZE = 4
     _ACTOR_BASE_ADDR = 0x10
 
+    # Nested
+    _ZEPHY_FIGHT_PTR = [0x88]  # Will be zero when not in the fight
+    _ZEPHY_PTR = [0x24]
+
     def __init__(self):
         super().__init__()
         self.base_offset = self.process.get_pointer(
             self.base_addr + LIBHL_OFFSET, offsets=self._ZELDA_PTR
         )
+
+        self.zephy_fight_ptr = self.process.get_pointer(
+            self.base_offset, self._ZEPHY_FIGHT_PTR
+        )
+        if self.in_zephy_fight:
+            self.zephy_ptr = self.process.get_pointer(
+                self.zephy_fight_ptr, self._ZEPHY_PTR
+            )
 
         self._init_player()
         self._init_actors()
@@ -232,6 +245,25 @@ class Evo1ZeldaMemory(ZeldaMemory):
             actor_offset = self._ACTOR_BASE_ADDR + i * self._ACTOR_PTR_SIZE
             actor_ptr = self.process.get_pointer(actor_arr_offset, [actor_offset])
             self.actors.append(Evo1GameEntity2D(self.process, actor_ptr))
+
+    @property
+    def in_zephy_fight(self) -> bool:
+        zephy_fight = self.process.read_u32(self.zephy_fight_ptr)
+        return zephy_fight != 0
+
+    @property
+    def zephy_golem(self) -> Optional[ZephyrosGolemMemory]:
+        zephy = self.process.read_u32(self.zephy_ptr)
+        if zephy != 0:
+            return ZephyrosGolemMemory(self.process, self.zephy_ptr)
+        return None
+
+    @property
+    def zephy_ganon(self) -> Optional[ZephyrosGanonMemory]:
+        zephy = self.process.read_u32(self.zephy_ptr)
+        if zephy != 0:
+            return ZephyrosGanonMemory(self.process, self.zephy_ptr)
+        return None
 
 
 _zelda_mem = None

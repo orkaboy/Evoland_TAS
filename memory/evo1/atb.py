@@ -137,6 +137,9 @@ class BattleMemory:
     # TODO: Implement
     _PLAYER_ATB_MENU_CURSOR_PTR = [0x48, 0x8C]
 
+    # Also used for item menu (not based in battle)
+    _PLAYER_ATB_SPECIAL_MENU_CURSOR_PTR = [0x7C8, 0x8, 0x3C, 0x4C, 0x8, 0x1C, 0xC, 0x8C]
+
     def __init__(self):
         # Check if we are in battle
         self.active = False
@@ -147,9 +150,9 @@ class BattleMemory:
         # Set up memory access, get the base pointer to the battle structure
         mem = mem_handle()
         self.process = mem.process
-        base_addr = mem.base_addr
+        self.base_addr = mem.base_addr
         self.base_offset = self.process.get_pointer(
-            base_addr + LIBHL_OFFSET, offsets=self._BATTLE_BASE_PTR
+            self.base_addr + LIBHL_OFFSET, offsets=self._BATTLE_BASE_PTR
         )
 
         self.active = True

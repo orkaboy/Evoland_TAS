@@ -21,13 +21,18 @@ def main_menu(window: WindowLayout):
                 "func": evo1.observer,
             },
             {
-                "name": "Evoland 2",
+                "name": "Evoland 1 Zephy Observer",
                 "key": "3",
+                "func": evo1.zephy_observer,
+            },
+            {
+                "name": "Evoland 2",
+                "key": "4",
                 "func": evo2.perform_TAS,
             },
             {
                 "name": "RNG Observer",
-                "key": "4",
+                "key": "5",
                 "func": rng_observer,
             },
         ]
