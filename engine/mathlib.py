@@ -59,6 +59,20 @@ class Vec2(NamedTuple):
         return f"Vec2({self.x:0.3f}, {self.y:0.3f})"
 
 
+class Polar(NamedTuple):
+    r: float
+    theta: float
+
+    def to_vec2(self) -> Vec2:
+        return Vec2(
+            math.cos(self.theta) * self.r,
+            math.sin(self.theta) * self.r,
+        )
+
+    def __repr__(self) -> str:
+        return f"Polar({self.r:.3f}, {self.theta:.3f})"
+
+
 def dist(a: Vec2, b: Vec2) -> float:
     dx = b.x - a.x
     dy = b.y - a.y

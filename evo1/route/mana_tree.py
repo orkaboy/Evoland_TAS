@@ -1,3 +1,4 @@
+import contextlib
 import logging
 from enum import Enum, auto
 from typing import Optional
@@ -26,17 +27,6 @@ class ManaTree(SeqList):
         )
 
 
-# Left arm HP:
-# [0x7C8, 0x8, 0x3C, 0x88, 0x24, 0x48, 0x8, 0x10, 0x18]
-# Right arm HP:
-# [0x7C8, 0x8, 0x3C, 0x88, 0x24, 0x48, 0x8, 0x14, 0x18]
-# Core HP:
-# [0x7C8, 0x8, 0x3C, 0x88, 0x24, 0x48, 0x8, 0x1C, 0x18]
-
-# PC polar coord (double, angle)
-#
-
-
 class ZephyrosGolemEntity:
     def __init__(self, mem: ZephyrosGolemMemory) -> None:
         self.rotation = mem.rotation
@@ -44,6 +34,7 @@ class ZephyrosGolemEntity:
         self.hp_right_arm = mem.hp_right_arm
         self.hp_armor = mem.hp_armor
         self.hp_core = mem.hp_core
+        self.anim_timer = mem.anim_timer
 
     @property
     def armless(self) -> bool:
@@ -58,6 +49,8 @@ class ZephyrosGanonEntity:
     def __init__(self, mem: ZephyrosGanonMemory) -> None:
         self.pos = mem.pos
         self.hp = mem.hp
+        self.red_counter = mem.red_counter
+        self.projectiles = mem.projectiles
 
     @property
     def done(self) -> bool:
@@ -73,7 +66,6 @@ class SeqZephyrosObserver(SeqBase):
         GOLEM_ARMLESS_SETUP = auto()
         GOLEM_ARMLESS_FIGHT = auto()
         GANON_WAIT = auto()
-        GANON_SPAWNED = auto()
         GANON_FIGHT = auto()
         ENDING = auto()
 
@@ -114,7 +106,6 @@ class SeqZephyrosObserver(SeqBase):
     def _ganon_state(self) -> bool:
         return self.state in [
             self.FightState.GANON_WAIT,
-            self.FightState.GANON_SPAWNED,
             self.FightState.GANON_FIGHT,
         ]
 
@@ -184,13 +175,8 @@ class SeqZephyrosObserver(SeqBase):
 
         # Handle Ganon fight state
         if self._ganon_state():
-            self.ganon = ZephyrosGanonEntity(mem.zephy_ganon)
             match self.state:
                 case self.FightState.GANON_WAIT:
-                    if self.ganon.hp == self._GANON_HP:
-                        logger.info("Zephyros Ganon spawned.")
-                        self.state = self.FightState.GANON_SPAWNED
-                case self.FightState.GANON_SPAWNED:
                     dialog = mem.zephy_dialog
                     if dialog != self.dialog:
                         self.dialog = dialog
@@ -198,9 +184,11 @@ class SeqZephyrosObserver(SeqBase):
                             self.dialog_cnt += 1
                         # If we have gotten enough text and dialog is 0, the fight is on
                         if self.dialog_cnt >= self._GANON_NUM_DIALOGS and dialog == 0:
+                            self.ganon = ZephyrosGanonEntity(mem.zephy_ganon)
                             self.state = self.FightState.GANON_FIGHT
                             logger.info("Zephyros Ganon fight started.")
                 case self.FightState.GANON_FIGHT:
+                    self.ganon = ZephyrosGanonEntity(mem.zephy_ganon)
                     if self.ganon.done:
                         self.state = self.FightState.ENDING
                         logger.info("Zephyros Ganon defeated.")
@@ -214,9 +202,37 @@ class SeqZephyrosObserver(SeqBase):
     def _render_player(self, window: WindowLayout) -> None:
         window.stats.addstr(pos=Vec2(1, 4), text=f"Player HP: {self.player.hp}")
         window.stats.addstr(
-            pos=Vec2(1, 5),
-            text=f" Polar: r={self.player.polar_dist:.2f} theta={self.player.polar_angle:.3f}",
+            pos=Vec2(2, 5),
+            text=f"{self.player.polar}",
         )
+
+    def _render_golem(self, window: WindowLayout) -> None:
+        window.stats.addstr(
+            pos=Vec2(1, 7), text=f"Golem theta={self.golem.rotation:.3f}"
+        )
+        window.stats.addstr(pos=Vec2(1, 8), text=f"Left arm: {self.golem.hp_left_arm}")
+        window.stats.addstr(
+            pos=Vec2(1, 9), text=f"Right arm: {self.golem.hp_right_arm}"
+        )
+        window.stats.addstr(pos=Vec2(1, 10), text=f"Armor: {self.golem.hp_armor}")
+        window.stats.addstr(pos=Vec2(1, 11), text=f"Core: {self.golem.hp_core}")
+
+    def _render_ganon(self, window: WindowLayout) -> None:
+        zephy_pos = self.ganon.pos
+        window.stats.addstr(pos=Vec2(1, 7), text=f"Zephy pos: {zephy_pos}")
+        window.stats.addstr(pos=Vec2(1, 8), text=f"Zephy HP: {self.ganon.hp}")
+        window.stats.addstr(pos=Vec2(1, 10), text="Projectiles:")
+        with contextlib.suppress(ReferenceError):
+            projectiles = [proj for proj in self.ganon.projectiles if proj.is_active]
+            for i, proj in enumerate(projectiles):
+                y = i + 11
+                if y >= 15:
+                    break
+                blue = "blue" if proj.is_blue else "red"
+                countered = ", counter!" if proj.is_countered else ""
+                window.stats.addstr(
+                    pos=Vec2(2, y), text=f"{proj.pos}, {blue}{countered}"
+                )
 
     def render(self, window: WindowLayout) -> None:
         window.stats.erase()
@@ -229,25 +245,9 @@ class SeqZephyrosObserver(SeqBase):
             self._render_player(window=window)
 
         if self._golem_state():
-            # TODO: Render player pos, render golem pose
-            window.stats.addstr(
-                pos=Vec2(1, 7), text=f"Golem theta={self.golem.rotation:.3f}"
-            )
-
-            window.stats.addstr(
-                pos=Vec2(1, 8), text=f"Left arm: {self.golem.hp_left_arm}"
-            )
-            window.stats.addstr(
-                pos=Vec2(1, 9), text=f"Right arm: {self.golem.hp_right_arm}"
-            )
-            window.stats.addstr(pos=Vec2(1, 10), text=f"Armor: {self.golem.hp_armor}")
-            window.stats.addstr(pos=Vec2(1, 11), text=f"Core: {self.golem.hp_core}")
-        elif self._ganon_state():
-            # TODO: Render player pos, render zephy pos, render zephy hp
-            zephy_pos = self.ganon.pos
-            window.stats.addstr(pos=Vec2(1, 7), text=f"Zephy pos: {zephy_pos}")
-            if self.state != self.FightState.GANON_WAIT:
-                window.stats.addstr(pos=Vec2(1, 8), text=f"HP: {self.ganon.hp}")
+            self._render_golem(window=window)
+        elif self.state == self.FightState.GANON_FIGHT:
+            self._render_ganon(window=window)
         elif self.state == self.FightState.ENDING:
             window.stats.write_centered(line=5, text="Good Game!")
 
