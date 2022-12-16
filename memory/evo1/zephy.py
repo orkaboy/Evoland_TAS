@@ -5,32 +5,42 @@ from memory.core import LocProcess
 class ZephyrosGolemMemory:
     _ROTATION_PTR = [0x20]  # double
 
-    _HP_LEFT_ARM_PTR = [0x48, 0x8, 0x10, 0x18]
-    _HP_RIGHT_ARM_PTR = [0x48, 0x8, 0x14, 0x18]
-    _HP_ARMOR_PTR = [0x48, 0x8, 0x18, 0x18]
-    _HP_CORE_PTR = [0x48, 0x8, 0x1C, 0x18]
+    _HP_BP0_PTR = [0x48, 0x8, 0x10, 0x18]
+    _HP_BP1_PTR = [0x48, 0x8, 0x14, 0x18]
+    _HP_BP2_PTR = [0x48, 0x8, 0x18, 0x18]
+    _HP_BP3_PTR = [0x48, 0x8, 0x1C, 0x18]
 
-    def __init__(self, process: LocProcess, base_ptr: int) -> None:
+    def __init__(self, process: LocProcess, base_ptr: int, armless: bool) -> None:
         self.process = process
         self.base_ptr = base_ptr
+        self.armless = armless
 
         self.rotation_ptr = self.process.get_pointer(
             self.base_ptr, offsets=self._ROTATION_PTR
         )
-        # NOTE: These will be invalid and overwritten with something else
-        # after the golem phase ends. Don't use once all 3 hp bars are exhausted
-        self.hp_left_arm_ptr = self.process.get_pointer(
-            self.base_ptr, offsets=self._HP_LEFT_ARM_PTR
-        )
-        self.hp_right_arm_ptr = self.process.get_pointer(
-            self.base_ptr, offsets=self._HP_RIGHT_ARM_PTR
-        )
-        self.hp_armor_ptr = self.process.get_pointer(
-            self.base_ptr, offsets=self._HP_ARMOR_PTR
-        )
-        self.hp_core_ptr = self.process.get_pointer(
-            self.base_ptr, offsets=self._HP_CORE_PTR
-        )
+        if armless:
+            self.hp_armor_ptr = self.process.get_pointer(
+                self.base_ptr, offsets=self._HP_BP0_PTR
+            )
+            self.hp_core_ptr = self.process.get_pointer(
+                self.base_ptr, offsets=self._HP_BP1_PTR
+            )
+        else:
+            # NOTE: These will be invalid and overwritten with something else
+            # after the golem phase ends. Don't use once all 3 hp bars are exhausted
+            self.hp_left_arm_ptr = self.process.get_pointer(
+                self.base_ptr, offsets=self._HP_BP0_PTR
+            )
+            self.hp_right_arm_ptr = self.process.get_pointer(
+                self.base_ptr, offsets=self._HP_BP1_PTR
+            )
+            # NOTE: These are adjusted when the first phase ends, they are no longer valid
+            self.hp_armor_ptr = self.process.get_pointer(
+                self.base_ptr, offsets=self._HP_BP2_PTR
+            )
+            self.hp_core_ptr = self.process.get_pointer(
+                self.base_ptr, offsets=self._HP_BP3_PTR
+            )
 
     @property
     def rotation(self) -> float:
@@ -38,11 +48,11 @@ class ZephyrosGolemMemory:
 
     @property
     def hp_left_arm(self) -> int:
-        return self.process.read_u32(self.hp_left_arm_ptr)
+        return 0 if self.armless else self.process.read_u32(self.hp_left_arm_ptr)
 
     @property
     def hp_right_arm(self) -> int:
-        return self.process.read_u32(self.hp_right_arm_ptr)
+        return 0 if self.armless else self.process.read_u32(self.hp_right_arm_ptr)
 
     @property
     def hp_armor(self) -> int:

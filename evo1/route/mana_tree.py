@@ -66,6 +66,7 @@ class SeqZephyrosObserver(SeqBase):
         STARTED = auto()
         GOLEM_SPAWNED = auto()
         GOLEM_FIGHT = auto()
+        GOLEM_ARMLESS_SETUP = auto()
         GOLEM_ARMLESS_FIGHT = auto()
         GANON_SPAWNED = auto()
         GANON_FIGHT = auto()
@@ -79,11 +80,15 @@ class SeqZephyrosObserver(SeqBase):
         self.state = self.FightState.NOT_STARTED
         self.golem: Optional[ZephyrosGolemEntity] = None
         self.ganon: Optional[ZephyrosGanonEntity] = None
+        self.dialog: int = 0
+        self.dialog_cnt: int = 0
 
     def reset(self) -> None:
         self.state = self.FightState.NOT_STARTED
         self.golem: Optional[ZephyrosGolemEntity] = None
         self.ganon: Optional[ZephyrosGanonEntity] = None
+        self.dialog: int = 0
+        self.dialog_cnt: int = 0
 
     def _start_state(self) -> bool:
         return self.state in [
@@ -95,6 +100,7 @@ class SeqZephyrosObserver(SeqBase):
         return self.state in [
             self.FightState.GOLEM_SPAWNED,
             self.FightState.GOLEM_FIGHT,
+            self.FightState.GOLEM_ARMLESS_SETUP,
             self.FightState.GOLEM_ARMLESS_FIGHT,
         ]
 
@@ -103,6 +109,9 @@ class SeqZephyrosObserver(SeqBase):
             self.FightState.GANON_SPAWNED,
             self.FightState.GANON_FIGHT,
         ]
+
+    _GOLEM_NUM_DIALOGS = 8
+    _GOLEM_CORE_HP = 4
 
     def _update_state(self) -> None:
         mem = get_zelda_memory()
@@ -115,24 +124,41 @@ class SeqZephyrosObserver(SeqBase):
                         logger.info("Mana Tree entered.")
 
                 case self.FightState.STARTED:
-                    zephy = mem.zephy_golem
+                    zephy = mem.zephy_golem(armless=False)
                     if zephy is not None:
                         self.state = self.FightState.GOLEM_SPAWNED
                         logger.info("Zephyros Golem spawned.")
 
         # Handle Golem fight state
         if self._golem_state():
-            self.golem = ZephyrosGolemEntity(mem.zephy_golem)
+            if self.state in [
+                self.FightState.GOLEM_ARMLESS_SETUP,
+                self.FightState.GOLEM_ARMLESS_FIGHT,
+            ]:
+                self.golem = ZephyrosGolemEntity(mem.zephy_golem(armless=True))
+            else:
+                self.golem = ZephyrosGolemEntity(mem.zephy_golem(armless=False))
+
             match self.state:
                 case self.FightState.GOLEM_SPAWNED:
-                    # TODO: Doesn't work, is always 1
-                    if mem.player.in_control:
-                        logger.info("Zephyros Golem fight started.")
-                        self.state = self.FightState.GOLEM_FIGHT
+                    dialog = mem.zephy_dialog
+                    # Count the dialog boxes
+                    if dialog != self.dialog:
+                        self.dialog = dialog
+                        if dialog != 0:
+                            self.dialog_cnt += 1
+                        # If we have gotten enough text and dialog is 0, the fight is on
+                        if self.dialog_cnt >= self._GOLEM_NUM_DIALOGS and dialog == 0:
+                            logger.info("Zephyros Golem fight started.")
+                            self.state = self.FightState.GOLEM_FIGHT
                 case self.FightState.GOLEM_FIGHT:
                     if self.golem.armless:
                         logger.info("Zephyros Golem arms defeated.")
+                        self.state = self.FightState.GOLEM_ARMLESS_SETUP
+                case self.FightState.GOLEM_ARMLESS_SETUP:
+                    if self.golem.hp_core == self._GOLEM_CORE_HP:
                         self.state = self.FightState.GOLEM_ARMLESS_FIGHT
+                        logger.info("Zephyros Golem armless phase.")
                 case self.FightState.GOLEM_ARMLESS_FIGHT:
                     if self.golem.done:
                         self.state = self.FightState.GANON_SPAWNED
@@ -143,10 +169,12 @@ class SeqZephyrosObserver(SeqBase):
             self.ganon = ZephyrosGanonEntity(mem.zephy_ganon)
             match self.state:
                 case self.FightState.GANON_SPAWNED:
-                    # TODO: Doesn't work, is always 1
-                    if mem.player.in_control:
-                        self.state = self.FightState.GANON_FIGHT
-                        logger.info("Zephyros Ganon fight started.")
+                    dialog = mem.zephy_dialog
+                    if dialog != self.dialog:
+                        self.dialog = dialog
+                        if dialog == 0:
+                            self.state = self.FightState.GANON_FIGHT
+                            logger.info("Zephyros Ganon fight started.")
                 case self.FightState.GANON_FIGHT:
                     if self.ganon.done:
                         self.state = self.FightState.ENDING
@@ -175,7 +203,8 @@ class SeqZephyrosObserver(SeqBase):
             window.stats.addstr(
                 pos=Vec2(1, 7), text=f"Right arm: {self.golem.hp_right_arm}"
             )
-            window.stats.addstr(pos=Vec2(1, 8), text=f"Core: {self.golem.hp_core}")
+            window.stats.addstr(pos=Vec2(1, 8), text=f"Armor: {self.golem.hp_armor}")
+            window.stats.addstr(pos=Vec2(1, 9), text=f"Core: {self.golem.hp_core}")
         elif self._ganon_state():
             # TODO: Render player pos, render zephy pos, render zephy hp
             zephy_pos = self.ganon.pos

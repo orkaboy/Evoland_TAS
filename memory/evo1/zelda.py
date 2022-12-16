@@ -209,6 +209,7 @@ class Evo1ZeldaMemory(ZeldaMemory):
     # Nested
     _ZEPHY_FIGHT_PTR = [0x88]  # Will be zero when not in the fight
     _ZEPHY_PTR = [0x24]
+    _ZEPHY_DIALOG_PTR = [0x4]
 
     def __init__(self):
         super().__init__()
@@ -222,6 +223,9 @@ class Evo1ZeldaMemory(ZeldaMemory):
         if self.in_zephy_fight:
             self.zephy_ptr = self.process.get_pointer(
                 self.zephy_fight_ptr, self._ZEPHY_PTR
+            )
+            self.zephy_dialog_ptr = self.process.get_pointer(
+                self.zephy_fight_ptr, self._ZEPHY_DIALOG_PTR
             )
 
         self._init_player()
@@ -251,11 +255,10 @@ class Evo1ZeldaMemory(ZeldaMemory):
         zephy_fight = self.process.read_u32(self.zephy_fight_ptr)
         return zephy_fight != 0
 
-    @property
-    def zephy_golem(self) -> Optional[ZephyrosGolemMemory]:
+    def zephy_golem(self, armless: bool) -> Optional[ZephyrosGolemMemory]:
         zephy = self.process.read_u32(self.zephy_ptr)
         if zephy != 0:
-            return ZephyrosGolemMemory(self.process, self.zephy_ptr)
+            return ZephyrosGolemMemory(self.process, self.zephy_ptr, armless)
         return None
 
     @property
@@ -264,6 +267,10 @@ class Evo1ZeldaMemory(ZeldaMemory):
         if zephy != 0:
             return ZephyrosGanonMemory(self.process, self.zephy_ptr)
         return None
+
+    @property
+    def zephy_dialog(self) -> int:
+        return self.process.read_u32(self.zephy_dialog_ptr)
 
 
 _zelda_mem = None
