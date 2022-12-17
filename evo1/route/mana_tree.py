@@ -80,12 +80,21 @@ class SeqZephyrosObserver(SeqBase):
         GANON_DEATH = auto()
         ENDING = auto()
 
+    class GolemAttackState(Enum):
+        IDLE = auto()
+        TURNING = auto()
+        ATTACKING = auto()
+        WEAK = auto()
+
     def __init__(self, name="Zephyros Observer", func=None):
         super().__init__(
             name=name,
             func=func,
         )
         self.state = self.FightState.NOT_STARTED
+        self.golem_state = self.GolemAttackState.IDLE
+        self.golem_timer = 999
+        self.golem_armor_hp = 1000
         self.golem: Optional[ZephyrosGolemEntity] = None
         self.ganon: Optional[ZephyrosGanonEntity] = None
         self.player: Optional[ZephyrosPlayerMemory] = None
@@ -94,6 +103,8 @@ class SeqZephyrosObserver(SeqBase):
 
     def reset(self) -> None:
         self.state = self.FightState.NOT_STARTED
+        self.golem_state = self.GolemAttackState.IDLE
+        self.golem_timer = 999
         self.golem: Optional[ZephyrosGolemEntity] = None
         self.ganon: Optional[ZephyrosGanonEntity] = None
         self.player: Optional[ZephyrosPlayerMemory] = None
@@ -147,6 +158,7 @@ class SeqZephyrosObserver(SeqBase):
                     zephy = mem.zephy_golem(armless=False)
                     if zephy is not None:
                         self.state = self.FightState.GOLEM_SPAWNED
+                        self.golem_state = self.GolemAttackState.IDLE
                         logger.info("Zephyros Golem spawned.")
 
         # Handle Golem fight state
@@ -172,14 +184,46 @@ class SeqZephyrosObserver(SeqBase):
                             logger.info("Zephyros Golem fight started.")
                             self.state = self.FightState.GOLEM_FIGHT
                 case self.FightState.GOLEM_FIGHT:
+                    if self.golem.anim_timer > self.golem_timer:
+                        match self.golem_state:
+                            case self.GolemAttackState.IDLE:
+                                self.golem_state = self.GolemAttackState.TURNING
+                            case self.GolemAttackState.TURNING:
+                                self.golem_state = self.GolemAttackState.ATTACKING
+                            case self.GolemAttackState.ATTACKING:
+                                self.golem_state = self.GolemAttackState.TURNING
+                        logger.debug(f"Changed golem state to {self.golem_state.name}")
+                    self.golem_timer = self.golem.anim_timer
+
                     if self.golem.armless:
                         logger.info("Zephyros Golem arms defeated.")
                         self.state = self.FightState.GOLEM_ARMLESS_SETUP
+                        self.golem_state = self.GolemAttackState.IDLE
                 case self.FightState.GOLEM_ARMLESS_SETUP:
                     if self.golem.core.hp == self._GOLEM_CORE_HP:
                         self.state = self.FightState.GOLEM_ARMLESS_FIGHT
                         logger.info("Zephyros Golem armless phase.")
+                        self.golem_armor_hp = self.golem.armor.hp
                 case self.FightState.GOLEM_ARMLESS_FIGHT:
+                    if self.golem.armor.hp < self.golem_armor_hp:
+                        self.golem_armor_hp = self.golem.armor.hp
+                        self.golem_state = self.GolemAttackState.WEAK
+                        logger.debug(f"Changed golem state to {self.golem_state.name}")
+                    # The timer increments when in the weak state, so ignore that
+                    elif (
+                        self.golem.anim_timer > self.golem_timer
+                        and self.golem.anim_timer > 100
+                    ):
+                        match self.golem_state:
+                            case self.GolemAttackState.IDLE:
+                                self.golem_state = self.GolemAttackState.ATTACKING
+                            case self.GolemAttackState.ATTACKING:
+                                self.golem_state = self.GolemAttackState.IDLE
+                            case self.GolemAttackState.WEAK:
+                                self.golem_state = self.GolemAttackState.ATTACKING
+                        logger.debug(f"Changed golem state to {self.golem_state.name}")
+                    self.golem_timer = self.golem.anim_timer
+
                     if self.golem.done:
                         self.state = self.FightState.GANON_WAIT
                         self.dialog_cnt = 0
@@ -228,8 +272,10 @@ class SeqZephyrosObserver(SeqBase):
     _Y_SCALE = 2
 
     _ARENA_OUTER_RADIUS = 15
+    _ARENA_CENTER_RADIUS = 14
     _ARENA_INNER_RADIUS = 13
     _GOLEM_SIZE = 7
+    _FIRE_SIZE = 2
 
     # (0,0) is at center of map. Y-axis increases going down the screen.
     def _print_ch_in_map(self, map_win: SubWindow, pos: Vec2, ch: str):
@@ -275,6 +321,8 @@ class SeqZephyrosObserver(SeqBase):
         window.stats.addstr(pos=Vec2(1, 10), text=f"Armor: {self.golem.armor.hp}")
         window.stats.addstr(pos=Vec2(1, 11), text=f"Core: {self.golem.core.hp}")
 
+        window.stats.addstr(pos=Vec2(1, 13), text=f"Timer: {self.golem.anim_timer:.3f}")
+
         for y, x in itertools.product(
             range(
                 self._Y_SCALE * -self._GOLEM_SIZE,
@@ -294,6 +342,42 @@ class SeqZephyrosObserver(SeqBase):
         self._print_ch_in_map(map_win=window.map, pos=direction_indicator, ch="+")
         # Draw core weak point
         self._print_ch_in_map(map_win=window.map, pos=self.golem.core.pos, ch="O")
+
+        if self.golem_state == self.GolemAttackState.ATTACKING:
+            # Render fire
+            fire_indicator = Vec2(
+                math.cos(self.golem.rotation) * self._ARENA_INNER_RADIUS,
+                math.sin(self.golem.rotation) * self._ARENA_INNER_RADIUS,
+            )
+            self._render_block_in_map(
+                map_win=window.map, center=fire_indicator, size=self._FIRE_SIZE, ch="*"
+            )
+            # Render arms
+            if self.state == self.FightState.GOLEM_FIGHT:
+                arm_indicator = Vec2(
+                    math.cos(self.golem.rotation + math.pi / 4)
+                    * self._ARENA_CENTER_RADIUS,
+                    math.sin(self.golem.rotation + math.pi / 4)
+                    * self._ARENA_CENTER_RADIUS,
+                )
+                self._print_ch_in_map(map_win=window.map, pos=arm_indicator, ch="#")
+                arm_indicator = Vec2(
+                    math.cos(self.golem.rotation - math.pi / 4)
+                    * self._ARENA_CENTER_RADIUS,
+                    math.sin(self.golem.rotation - math.pi / 4)
+                    * self._ARENA_CENTER_RADIUS,
+                )
+                self._print_ch_in_map(map_win=window.map, pos=arm_indicator, ch="#")
+
+    def _render_block_in_map(
+        self, map_win: SubWindow, center: Vec2, size: float, ch: str
+    ) -> None:
+        for y, x in itertools.product(
+            range(self._Y_SCALE * -size, self._Y_SCALE * size, self._Y_SCALE),
+            range(-size, size),
+        ):
+            draw_pos = center + Vec2(x, y)
+            self._print_ch_in_map(map_win=map_win, pos=draw_pos, ch=ch)
 
     def _render_ganon(self, window: WindowLayout) -> None:
         zephy_pos = self.ganon.pos
@@ -371,6 +455,8 @@ class SeqZephyrosFight(SeqZephyrosObserver):
         # TODO: Juke boss to move to correct side
         # TODO: Close in and attack the arm as it comes down
         # TODO: Swap to attacking other side until both arms are done
+
+        # Golem arms in attack state will be located roughly at +-pi/4 compared to boss rotation (90 degree spread)
         pass
 
     def golem_armless_fight(self) -> None:
@@ -380,12 +466,17 @@ class SeqZephyrosFight(SeqZephyrosObserver):
         # TODO: Attack the armor (verify hit by checking armor hp)
         # TODO: Identify the core position/trajectory
         # TODO: Attack the core
+
+        # Golem will turn about 2 pi (sometimes a bit more/less) in one attack phase
+        # anim_timer will be set to ~250 and count DOWN in the attack phase
+        # anim_timer will be set to ~-250 and count UP when the weak point is hit
+        # The core will start to return when anim_timer reaches 0, and count up to ~35, before entering a new attack phase
         pass
 
     def ganon_fight(self) -> None:
         # TODO: Align against closest position opposite to Zephyros
         # TODO: Face towards Zephyros
         # TODO: Detect when projectiles spawn and track them
-        # TODO: If red, dodge? Or don't bother?
+        # TODO: If red, dodge? Or don't bother? Can tank a few hits
         # TODO: If blue, counter when the projectile is in range.
         pass
