@@ -22,8 +22,6 @@
     * Potion/phoenix down usage (item amount/pos in menu)
     * Logic for the current active turn (use turn gauge)
 
-* Add rng tracker to TAS display
-
 * Clean up main menu navigation code? Checking for if New game is available
 * Pathfinding
   * Fix the pathfinding so it works for sub-tile movement (approximate, then inject real goal at last node)

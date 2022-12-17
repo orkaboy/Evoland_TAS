@@ -6,6 +6,7 @@ import time
 from control import evo_ctrl
 from engine.mathlib import Vec2
 from engine.seq.base import SeqBase
+from memory.rng import EvolandRNG
 from term.window import WindowLayout
 
 logger = logging.getLogger(__name__)
@@ -86,6 +87,12 @@ class SequencerEngine(object):
         # Render timer and gamestate tree
         self._print_timer()
         self.window.main.addstr(Vec2(0, 1), f"Gamestate:\n  {self.root}")
+        # Render RNG cursor
+        rng = EvolandRNG().get_rng()
+        rng_str = f"RNG: {rng.cursor:2}"
+        self.window.main.addstr(
+            Vec2(self.window.main.size.x - len(rng_str) - 1, 0), rng_str
+        )
         # Render the current gamestate
         self.root.render(window=self.window)
 

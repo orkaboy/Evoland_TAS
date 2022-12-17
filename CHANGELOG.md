@@ -3,6 +3,8 @@
 0.0.6:
 
 * The TAS can somewhat reliably kill the final boss of the game
+* Added rng tracker to TAS display
+
 
 # Older changelogs
 
