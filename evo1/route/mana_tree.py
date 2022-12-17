@@ -6,7 +6,8 @@ from enum import Enum, auto
 from typing import Optional
 
 from control import evo_ctrl
-from engine.mathlib import Vec2
+from engine.mathlib import Vec2, angle_between, angle_mod, dist
+from engine.move2d import SeqMove2D
 from engine.seq import SeqBase, SeqList
 from memory.evo1 import get_zelda_memory
 from memory.evo1.zephy import (
@@ -24,6 +25,12 @@ class ManaTree(SeqList):
         super().__init__(
             name="Mana Tree",
             children=[
+                SeqMove2D(
+                    "Move to Mana Tree",
+                    coords=[
+                        Vec2(115, 76),
+                    ],
+                ),
                 SeqZephyrosFight(),
             ],
         )
@@ -96,6 +103,7 @@ class SeqZephyrosObserver(SeqBase):
         self.golem_timer = 999
         self.golem_armor_hp = 1000
         self.golem: Optional[ZephyrosGolemEntity] = None
+        self.golem_target_angle = 0
         self.ganon: Optional[ZephyrosGanonEntity] = None
         self.player: Optional[ZephyrosPlayerMemory] = None
         self.dialog: int = 0
@@ -105,6 +113,8 @@ class SeqZephyrosObserver(SeqBase):
         self.state = self.FightState.NOT_STARTED
         self.golem_state = self.GolemAttackState.IDLE
         self.golem_timer = 999
+        self.golem_armor_hp = 1000
+        self.golem_target_angle = 0
         self.golem: Optional[ZephyrosGolemEntity] = None
         self.ganon: Optional[ZephyrosGanonEntity] = None
         self.player: Optional[ZephyrosPlayerMemory] = None
@@ -217,6 +227,7 @@ class SeqZephyrosObserver(SeqBase):
                         match self.golem_state:
                             case self.GolemAttackState.IDLE:
                                 self.golem_state = self.GolemAttackState.ATTACKING
+                                self.golem_target_angle = angle_mod(self.golem.rotation)
                             case self.GolemAttackState.ATTACKING:
                                 self.golem_state = self.GolemAttackState.IDLE
                             case self.GolemAttackState.WEAK:
@@ -439,6 +450,9 @@ class SeqZephyrosFight(SeqZephyrosObserver):
         ctrl = evo_ctrl()
 
         match self.state:
+            case self.FightState.NOT_STARTED:
+                # Move into tree arena
+                ctrl.dpad.up()
             case self.FightState.GOLEM_FIGHT:
                 self.golem_fight()
             case self.FightState.GOLEM_ARMLESS_FIGHT:
@@ -446,37 +460,105 @@ class SeqZephyrosFight(SeqZephyrosObserver):
             case self.FightState.GANON_FIGHT:
                 self.ganon_fight()
             case _:
-                # Tap to skip cutcenes
+                # Tap confirm to skip cutcenes
                 ctrl.confirm(tapping=True)
         return self.done()
 
-    def golem_fight(self) -> None:
-        # TODO: Track boss attack/wait state
-        # TODO: Juke boss to move to correct side
-        # TODO: Close in and attack the arm as it comes down
-        # TODO: Swap to attacking other side until both arms are done
+    _ANGLE_EPSILON = 0.15
 
+    def _move_to_angle(self, angle: float, epsilon: float = _ANGLE_EPSILON) -> bool:
+        ctrl = evo_ctrl()
+        angle_1 = angle_mod(angle)
+        angle_2 = angle_mod(self.player.polar.theta)
+        angle_diff = angle_1 - angle_2
+        ctrl.dpad.none()
+        if angle_diff > 0:
+            ctrl.dpad.left()
+        elif angle_diff < 0:
+            ctrl.dpad.right()
+
+        return abs(angle_diff) < epsilon
+
+    def golem_fight(self) -> None:
+        ctrl = evo_ctrl()
         # Golem arms in attack state will be located roughly at +-pi/4 compared to boss rotation (90 degree spread)
-        pass
+        # TODO: Magic angles
+        angle_offset = (
+            2 * math.pi / 7 if self.golem.right_arm.hp > 0 else -2 * math.pi / 7
+        )
+        # TODO: Improve on this, it's currently not very good (can get hit sometimes and doesn't land more than 1-2 hits/phase).
+        # TODO: Seems to overshoot movement a bit
+        match self.golem_state:
+            case self.GolemAttackState.IDLE:
+                if self._move_to_angle(self.golem.rotation - math.pi / 4):
+                    ctrl.dpad.none()
+            case self.GolemAttackState.TURNING:
+                if self.golem.anim_timer > 30:
+                    self._move_to_angle(self.golem.rotation - angle_offset)
+                else:
+                    self._move_to_angle(self.golem.rotation + angle_offset)
+            case self.GolemAttackState.ATTACKING:
+                if self.golem.right_arm.hp > 0:
+                    ret = self._move_to_angle(self.golem.rotation + math.pi / 5)
+                else:
+                    ret = self._move_to_angle(self.golem.rotation - math.pi / 5)
+                if ret:
+                    ctrl.attack(tapping=True)
 
     def golem_armless_fight(self) -> None:
-        # TODO: At start of phase, move behind golem to avoid getting hit
-        # TODO: Calculate where the golem will end its rotation
-        # TODO: Avoid getting hit while the golem attacks
-        # TODO: Attack the armor (verify hit by checking armor hp)
-        # TODO: Identify the core position/trajectory
-        # TODO: Attack the core
+        ctrl = evo_ctrl()
+        ctrl.dpad.none()
 
-        # Golem will turn about 2 pi (sometimes a bit more/less) in one attack phase
-        # anim_timer will be set to ~250 and count DOWN in the attack phase
-        # anim_timer will be set to ~-250 and count UP when the weak point is hit
-        # The core will start to return when anim_timer reaches 0, and count up to ~35, before entering a new attack phase
-        pass
+        # Dodging: If angle decreases, move right
+        # Dodging: If angle increases, move left
+
+        # TODO: At start of phase, move behind golem to avoid getting hit?
+        match self.golem_state:
+            case self.GolemAttackState.IDLE:
+                if self._move_to_angle(self.golem.rotation):
+                    # Turn towards armor
+                    ctrl.dpad.none()
+                    # Attack the armor TODO: Hold don't tap?
+                    ctrl.attack(tapping=True)
+            case self.GolemAttackState.ATTACKING:
+                # Golem will turn about 2 pi (sometimes a bit more/less) in one attack phase
+                # anim_timer will be set to ~250 and count DOWN in the attack phase
+                # TODO: Calculate where the golem will end its rotation
+                # TODO: Avoid getting hit while the golem attacks
+                self._move_to_angle(self.golem_target_angle)
+            case self.GolemAttackState.WEAK:
+                # anim_timer will be set to ~-250 and count UP when the weak point is hit
+                # The core will start to return when anim_timer reaches 0, and count up to ~35, before entering a new attack phase
+                angle = self.golem.core.pos.angle
+                if self._move_to_angle(angle):
+                    ctrl.dpad.none()  # Should turn towards the core automatically
+                    # TODO: Attacks slightly early
+                    ctrl.attack(tapping=True)
 
     def ganon_fight(self) -> None:
+        ctrl = evo_ctrl()
+        ctrl.dpad.none()
         # TODO: Align against closest position opposite to Zephyros
-        # TODO: Face towards Zephyros
-        # TODO: Detect when projectiles spawn and track them
-        # TODO: If red, dodge? Or don't bother? Can tank a few hits
-        # TODO: If blue, counter when the projectile is in range.
-        pass
+        if self.ganon.pos.norm > 3:  # TODO: Magic number. Don't calc angle if in center
+            angle_1 = self.ganon.pos.angle
+            angle_2 = angle_1 + math.pi
+            player_angle = angle_mod(self.player.polar.theta)
+            # Move to closest angle intersect
+            if angle_between(angle_1, player_angle) < angle_between(
+                angle_2, player_angle
+            ):
+                ret = self._move_to_angle(angle_1)
+            else:
+                ret = self._move_to_angle(angle_2)
+            if ret:
+                # Turn towards boss
+                ctrl.dpad.none()
+
+        # Detect when projectiles spawn and track them
+        if (
+            len(self.ganon.projectiles) > 0
+            and self.ganon.projectiles[0].is_blue
+            and dist(self.player.pos, self.ganon.projectiles[0].pos) < 1.5
+        ):
+            ctrl.attack(tapping=True)
+            # TODO: If red, dodge? Or don't bother? Can tank a few hits

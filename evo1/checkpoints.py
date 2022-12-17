@@ -1,6 +1,7 @@
 from engine.seq import SeqList
 from evo1.route import (
     CrystalCavern,
+    ManaTree,
     MeadowFight,
     NoriaMines,
     OverworldToCavern,
@@ -25,4 +26,5 @@ def Checkpoints():
         "meadow_expr": MeadowFight(),
         "caverns_expr": CavernCheckpoint(),
         "noria_expr": NoriaMines(),
+        "zephy_expr": ManaTree(),
     }
