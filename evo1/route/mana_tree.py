@@ -523,16 +523,16 @@ class SeqZephyrosFight(SeqZephyrosObserver):
             case self.GolemAttackState.ATTACKING:
                 # Golem will turn about 2 pi (sometimes a bit more/less) in one attack phase
                 # anim_timer will be set to ~250 and count DOWN in the attack phase
-                # TODO: Calculate where the golem will end its rotation
                 # TODO: Avoid getting hit while the golem attacks
                 self._move_to_angle(self.golem_target_angle)
             case self.GolemAttackState.WEAK:
                 # anim_timer will be set to ~-250 and count UP when the weak point is hit
                 # The core will start to return when anim_timer reaches 0, and count up to ~35, before entering a new attack phase
                 angle = self.golem.core.pos.angle
+                # TODO: Should calculate the angle where it will end up (might be a bit different since it doesn't move through the origin)
                 if self._move_to_angle(angle):
                     ctrl.dpad.none()  # Should turn towards the core automatically
-                    # TODO: Attacks slightly early
+                    # TODO: Attacks slightly early?
                     ctrl.attack(tapping=True)
 
     def ganon_fight(self) -> None:

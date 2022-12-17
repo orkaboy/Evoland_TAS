@@ -21,8 +21,6 @@
     * Cursor position in menues
     * Potion/phoenix down usage (item amount/pos in menu)
     * Logic for the current active turn (use turn gauge)
-  * Handle position/state of Zephyros golem, arms and core
-  * Handle detection of Zephyros fireballs/blue
 
 * Clean up main menu navigation code? Checking for if New game is available
 * Pathfinding
@@ -43,7 +41,6 @@
   * Route Sacred Grove
   * Route Sarudnahk
   * Zephyros ATB fight
-  * Final boss fights
 
 * Terminal improvements
   * Experiment more with Textual/Rich
