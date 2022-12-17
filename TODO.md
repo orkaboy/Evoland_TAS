@@ -6,7 +6,6 @@
   * Clink attacks from just out of range, swinging in the air
   * Killing 3 skellies (knight-like logic, but in 3d, using modified rotation angle)
     * This logic can be applied to knights combat also
-  * Skip past the first skeleton without fighting it
   * Juke the two skellies before push block
   * Push armored enemy into pit
   * Navigate the maze (easy)/fireballs/wind traps
@@ -18,7 +17,6 @@
 * Do more memory hunting
   * Dark Clink attack/vulnerable state
   * ATB
-    * Cursor position in menues
     * Potion/phoenix down usage (item amount/pos in menu)
     * Logic for the current active turn (use turn gauge)
 

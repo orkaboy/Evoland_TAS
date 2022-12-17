@@ -17,10 +17,12 @@ _noria_start_astar = GetAStar(MapID.NORIA_CLOSED)
 
 
 # TODO: Improve on the chest grab to be more concise (don't require the approach)
-class NoriaMines(SeqList):
+class NoriaToMaze(SeqList):
+    """Handle the entire first sequence of the Noria Mines, from entry to the start of the first maze."""
+
     def __init__(self):
         super().__init__(
-            name="Noria Mines",
+            name="Navigate to maze",
             children=[
                 SeqMove2D(
                     "Move to chest",
@@ -31,7 +33,6 @@ class NoriaMines(SeqList):
                 # Get in position for chest
                 SeqMove2D("Move to chest", coords=[Vec2(46, 55.6)]),
                 SeqGrabChest("Opening the mines", direction=Facing.UP),
-                # TODO: Navigate through the Mines, solving puzzles
                 SeqMove2DClunkyCombat(
                     "Move to chest",
                     coords=_noria_astar.calculate(
@@ -113,6 +114,7 @@ class NoriaMines(SeqList):
                 # Get in position for chest
                 SeqMove2D("Move to chest", coords=[Vec2(41, 39.6)]),
                 SeqGrabChest("Skellies", direction=Facing.UP),
+                # Skip past first skeleton
                 SeqMove2DConfirm(
                     "Move to trigger",
                     coords=_noria_astar.calculate(
@@ -138,6 +140,17 @@ class NoriaMines(SeqList):
                 # Get in position for chest
                 SeqMove2D("Move to chest", coords=[Vec2(22, 39.6)]),
                 SeqGrabChest("Maze", direction=Facing.UP),
+            ],
+        )
+
+
+class NoriaPuzzles(SeqList):
+    """Handle movement through the various mazes and puzzles, up until grabbing the boss key."""
+
+    def __init__(self):
+        super().__init__(
+            name="Puzzles",
+            children=[
                 SeqMove2DClunkyCombat(
                     "Maze",
                     coords=_noria_astar.calculate(
@@ -280,7 +293,7 @@ class NoriaMines(SeqList):
                 # TODO: Remove manual
                 # Get in position for chest
                 SeqMove2D("Move to chest", coords=[Vec2(67, 30.4)]),
-                SeqGrabChest("Wind trap", direction=Facing.DOWN),
+                SeqGrabChest("Fire maze", direction=Facing.DOWN),
                 # TODO: Fire maze! Have fallback for dying here to recover (can also lower health to deathwarp later)
                 SeqManualUntilClose("NAVIGATE FIRE MAZE", target=Vec2(70, 51)),
                 # TODO: Remove manual
@@ -296,6 +309,17 @@ class NoriaMines(SeqList):
                 # TODO: Deathwarp or kill everything here
                 SeqManualUntilClose("GO TO BOSS DOOR", target=Vec2(41, 55)),
                 # TODO: Remove manual
+            ],
+        )
+
+
+class NoriaBossFight(SeqList):
+    """Handle navigating to and defeating Dark Clink, and leaving the Mines for the overworld."""
+
+    def __init__(self):
+        super().__init__(
+            name="Boss segment",
+            children=[
                 # SeqMove2DClunkyCombat("Move to door", coords=_noria_astar.calculate(start=Vec2(47, 67), goal=Vec2(41, 55))),
                 # Get in position for chest
                 # TODO: Open door(N)
@@ -325,5 +349,17 @@ class NoriaMines(SeqList):
                 SeqZoneTransition(
                     "To overworld", direction=Facing.DOWN, target_zone=MapID.OVERWORLD
                 ),
+            ],
+        )
+
+
+class NoriaMines(SeqList):
+    def __init__(self):
+        super().__init__(
+            name="Noria Mines",
+            children=[
+                NoriaToMaze(),
+                NoriaPuzzles(),
+                NoriaBossFight(),
             ],
         )
