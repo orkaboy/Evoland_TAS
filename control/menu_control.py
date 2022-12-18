@@ -84,6 +84,9 @@ class SeqMenuDown(SeqBase):
         return True
 
 
+# TODO: Implement use of menu cursor from memory
+
+
 class SeqLoadGame(SeqBase):
     def __init__(self, name: str, saveslot: int):
         self.saveslot = saveslot
