@@ -89,10 +89,12 @@ class Edel1(SeqList):
                 SeqGridLockedCombat(
                     "Dodge enemies",
                     coords=_edel_vale_astar.calculate(
-                        start=Vec2(44, 49), goal=Vec2(35, 33), free_move=False
+                        start=Vec2(44, 49),
+                        goal=Vec2(35, 33),
+                        final_pos=Vec2(34, 33),
+                        free_move=False,
                     ),
                 ),
-                SeqMove2D("Move to chest", coords=[Vec2(34, 33)]),
                 # We now have free move
                 SeqGrabChest("Free move", direction=Facing.LEFT),
                 # TODO: At this point we can move more freely, could implement a better move2d (or improve current)

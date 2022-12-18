@@ -29,6 +29,12 @@ def move_to(player: Vec2, target: Vec2, precision: float) -> None:
         ctrl.dpad.up()
 
 
+class SeqCtrlNeutral(SeqBase):
+    def execute(self, delta: float) -> bool:
+        evo_ctrl().dpad.none()
+        return True
+
+
 # TODO: Improve on class to be able to handle free move/3d
 class SeqGrabChest(SeqBase):
     def __init__(self, name: str, direction: Facing):

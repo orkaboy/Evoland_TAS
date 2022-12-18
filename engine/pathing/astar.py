@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 from engine.mathlib import Vec2, dist
 
@@ -27,26 +28,34 @@ class AStar:
             return self.f > other.f
 
         # Trace path to root
-        def trace_path(self) -> list[Vec2]:
+        def trace_path(self, final_pos: Optional[Vec2] = None) -> list[Vec2]:
             cur = self
             ret = []
             while cur.parent:
                 ret.append(cur.pos)
                 cur = cur.parent
             ret.reverse()
+            if final_pos:
+                ret.append(final_pos)
             return ret
 
     def __init__(self, map_nodes: list[Vec2]) -> None:
         self.map = map_nodes
 
-    def calculate(self, start: Vec2, goal: Vec2, free_move: bool = True) -> list[Vec2]:
+    def calculate(
+        self,
+        start: Vec2,
+        goal: Vec2,
+        final_pos: Optional[Vec2] = None,
+        free_move: bool = True,
+    ) -> list[Vec2]:
         open_list = [AStar.Node(start, goal)]
         closed_list: list[AStar.Node] = []
         while open_list:
             open_list.sort()
             node = open_list.pop()
             if node.pos == goal:
-                return node.trace_path()
+                return node.trace_path(final_pos)
             # else (goal not reached), add to closed_list list and elaborate
             closed_list.append(node)
             for neighbor in self._neighbors(node, goal, free_move):

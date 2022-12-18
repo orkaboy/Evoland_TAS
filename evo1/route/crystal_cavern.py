@@ -98,10 +98,9 @@ class CrystalCavern(SeqList):
                 SeqMove2DConfirm(
                     name="Move to chest",
                     coords=_cavern_astar.calculate(
-                        start=Vec2(24, 77), goal=Vec2(20, 66)
+                        start=Vec2(24, 77), goal=Vec2(20, 66), final_pos=Vec2(20, 65.6)
                     ),
                 ),
-                SeqMove2D("Move to chest", coords=[Vec2(20, 65.6)]),
                 SeqGrabChest("Cave monsters", Facing.UP),
                 # TODO: Should run from these battles
                 CrystalCavernEncManip(
@@ -117,7 +116,7 @@ class CrystalCavern(SeqList):
                 CrystalCavernEncManip(
                     name="Move to trigger",
                     coords=_cavern_astar.calculate(
-                        start=Vec2(18, 38), goal=Vec2(54, 36)
+                        start=Vec2(18, 38), goal=Vec2(54, 36), final_pos=Vec2(54, 36.5)
                     ),
                     pref_enc=[EncounterID.TORK, EncounterID.KOBRA_2],
                 ),

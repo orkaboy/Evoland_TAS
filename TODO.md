@@ -21,7 +21,6 @@
 
 * Clean up main menu navigation code? Checking for if New game is available
 * Pathfinding
-  * Fix the pathfinding so it works for sub-tile movement (approximate, then inject real goal at last node)
   * Fix the pathfinding to reduce the number of nav nodes/checkpoints, and have the TAS beeline for objectives when possible (use rays to detect map collision)
 * Improve knights combat logic
   * Account for spaces that are invalid (not passable). Can use navmap here
