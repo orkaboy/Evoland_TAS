@@ -4,6 +4,7 @@
 
 * The TAS can somewhat reliably kill the final boss of the game
 * Added rng tracker to TAS display
+* Added Crystal Caverns menu manipulation
 
 
 # Older changelogs
