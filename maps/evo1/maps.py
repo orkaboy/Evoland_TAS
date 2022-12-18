@@ -10,6 +10,8 @@ class NavMap:
         self.astar = AStar(self.tilemap.map)
 
 
+_sacred_grove = NavMap("maps/evo1/sacred_grove.yaml")
+
 _maps = {
     MapID.EDEL_VALE: NavMap("maps/evo1/edel_vale.yaml"),
     MapID.OVERWORLD: NavMap("maps/evo1/overworld.yaml"),
@@ -21,9 +23,9 @@ _maps = {
     MapID.LIMBO: NavMap("maps/evo1/limbo.yaml"),
     MapID.NORIA_CLOSED: NavMap("maps/evo1/noria_start.yaml"),
     MapID.NORIA: NavMap("maps/evo1/noria_mines.yaml"),
-    MapID.SACRED_GROVE_2D: NavMap("maps/evo1/sacred_grove.yaml"),
+    MapID.SACRED_GROVE_2D: _sacred_grove,
     # TODO: Add the 3d map too?
-    MapID.SACRED_GROVE_3D: NavMap("maps/evo1/sacred_grove.yaml"),
+    MapID.SACRED_GROVE_3D: _sacred_grove,
     MapID.SACRED_GROVE_CAVE_1: NavMap("maps/evo1/sacred_grove_cave1.yaml"),
     MapID.SACRED_GROVE_CAVE_2: NavMap("maps/evo1/sacred_grove_cave2.yaml"),
     # TODO: Sarudnahk
