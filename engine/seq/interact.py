@@ -30,13 +30,23 @@ class SeqAttack(SeqBase):
         super().__init__(name)
 
     def execute(self, delta: float) -> bool:
-        ctrl = evo_ctrl()
-        ctrl.attack(tapping=False)
-        # TODO: Await control?
+        evo_ctrl().attack(tapping=False)
         return True
 
     def __repr__(self) -> str:
         return f"Attack({self.name})"
+
+
+class SeqMenu(SeqBase):
+    def __init__(self, name: str):
+        super().__init__(name)
+
+    def execute(self, delta: float) -> bool:
+        evo_ctrl().menu(tapping=False)
+        return True
+
+    def __repr__(self) -> str:
+        return f"Menu({self.name})"
 
 
 class SeqInteract(SeqMashDelay):
@@ -46,8 +56,7 @@ class SeqInteract(SeqMashDelay):
 
     def execute(self, delta: float) -> bool:
         self.timer += delta
-        ctrl = evo_ctrl()
-        ctrl.confirm(tapping=True)
+        evo_ctrl().confirm(tapping=True)
         # Wait out any cutscene/pickup animation
         mem = self.zelda_mem()
         return mem.player.in_control and self.timer >= self.timeout

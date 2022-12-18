@@ -33,8 +33,7 @@ class SeqDelay(SeqBase):
 class SeqMashDelay(SeqDelay):
     def execute(self, delta: float) -> bool:
         self.timer += delta
-        ctrl = evo_ctrl()
-        ctrl.confirm(tapping=True)
+        evo_ctrl().confirm(tapping=True)
         # Wait out any cutscene/pickup animation
         return self.timer >= self.timeout
 

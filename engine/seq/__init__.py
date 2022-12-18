@@ -3,6 +3,7 @@ from engine.seq.interact import (
     SeqAttack,
     SeqDirHoldUntilLostControl,
     SeqInteract,
+    SeqMenu,
     SeqTapDirection,
     SeqWaitForControl,
 )
@@ -24,6 +25,7 @@ __all__ = [
     "SeqOptional",
     "SeqTapDirection",
     "SeqAttack",
+    "SeqMenu",
     "SeqWaitForControl",
     "SeqDirHoldUntilLostControl",
     "SeqInteract",
