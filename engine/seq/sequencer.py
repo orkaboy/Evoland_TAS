@@ -1,4 +1,5 @@
 # Libraries and Core Files
+import contextlib
 import datetime
 import logging
 import time
@@ -80,6 +81,14 @@ class SequencerEngine(object):
         pause_str = " == PAUSED ==" if self.paused else ""
         self.window.main.addstr(Vec2(0, 0), f"[{timestamp}]{pause_str}")
 
+    def _print_rng(self) -> None:
+        with contextlib.suppress(ReferenceError):
+            rng = EvolandRNG().get_rng()
+            rng_str = f"RNG: {rng.cursor:2}"
+            self.window.main.addstr(
+                Vec2(self.window.main.size.x - len(rng_str) - 1, 0), rng_str
+            )
+
     def _render(self) -> None:
         # Clear display windows
         self.window.main.erase()
@@ -88,11 +97,7 @@ class SequencerEngine(object):
         self._print_timer()
         self.window.main.addstr(Vec2(0, 1), f"Gamestate:\n  {self.root}")
         # Render RNG cursor
-        rng = EvolandRNG().get_rng()
-        rng_str = f"RNG: {rng.cursor:2}"
-        self.window.main.addstr(
-            Vec2(self.window.main.size.x - len(rng_str) - 1, 0), rng_str
-        )
+        self._print_rng()
         # Render the current gamestate
         self.root.render(window=self.window)
 
