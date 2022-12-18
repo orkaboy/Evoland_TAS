@@ -1,4 +1,5 @@
 # Libraries and Core Files
+import contextlib
 import logging
 
 from memory.core import LIBHL_OFFSET, LocProcess, mem_handle
@@ -134,10 +135,8 @@ class BattleMemory:
     _ENT_PTR_SIZE = 0x4  # 0x10, 0x14...
 
     # Only valid when menu is open
-    # TODO: Implement
     _PLAYER_ATB_MENU_CURSOR_PTR = [0x48, 0x8C]
-
-    # Also used for item menu (not based in battle)
+    # Also used for item menu (not based in battle struct for some reason)
     _PLAYER_ATB_SPECIAL_MENU_CURSOR_PTR = [0x7C8, 0x8, 0x3C, 0x4C, 0x8, 0x1C, 0xC, 0x8C]
 
     def __init__(self):
@@ -155,10 +154,12 @@ class BattleMemory:
             self.base_addr + LIBHL_OFFSET, offsets=self._BATTLE_BASE_PTR
         )
 
+        self.menu_open = False
         self.active = True
         self.update()
 
     def update(self):
+        self.menu_open = False
         try:
             self.allies = self._init_entities(
                 array_size_ptr=self._ALLIES_ARR_SIZE_PTR,
@@ -171,6 +172,13 @@ class BattleMemory:
             # TODO: Other battle related data? Cursors gui etc.
         except ReferenceError:
             self.active = False
+
+        if self.active:
+            with contextlib.suppress(ValueError):
+                self.cursor_ptr = self.process.get_pointer(
+                    self.base_offset, offsets=self._PLAYER_ATB_MENU_CURSOR_PTR
+                )
+                self.menu_open = True
 
     def _init_entities(
         self, array_size_ptr: list[int], array_base_ptr: list[int]
@@ -197,6 +205,10 @@ class BattleMemory:
             return True
         # Check if every ally has fallen, if so, battle has ended
         return all(ally.cur_hp <= 0 for ally in self.allies)
+
+    @property
+    def cursor(self) -> int:
+        return self.process.read_u32(self.cursor_ptr)
 
     @property
     def battle_active(self) -> bool:

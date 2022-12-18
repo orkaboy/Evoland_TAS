@@ -25,13 +25,7 @@
 * Improve knights combat logic
   * Account for spaces that are invalid (not passable). Can use navmap here
 * Cavern
-  * Fix smarter ATB combat (run/heal)
-    * Should take any low damage encounter and run before the exp chest
-    * Should run after level 2
   * Improve on encounter manip logic
-    * Try to get small group before chest
-    * Try to get Tork after chest
-    * Try to get small group+run after level 2
     * Read chest timers from memory and avoid moving just before they advance RNG
 * 3D Movement and combat
   * Handle pathfinding past breakable objects (bushes/pots). Can do this manually, but it's less elegant

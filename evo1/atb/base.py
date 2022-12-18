@@ -1,3 +1,4 @@
+import contextlib
 import logging
 from enum import Enum, auto
 
@@ -45,12 +46,22 @@ class SeqATBCombat(SeqBase):
             return False
         return True
 
+    _RUN_CURSOR_POS = 3
+
     # TODO: Actual combat logic
     # TODO: Overload with more complex
-    def handle_combat(self):
-        _tap_confirm()
+    def handle_combat(self, should_run: bool = False):
+        if should_run:
+            if self.mem.menu_open:
+                with contextlib.suppress(ReferenceError):
+                    ctrl = evo_ctrl()
+                    while self.mem.cursor != self._RUN_CURSOR_POS:
+                        ctrl.dpad.tap_down()
+                    ctrl.confirm()
+        else:
+            _tap_confirm()
 
-    def execute(self, delta: float) -> bool:
+    def execute(self, delta: float, should_run: bool = False) -> bool:
         # Update memory
         active = self.update_mem()
         # Handle FSM
@@ -65,7 +76,7 @@ class SeqATBCombat(SeqBase):
                     return False
             case self._BattleFSM.BATTLE:
                 if active:
-                    self.handle_combat()
+                    self.handle_combat(should_run)
                     if self.mem.ended:
                         logger.debug("Battle => Post battle")
                         self.state = self._BattleFSM.POST_BATTLE

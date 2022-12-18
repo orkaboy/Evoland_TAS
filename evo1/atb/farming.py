@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 from control import evo_ctrl
 from engine.mathlib import Vec2
@@ -21,7 +22,7 @@ def _tap_confirm() -> None:
 class FarmingGoal:
     def __init__(
         self,
-        farm_coords: list[Vec2],
+        farm_coords: Optional[list[Vec2]] = None,
         precision: float = 0.2,
         gli_goal: int = None,
         lvl_goal: int = None,
@@ -47,16 +48,22 @@ class FarmingGoal:
         if is_close(cur_pos, target, self.precision):
             self.step = self.step + 1 if self.step < len(self.farm_coords) - 1 else 0
 
+    def can_farm(self) -> bool:
+        return self.farm_coords is not None
+
     def is_done(self) -> bool:
         # Check that farming goals are met
         mem = get_memory()
         gli_goal_met = mem.gli >= self.gli_goal if self.gli_goal else True
         lvl_goal_met = mem.lvl >= self.lvl_goal if self.lvl_goal else True
         # Check that we are in the last position of the farm cycle
-        mem = get_zelda_memory()
-        cur_pos = mem.player.pos
-        last_pos = self.farm_coords[-1]
-        nav_done = is_close(cur_pos, last_pos, self.precision)
+        if self.can_farm():
+            mem = get_zelda_memory()
+            cur_pos = mem.player.pos
+            last_pos = self.farm_coords[-1]
+            nav_done = is_close(cur_pos, last_pos, self.precision)
+        else:
+            nav_done = True
         return gli_goal_met and lvl_goal_met and nav_done
 
     def __repr__(self) -> str:
@@ -74,11 +81,13 @@ class SeqATBmove2D(SeqMove2D):
         battle_handler: SeqATBCombat = SeqATBCombat(),
         goal: FarmingGoal = None,
         precision: float = 0.2,
+        forced: bool = False,
         func=None,
     ):
         self.goal = goal
         self.next_enc: Encounter = None
         self.battle_handler = battle_handler
+        self.forced = forced
         super().__init__(name, coords, precision, func=func)
 
     def reset(self) -> None:
@@ -102,7 +111,7 @@ class SeqATBmove2D(SeqMove2D):
 
     def check_farming_goals(self) -> bool:
         nav_done = self._nav_done()
-        farm_done = self._farm_done()
+        farm_done = self._farm_done() or not self.goal.can_farm()
 
         if nav_done and not farm_done:
             self.goal.farm()
@@ -116,14 +125,16 @@ class SeqATBmove2D(SeqMove2D):
             rng=rng, has_3d_monsters=False, clink_level=0 if small_sword else mem.lvl
         )
 
+    def should_run(self) -> bool:
+        return not self.forced and self._farm_done()
+
     def handle_combat(self, delta: float) -> bool:
         mem = get_zelda_memory()
         # For some reason, this flag is set when in ATB combat
         if mem.player.not_in_control:
             # Check for active battle (returns True on completion/non-execution)
-            if self.battle_handler.execute(delta=delta):
+            if self.battle_handler.execute(delta=delta, should_run=self.should_run()):
                 # Handle non-battle reasons for losing control
-                # TODO: Just cutscenes for now, might need logic for skips here
                 _tap_confirm()
             return True
         # Else: Reset the battle state machine to prepare for next combat

@@ -182,6 +182,7 @@ class OverworldToCavern(SeqList):
                     coords=_overworld_astar.calculate(
                         start=Vec2(87, 40), goal=Vec2(79, 35)
                     ),
+                    forced=True,
                 ),
                 # Move into the caverns
                 SeqZoneTransition(

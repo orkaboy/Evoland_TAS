@@ -4,7 +4,7 @@ from control import evo_ctrl
 from engine.mathlib import Facing, Vec2
 from engine.move2d import SeqDelay, SeqGrabChest, SeqMove2D, SeqMove2DConfirm
 from engine.seq import SeqList, SeqMashDelay, SeqMenu
-from evo1.atb import EncounterID, SeqATBCombat, SeqATBmove2D
+from evo1.atb import EncounterID, FarmingGoal, SeqATBCombat, SeqATBmove2D
 from evo1.move2d import SeqZoneTransition
 from maps.evo1 import GetAStar
 from memory.evo1 import MapID, get_zelda_memory
@@ -23,11 +23,13 @@ class CrystalCavernEncManip(SeqATBmove2D):
         name: str,
         coords: list[Vec2],
         pref_enc: list[EncounterID],
+        goal: FarmingGoal = None,
         precision: float = 0.2,
     ):
         self.pref_enc = pref_enc
-        super().__init__(name=name, coords=coords, goal=None, precision=precision)
+        super().__init__(name=name, coords=coords, goal=goal, precision=precision)
 
+    # TODO: Leveling requirement should account for exp (if the first manip fails)
     def _should_manip(self) -> bool:
         # Check how close we are to getting an encounter
         mem = get_zelda_memory()
@@ -37,6 +39,7 @@ class CrystalCavernEncManip(SeqATBmove2D):
         if enc_timer < 0.1:
             if self.next_enc.enc_id in self.pref_enc:
                 # If favorable and it's a Kobra, wait if we're going to miss
+                # TODO: Worth it?
                 return (
                     not self.next_enc.first_turn.hit
                     if self.next_enc.enc_id == EncounterID.KOBRA
@@ -73,7 +76,7 @@ class SeqKefkasGhost(SeqATBCombat):
     def _is_invincible(self) -> bool:
         return self.mem.enemies[0].turn_gauge < -1
 
-    def handle_combat(self):
+    def handle_combat(self, should_run: bool = False):
         # Do nothing if battle has ended
         if self.mem.ended:
             return
@@ -102,22 +105,25 @@ class CrystalCavern(SeqList):
                     ),
                 ),
                 SeqGrabChest("Cave monsters", Facing.UP),
-                # TODO: Should run from these battles
+                # Should run from these battles
                 CrystalCavernEncManip(
                     name="Move to chest",
                     coords=_cavern_astar.calculate(
                         start=Vec2(20, 65), goal=Vec2(18, 39)
                     ),
-                    pref_enc=[EncounterID.KOBRA],
+                    pref_enc=[
+                        EncounterID.KOBRA,
+                        EncounterID.SCAVEN_2,
+                        EncounterID.KOBRA_2,
+                    ],
                 ),
                 SeqGrabChest("Experience", Facing.UP),
-                # TODO: Allowed battles may be too tight
-                # TODO: Aim is to get level 2, so need Tork or 2xKobra (pref not Tork+2xScaven)
                 CrystalCavernEncManip(
                     name="Move to trigger",
                     coords=_cavern_astar.calculate(
                         start=Vec2(18, 38), goal=Vec2(54, 36), final_pos=Vec2(54, 36.7)
                     ),
+                    goal=FarmingGoal(lvl_goal=2),
                     pref_enc=[EncounterID.TORK, EncounterID.KOBRA_2],
                 ),
                 # Menu manip here (carries over to first chest in 3D Edel Vale)
@@ -126,8 +132,7 @@ class CrystalCavern(SeqList):
                 SeqMenu("Menu manip"),
                 SeqMove2D(name="Menu manip", coords=[Vec2(54, 34)]),
                 SeqMenu("Menu manip"),
-                # TODO: Allowed battles may be too tight
-                # TODO: Should run from battle if we have level 2
+                # Should run from battle if we have level 2
                 CrystalCavernEncManip(
                     name="Move to boss",
                     coords=_cavern_astar.calculate(
@@ -135,7 +140,12 @@ class CrystalCavern(SeqList):
                         start=Vec2(54, 30),
                         goal=Vec2(49, 9),
                     ),
-                    pref_enc=[EncounterID.KOBRA],
+                    goal=FarmingGoal(lvl_goal=2),
+                    pref_enc=[
+                        EncounterID.KOBRA,
+                        EncounterID.SCAVEN_2,
+                        EncounterID.KOBRA_2,
+                    ],
                 ),
                 # Trigger fight against Kefka's ghost (interact with crystal)
                 SeqKefkasGhost(),
