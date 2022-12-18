@@ -69,9 +69,10 @@ class SeqGrabChest(SeqBase):
 
 # TODO: Improve on class to be able to handle free move/3D
 class SeqGrabChestKeyItem(SeqBase):
-    def __init__(self, name: str, direction: Facing):
+    def __init__(self, name: str, direction: Facing, manip: bool = False):
         self.dir = direction
         self.grabbed = False
+        self.manip = manip
         super().__init__(name)
 
     def reset(self) -> None:
@@ -95,6 +96,10 @@ class SeqGrabChestKeyItem(SeqBase):
                 logger.info(f"Picking up {self.name}!")
                 self.grabbed = True
             return False
+        # Carrying a manip that we can cancel
+        if self.manip:
+            ctrl.menu(tapping=False)
+            return True
         # Tap past any popups
         ctrl.dpad.none()
         ctrl.confirm(tapping=True)

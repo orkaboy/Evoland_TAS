@@ -165,7 +165,7 @@ class Edel2(SeqList):
                         start=Vec2(10, 8), goal=Vec2(15, 14)
                     ),
                 ),
-                SeqGrabChestKeyItem("Hearts", direction=Facing.UP),
+                SeqGrabChestKeyItem("Hearts", direction=Facing.UP, manip=True),
                 SeqMove2DClunkyCombat(
                     "Move to bush",
                     coords=_edel_vale_astar.calculate(
