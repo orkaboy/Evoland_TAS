@@ -1,5 +1,6 @@
 import contextlib
 import logging
+from typing import Callable, Optional
 
 from control import evo_ctrl
 from engine.mathlib import Facing, Vec2, is_close
@@ -234,11 +235,17 @@ class SeqSection2D(SeqBase):
 
 class SeqMove2D(SeqSection2D):
     def __init__(
-        self, name: str, coords: list[Vec2], precision: float = 0.2, func=None
+        self,
+        name: str,
+        coords: list[Vec2],
+        precision: float = 0.2,
+        func=None,
+        emergency_skip: Optional[Callable[[], bool]] = None,
     ):
         self.step = 0
         self.coords = coords
         self.precision = precision
+        self.emergency_skip = emergency_skip
         super().__init__(name, func=func)
 
     def reset(self) -> None:
@@ -273,6 +280,9 @@ class SeqMove2D(SeqSection2D):
 
         if done:
             logger.info(f"Finished moved2D section: {self.name}")
+        elif self.emergency_skip and self.emergency_skip():
+            logger.warning(f"Finished move2D section with emergency skip: {self.name}")
+            done = True
         return done
 
     def _print_target(self, window: WindowLayout) -> None:
@@ -318,3 +328,32 @@ class SeqMove2DConfirm(SeqMove2D):
             ctrl = evo_ctrl()
             ctrl.confirm(tapping=True)
         return done
+
+
+# Mash cancel while moving along a path (to get past talk triggers)
+class SeqMove2DCancel(SeqMove2D):
+    def __init__(
+        self,
+        name: str,
+        coords: list[Vec2],
+        precision: float = 0.2,
+        timeout_in_s: float = 0.2,
+    ):
+        super().__init__(name, coords, precision)
+        self.timer = 0
+        self.timeout = timeout_in_s
+        self.state = False
+
+    def execute(self, delta: float) -> bool:
+        done = super().execute(delta=delta)
+        self.timer += delta
+        # Release button before continuing
+        if done:
+            evo_ctrl().toggle_cancel(state=False)
+            return True
+        # Check if we should toggle button
+        if self.timer >= self.timeout:
+            self.timer = 0
+            self.state = not self.state
+            evo_ctrl().toggle_cancel(self.state)
+        return False

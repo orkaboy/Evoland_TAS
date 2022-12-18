@@ -2,8 +2,8 @@ import logging
 
 from control import evo_ctrl
 from engine.mathlib import Facing, Vec2
-from engine.move2d import SeqDelay, SeqGrabChest, SeqMove2D, SeqMove2DConfirm
-from engine.seq import SeqList, SeqMashDelay, SeqMenu
+from engine.move2d import SeqGrabChest, SeqMove2D, SeqMove2DConfirm
+from engine.seq import SeqDelay, SeqList, SeqMashDelay, SeqMenu
 from evo1.atb import EncounterID, FarmingGoal, SeqATBCombat, SeqATBmove2D
 from evo1.move2d import SeqZoneTransition
 from maps.evo1 import GetAStar

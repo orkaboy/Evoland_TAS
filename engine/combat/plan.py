@@ -60,9 +60,9 @@ class CombatPlan:
         else:
             return None
 
-    # TODO: This only works for the knights, not the bats that die in one hit
     def remove_dead(self) -> None:
         if self.retracking:
+            # TODO: This sometimes fails for the bats
             scan = self.track_targets()
             self.targets = [enemy for enemy in self.targets if enemy in scan]
         else:

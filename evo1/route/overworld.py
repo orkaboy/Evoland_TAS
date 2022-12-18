@@ -147,6 +147,7 @@ class OverworldToMeadow(SeqList):
                     coords=[
                         Vec2(79.7, 54.8),
                         # Nudge chest (encounters) at (79, 54)
+                        # TODO: Improve nudge to avoid stopping
                         Vec2(79.5, 53),
                     ],
                 ),

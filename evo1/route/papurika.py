@@ -7,6 +7,11 @@ from evo1.shop import SeqShopBuy
 from memory.evo1 import MapID, get_memory
 
 
+def in_papurika() -> bool:
+    mem = get_memory()
+    return mem.map_id == MapID.PAPURIKA
+
+
 class MeadowFight(SeqList):
     def __init__(self):
         super().__init__(
@@ -41,6 +46,8 @@ class MeadowFight(SeqList):
                         Vec2(19, 11),
                         # Chest to the right
                     ],
+                    # Check if we accidentally already picked up the chest
+                    emergency_skip=in_papurika,
                 ),
             ],
         )

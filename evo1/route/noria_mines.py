@@ -2,12 +2,13 @@ from engine.combat import SeqCombat3D, SeqMove2DClunkyCombat
 from engine.mathlib import Box2, Facing, Vec2
 from engine.move2d import (
     SeqGrabChest,
+    SeqGrabChestKeyItem,
     SeqHoldInPlace,
     SeqManualUntilClose,
     SeqMove2D,
-    SeqMove2DConfirm,
+    SeqMove2DCancel,
 )
-from engine.seq import SeqList
+from engine.seq import SeqAttack, SeqDelay, SeqList, SeqMenu
 from evo1.move2d import SeqZoneTransition
 from maps.evo1 import GetAStar
 from memory.evo1 import MapID
@@ -60,7 +61,7 @@ class NoriaToMaze(SeqList):
                         start=Vec2(50, 37), goal=Vec2(58, 37)
                     ),
                 ),
-                # TODO: menu glitch?
+                # TODO: menu glitch (important)
                 SeqHoldInPlace(
                     name="Trigger plate(R)", target=Vec2(58, 37), timeout_in_s=0.5
                 ),
@@ -77,7 +78,7 @@ class NoriaToMaze(SeqList):
                         start=Vec2(48, 44), goal=Vec2(35, 41), final_pos=Vec2(35, 40.6)
                     ),
                 ),
-                # TODO: Trigger menu glitch
+                # TODO: Trigger menu glitch to get two keys
                 SeqGrabChest("Trap room", direction=Facing.UP),
                 SeqCombat3D(
                     "Killing bats",
@@ -104,7 +105,7 @@ class NoriaToMaze(SeqList):
                 ),
                 SeqGrabChest("Skellies", direction=Facing.UP),
                 # Skip past first skeleton
-                SeqMove2DConfirm(
+                SeqMove2DCancel(
                     "Move to trigger",
                     coords=_noria_astar.calculate(
                         start=Vec2(41, 40), goal=Vec2(30, 40)
@@ -117,13 +118,15 @@ class NoriaToMaze(SeqList):
                         start=Vec2(30, 39), goal=Vec2(27, 42)
                     ),
                 ),
-                SeqHoldInPlace(
-                    name="Trigger plate", target=Vec2(27, 42), timeout_in_s=0.5
-                ),
+                SeqMenu("Menu manip"),
+                SeqDelay(name="Trigger plate", timeout_in_s=0.5),
+                SeqMenu("Menu manip"),
+                SeqMove2D(name="Menu manip", coords=[Vec2(28.5, 43)]),
+                SeqMenu("Menu manip"),
                 SeqMove2DClunkyCombat(
                     "Move to chest",
                     coords=_noria_astar.calculate(
-                        start=Vec2(27, 42), goal=Vec2(22, 40), final_pos=Vec2(22, 39.6)
+                        start=Vec2(29, 43), goal=Vec2(22, 40), final_pos=Vec2(22, 39.6)
                     ),
                 ),
                 SeqGrabChest("Maze", direction=Facing.UP),
@@ -144,7 +147,7 @@ class NoriaPuzzles(SeqList):
                         start=Vec2(22, 39), goal=Vec2(27, 24), final_pos=Vec2(27, 23.6)
                     ),
                 ),
-                SeqGrabChest("Key", direction=Facing.UP),
+                SeqGrabChestKeyItem("Key", direction=Facing.UP, manip=True),
                 SeqMove2DClunkyCombat(
                     "Maze",
                     coords=_noria_astar.calculate(
@@ -172,6 +175,7 @@ class NoriaPuzzles(SeqList):
                     coords=_noria_astar.calculate(start=Vec2(9, 14), goal=Vec2(12, 15)),
                 ),
                 SeqMove2D("Push block", coords=[Vec2(12, 13)]),
+                # TODO: Menu manip
                 SeqMove2DClunkyCombat(
                     "Move to block",
                     coords=_noria_astar.calculate(start=Vec2(12, 15), goal=Vec2(4, 4)),
@@ -181,15 +185,18 @@ class NoriaPuzzles(SeqList):
                     "Move to block",
                     coords=_noria_astar.calculate(start=Vec2(4, 4), goal=Vec2(11, 4)),
                 ),
-                SeqMove2D("Push block", coords=[Vec2(11, 3)]),
+                SeqMove2D("Push block", coords=[Vec2(11, 3), Vec2(11, 5)]),
+                SeqMenu("Menu manip"),
+                SeqDelay(name="Menu manip", timeout_in_s=0.5),
+                SeqMenu("Menu manip"),
+                SeqMove2D("Menu manip", coords=[Vec2(15, 5)]),
+                SeqMenu("Menu manip"),
                 SeqMove2DClunkyCombat(
                     "Move to trap",
-                    coords=_noria_astar.calculate(start=Vec2(11, 4), goal=Vec2(22, 15)),
+                    coords=_noria_astar.calculate(start=Vec2(15, 5), goal=Vec2(22, 15)),
                 ),
-                # TODO: Kill skellies (reuse knight combat) [19|20|21, 12]
-                # TODO: Can also skip past this entirely with glitch
-                SeqManualUntilClose("KILL SKELLIES", target=Vec2(22, 17)),
-                # TODO: Remove manual
+                # Skip past skeletons
+                SeqMenu("Menu manip"),
                 SeqMove2DClunkyCombat(
                     "Move to chest",
                     coords=_noria_astar.calculate(
@@ -197,8 +204,17 @@ class NoriaPuzzles(SeqList):
                     ),
                 ),
                 SeqGrabChest("GUI", direction=Facing.DOWN),
-                SeqMove2DConfirm("Talk", coords=[Vec2(26, 18)], precision=0.4),
-                SeqMove2DClunkyCombat(
+                SeqMove2DCancel(
+                    "Talk",
+                    coords=[
+                        Vec2(24, 18.5),
+                        Vec2(24.5, 18.5),
+                        Vec2(25.5, 17.5),
+                        Vec2(26, 18),
+                    ],
+                    precision=0.4,
+                ),
+                SeqMove2D(
                     "Move to chest",
                     coords=_noria_astar.calculate(
                         start=Vec2(26, 18), goal=Vec2(33, 17), final_pos=Vec2(33, 16.6)
@@ -206,29 +222,31 @@ class NoriaPuzzles(SeqList):
                 ),
                 SeqGrabChest("Pit", direction=Facing.UP),
                 # TODO: Code to bump enemy into pit
+                # TODO: Menu manip on fall
                 SeqManualUntilClose("BUMP ENEMY INTO PIT", target=Vec2(34, 11)),
                 # TODO: Remove manual
                 SeqMove2D("Move to chest", coords=[Vec2(34, 4.6)]),
                 SeqGrabChest("Trick plate", direction=Facing.UP),
                 SeqMove2DClunkyCombat(
-                    "Trigger plate(L)",
-                    coords=_noria_astar.calculate(start=Vec2(34, 5), goal=Vec2(32, 4)),
-                ),
-                SeqHoldInPlace(
-                    name="Trigger plate(L)", target=Vec2(32, 4), timeout_in_s=0.5
-                ),
-                SeqMove2DClunkyCombat(
                     "Trigger plate(R)",
-                    coords=_noria_astar.calculate(start=Vec2(32, 4), goal=Vec2(36, 4)),
+                    coords=_noria_astar.calculate(start=Vec2(34, 5), goal=Vec2(36, 4)),
                 ),
                 SeqHoldInPlace(
                     name="Trigger plate(R)", target=Vec2(36, 4), timeout_in_s=0.5
                 ),
-                # TODO: Just move here? Ignore skellies?
                 SeqMove2DClunkyCombat(
+                    "Trigger plate(L)",
+                    coords=_noria_astar.calculate(start=Vec2(36, 4), goal=Vec2(32, 4)),
+                ),
+                # TODO: Menu manip
+                SeqHoldInPlace(
+                    name="Trigger plate(L)", target=Vec2(32, 4), timeout_in_s=0.5
+                ),
+                # TODO: Just move here? Ignore skellies?
+                SeqMove2D(
                     "Move to chest",
                     coords=_noria_astar.calculate(
-                        start=Vec2(36, 4), goal=Vec2(38, 14), final_pos=Vec2(38, 14.4)
+                        start=Vec2(32, 4), goal=Vec2(38, 14), final_pos=Vec2(38, 14.4)
                     ),
                 ),
                 SeqGrabChest("Wind trap", direction=Facing.DOWN),
@@ -242,7 +260,7 @@ class NoriaPuzzles(SeqList):
                 SeqManualUntilClose("SOLVE PUZZLE", target=Vec2(61, 27)),
                 # TODO: Remove manual
                 # Get in position for chest
-                # TODO: Can ignore this key?
+                # TODO: Can ignore this key if we do the skip earlier
                 SeqMove2D("Move to chest", coords=[Vec2(61.4, 27)]),
                 SeqGrabChest("Key", direction=Facing.RIGHT),
                 SeqMove2DClunkyCombat(
@@ -259,6 +277,7 @@ class NoriaPuzzles(SeqList):
                         start=Vec2(51, 23), goal=Vec2(53, 19), final_pos=Vec2(53, 18.6)
                     ),
                 ),
+                SeqMove2D("Move to chest", coords=[Vec2(53, 18.6)]),
                 SeqGrabChest("Lava", direction=Facing.UP),
                 SeqMove2DClunkyCombat(
                     "Move to trigger",
@@ -266,12 +285,36 @@ class NoriaPuzzles(SeqList):
                         start=Vec2(53, 18), goal=Vec2(66, 20)
                     ),
                 ),
-                SeqMove2DConfirm("Talk", coords=[Vec2(67, 22)], precision=0.4),
-                # TODO: Maze with pots! Have fallback for dying here to recover
-                SeqManualUntilClose("NAVIGATE LAVA MAZE", target=Vec2(67, 30)),
-                # TODO: Remove manual
-                # Get in position for chest
-                SeqMove2D("Move to chest", coords=[Vec2(67, 30.4)]),
+                SeqMove2DCancel("Talk", coords=[Vec2(67, 22)], precision=0.4),
+                SeqMove2DClunkyCombat(
+                    "Lava Maze",
+                    coords=_noria_astar.calculate(
+                        start=Vec2(67, 22), goal=Vec2(72, 22)
+                    ),
+                ),
+                SeqAttack("Pot"),
+                SeqMove2DClunkyCombat(
+                    "Lava Maze", coords=[Vec2(72.5, 22), Vec2(73, 22.5)], precision=0.1
+                ),
+                SeqMove2DClunkyCombat(
+                    "Lava Maze",
+                    coords=_noria_astar.calculate(
+                        start=Vec2(73, 23),
+                        goal=Vec2(70, 26),
+                        final_pos=Vec2(69.5, 25.8),
+                    ),
+                    precision=0.1,
+                ),
+                SeqAttack("Pot"),
+                SeqMove2DClunkyCombat(
+                    "Lava Maze", coords=[Vec2(68.5, 25)], precision=0.1
+                ),
+                SeqMove2DClunkyCombat(
+                    "Lava Maze",
+                    coords=_noria_astar.calculate(
+                        start=Vec2(68, 25), goal=Vec2(70, 30), final_pos=Vec2(70, 30.4)
+                    ),
+                ),
                 SeqGrabChest("Fire maze", direction=Facing.DOWN),
                 # TODO: Fire maze! Have fallback for dying here to recover (can also lower health to deathwarp later)
                 SeqManualUntilClose("NAVIGATE FIRE MAZE", target=Vec2(70, 51)),
@@ -307,7 +350,7 @@ class NoriaBossFight(SeqList):
                         start=Vec2(41, 53), goal=Vec2(32, 51)
                     ),
                 ),
-                SeqMove2DConfirm("Talk", coords=[Vec2(32, 54)], precision=0.4),
+                SeqMove2DCancel("Talk", coords=[Vec2(32, 54)], precision=0.4),
                 SeqMove2DClunkyCombat(
                     "Move to trigger",
                     coords=_noria_astar.calculate(
@@ -322,7 +365,7 @@ class NoriaBossFight(SeqList):
                 SeqMove2D("Move to chest", coords=[Vec2(21, 60.6)]),
                 SeqGrabChest("Buster sword", direction=Facing.UP),
                 # TODO: Skip (need to use cancel instead of confirm!)
-                SeqMove2DConfirm("Talk", coords=[Vec2(21, 69)], precision=0.4),
+                SeqMove2DCancel("Talk", coords=[Vec2(21, 69)], precision=0.4),
                 SeqZoneTransition(
                     "To overworld", direction=Facing.DOWN, target_zone=MapID.OVERWORLD
                 ),
