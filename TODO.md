@@ -1,15 +1,12 @@
 # TODO list
 
 * Next:
-  * Start doing cutscene skips with menu-glitch
   * Go ahead a bit in the run and do a rough routing of the later parts (Aogai, Sacred Grove, Sarudnahk). Verify using saves
   * Display hp in zelda mode
   * Clink attacks from just out of range, swinging in the air
-  * Killing 3 skellies (knight-like logic, but in 3d, using modified rotation angle)
-    * This logic can be applied to knights combat also
-  * Juke the two skellies before push block
+  * Juke the two skellies before push block? Mostly do a menu skip
   * Push armored enemy into pit
-  * Navigate the maze (easy)/fireballs/wind traps
+  * Navigate the fireballs/wind traps
   * Deathwarp? Some issues reloading currently (need to know which save slot we are using. For now, require use of slot 1?)
   * Bossfight Dark Clink
 
