@@ -2,8 +2,8 @@ import logging
 
 from control import evo_ctrl
 from engine.mathlib import Facing, Vec2
-from engine.move2d import SeqGrabChest, SeqHoldInPlace, SeqMove2D, SeqMove2DConfirm
-from engine.seq import SeqList, SeqMashDelay
+from engine.move2d import SeqDelay, SeqGrabChest, SeqMove2D, SeqMove2DConfirm
+from engine.seq import SeqList, SeqMashDelay, SeqMenu
 from evo1.atb import EncounterID, SeqATBCombat, SeqATBmove2D
 from evo1.move2d import SeqZoneTransition
 from maps.evo1 import GetAStar
@@ -116,19 +116,24 @@ class CrystalCavern(SeqList):
                 CrystalCavernEncManip(
                     name="Move to trigger",
                     coords=_cavern_astar.calculate(
-                        start=Vec2(18, 38), goal=Vec2(54, 36), final_pos=Vec2(54, 36.5)
+                        start=Vec2(18, 38), goal=Vec2(54, 36), final_pos=Vec2(54, 36.7)
                     ),
                     pref_enc=[EncounterID.TORK, EncounterID.KOBRA_2],
                 ),
-                # TODO should menu manip here
-                SeqHoldInPlace(
-                    name="Trigger plate", target=Vec2(54, 36.5), timeout_in_s=0.5
-                ),
+                # Menu manip here (carries over to first chest in 3D Edel Vale)
+                SeqMenu("Menu manip"),
+                SeqDelay(name="Trigger plate", timeout_in_s=0.5),
+                SeqMenu("Menu manip"),
+                SeqMove2D(name="Menu manip", coords=[Vec2(54, 34)]),
+                SeqMenu("Menu manip"),
                 # TODO: Allowed battles may be too tight
+                # TODO: Should run from battle if we have level 2
                 CrystalCavernEncManip(
                     name="Move to boss",
                     coords=_cavern_astar.calculate(
-                        start=Vec2(54, 36), goal=Vec2(49, 9)
+                        # (54, 36)
+                        start=Vec2(54, 30),
+                        goal=Vec2(49, 9),
                     ),
                     pref_enc=[EncounterID.KOBRA],
                 ),
