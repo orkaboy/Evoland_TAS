@@ -67,7 +67,6 @@ class AStar:
             node_list[n_idx].parent = cur_node
 
     def _neighbors(self, node: Node, goal: Vec2, free_move: bool) -> list[Node]:
-        adjacent = []
         # directly adjacent
         node_n = AStar.Node(
             node.pos + Vec2(0, -1), goal=goal, cost=node.cost + 1, parent=node
@@ -82,14 +81,9 @@ class AStar:
             node.pos + Vec2(-1, 0), goal=goal, cost=node.cost + 1, parent=node
         )
         # Ignore nodes that are not traversible
-        if node_n.pos in self.map:
-            adjacent.append(node_n)
-        if node_e.pos in self.map:
-            adjacent.append(node_e)
-        if node_s.pos in self.map:
-            adjacent.append(node_s)
-        if node_w.pos in self.map:
-            adjacent.append(node_w)
+        adjacent = [
+            node for node in [node_n, node_e, node_s, node_w] if node.pos in self.map
+        ]
         # diagonals
         if free_move:
             node_nw = AStar.Node(
