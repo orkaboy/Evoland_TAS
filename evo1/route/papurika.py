@@ -25,12 +25,13 @@ class MeadowFight(SeqList):
                         Vec2(16, 8),  # Wake up third knight
                         Vec2(14.5, 8.1),
                         Vec2(14, 9),  # Wake up the fourth knight
+                        # Return to a safer position, closer to the first knights
+                        Vec2(15.5, 10),
                     ],
                 ),
                 SeqKnight2D(
                     "Killing four knights",
-                    # Valid arena to fight inside (should be clear of obstacles)
-                    arena=Box2(pos=Vec2(12, 6), w=7, h=8),
+                    arena=Box2(pos=Vec2(0, 0), w=31, h=23),
                     num_targets=4,
                 ),
                 SeqMove2D(

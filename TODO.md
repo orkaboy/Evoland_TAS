@@ -1,6 +1,7 @@
 # TODO list
 
 * Next:
+  * Start doing cutscene skips with menu-glitch
   * Go ahead a bit in the run and do a rough routing of the later parts (Aogai, Sacred Grove, Sarudnahk). Verify using saves
   * Display hp in zelda mode
   * Clink attacks from just out of range, swinging in the air
@@ -9,8 +10,6 @@
   * Juke the two skellies before push block
   * Push armored enemy into pit
   * Navigate the maze (easy)/fireballs/wind traps
-  * Knight combat: Prevent standing next to the knight while it's invulnerable
-  * Start doing cutscene skips with menu-glitch
   * Deathwarp? Some issues reloading currently (need to know which save slot we are using. For now, require use of slot 1?)
   * Bossfight Dark Clink
 
@@ -29,7 +28,11 @@
 * Cavern
   * Fix smarter ATB combat (run/heal)
     * Should take any low damage encounter and run before the exp chest
+    * Should run after level 2
   * Improve on encounter manip logic
+    * Try to get small group before chest
+    * Try to get Tork after chest
+    * Try to get small group+run after level 2
     * Read chest timers from memory and avoid moving just before they advance RNG
 * 3D Movement and combat
   * Handle pathfinding past breakable objects (bushes/pots). Can do this manually, but it's less elegant
