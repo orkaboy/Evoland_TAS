@@ -210,6 +210,8 @@ class Evo1ZeldaMemory(ZeldaMemory):
     _ACTOR_PTR_SIZE = 4
     _ACTOR_BASE_ADDR = 0x10
 
+    _WEAPON_SELECTION_PTR = [0xC, 0xAC, 0x8, 0x14, 0xCC, 0x28, 0x8, 0x0]  # int
+
     # Nested
     _ZEPHY_FIGHT_PTR = [0x88]  # Will be zero when not in the fight
     _ZEPHY_PLAYER_PTR = [0x20]

@@ -7,6 +7,7 @@ from engine.move2d import (
     SeqManualUntilClose,
     SeqMove2D,
     SeqMove2DCancel,
+    SeqSection2D,
 )
 from engine.seq import SeqAttack, SeqDelay, SeqList, SeqMenu
 from evo1.move2d import SeqZoneTransition
@@ -132,6 +133,24 @@ class NoriaToMaze(SeqList):
                 SeqGrabChest("Maze", direction=Facing.UP),
             ],
         )
+
+
+class Whackamole(SeqSection2D):
+    """Bump armored enemy into pit."""
+
+    def __init__(self) -> None:
+        super().__init__(name="Whackamole")
+
+    def execute(self, delta: float) -> bool:
+        # TODO: Bump enemy into pit algorithm
+
+        # Arena: 31,13 - 35,19 (pit starts at y=18)
+        # 1. Detect and track enemy
+        # 2. Move above enemy (around if necessary)
+        # 3. Attack downwards to push enemy towards pit
+        # 4. Detect when enemy falls into pit
+        # 5. Trigger menu glitch before cutscene triggers
+        return False
 
 
 class NoriaPuzzles(SeqList):
