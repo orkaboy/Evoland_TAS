@@ -258,13 +258,13 @@ class KaerisSkip(SeqSection2D):
         # Release button before continuing
         if done:
             ctrl.dpad.none()
-            ctrl.toggle_cancel(state=False)
+            ctrl.toggle_confirm(state=False)
             return True
         # Check if we should toggle button
         if self.timer >= self.timeout:
             self.timer = 0
             self.state = not self.state
-            ctrl.toggle_cancel(self.state)
+            ctrl.toggle_confirm(self.state)
         return False
 
 
