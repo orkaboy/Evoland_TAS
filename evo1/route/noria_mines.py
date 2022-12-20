@@ -557,19 +557,16 @@ class NoriaBossFight(SeqList):
                         start=Vec2(41, 53), goal=Vec2(32, 51)
                     ),
                 ),
-                SeqMove2DCancel("Talk", coords=[Vec2(32, 54)], precision=0.4),
-                SeqMove2DClunkyCombat(
-                    "Move to trigger",
+                SeqMove2DCancel("Talk", coords=[Vec2(32, 56)], precision=0.4),
+                # TODO: Defeat the Dark Clink boss
+                SeqManualUntilClose("DEFEAT BOSS", target=Vec2(27, 62)),
+                # TODO: Remove manual
+                SeqMove2D(
+                    "Move to chest",
                     coords=_noria_astar.calculate(
-                        start=Vec2(32, 54), goal=Vec2(27, 62)
+                        start=Vec2(27, 62), goal=Vec2(21, 61), final_pos=Vec2(21, 60.6)
                     ),
                 ),
-                # TODO: Defeat the Dark Clink boss
-                SeqManualUntilClose("DEFEAT BOSS", target=Vec2(21, 61)),
-                # TODO: Remove manual
-                # SeqMove2D("Move to chest", coords=_noria_astar.calculate(start=Vec2(TODO), goal=Vec2(21, 61))),
-                # Get in position for chest
-                SeqMove2D("Move to chest", coords=[Vec2(21, 60.6)]),
                 SeqGrabChest("Buster sword", direction=Facing.UP),
                 # TODO: Skip (need to use cancel instead of confirm!)
                 SeqMove2DCancel("Talk", coords=[Vec2(21, 69)], precision=0.4),
