@@ -34,6 +34,10 @@ _maps = {
 }
 
 
+def GetTilemap(map_id: MapID) -> Optional[TileMap]:
+    return navmap.tilemap if (navmap := _maps.get(map_id)) else None
+
+
 def CurrentTilemap() -> Optional[TileMap]:
     mem = get_memory()
     current_map = mem.map_id
