@@ -91,6 +91,7 @@ class TileMap:
         BRIDGE = 0xA26502
         SAVE_POINT = 0x2D7FAF
         DIMENSION_STONE = 0x802828
+        DIMENSION_TREE = 0x356D3B
         FLOOR = 0xE3E0B3
         FLOOR2 = 0xD2CD84
         WATER_BRIDGE = 0xB8CAFE
@@ -136,6 +137,7 @@ class TileMap:
         BitmapTile.WATER_BRIDGE: "=",
         BitmapTile.SAVE_POINT: "S",
         BitmapTile.DIMENSION_STONE: "D",
+        BitmapTile.DIMENSION_TREE: "T",
         BitmapTile.SPIKES: "^",
         BitmapTile.HIDDEN_PASSAGE: "*",
         BitmapTile.PUZZLE_TILE: "P",

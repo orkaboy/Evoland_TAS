@@ -1,8 +1,72 @@
+import contextlib
 from typing import Optional
 
 from control import evo_ctrl
+from engine.mathlib import Vec2, get_box_with_size, is_close
+from engine.move2d import SeqSection2D, move_to
 from engine.seq import SeqBase
-from memory.evo1 import Evo1Weapon, get_memory
+from memory.evo1 import Evo1GameEntity2D, Evo1Weapon, get_memory, get_zelda_memory
+
+
+class SeqPlaceBomb(SeqSection2D):
+    """Place a bomb at target. Assumes that bomb is the currently selected weapon."""
+
+    def __init__(
+        self,
+        name: str,
+        target: Vec2,
+        use_menu_glitch: bool = False,
+        swap_to_sword: bool = False,
+        precision: float = 0.2,
+    ):
+        super().__init__(name)
+        # If menu glitch is used, stay in place with menu open, waiting form bomb to blow
+        self.use_menu_glitch = use_menu_glitch
+        self.swap_to_sword = swap_to_sword
+        self.precision = precision
+        self.target = target
+        self.bombed = False
+
+    def reset(self) -> None:
+        self.bombed = False
+        return super().reset()
+
+    def execute(self, delta: float) -> bool:
+        ctrl = evo_ctrl()
+        mem = get_zelda_memory()
+        player_pos = mem.player.pos
+        # Move to target area
+        if self.bombed is False:
+            move_to(player=player_pos, target=self.target, precision=self.precision)
+            # Place bomb if close
+            if is_close(player_pos, self.target, precision=self.precision):
+                self.bombed = True
+                ctrl.attack()
+                if self.use_menu_glitch:
+                    ctrl.dpad.none()
+                    ctrl.menu()
+        # Bomb has been placed
+        elif self.use_menu_glitch:
+            if self.swap_to_sword:
+                ctrl.dpad.left()
+            with contextlib.suppress(ReferenceError):
+                box = get_box_with_size(center=player_pos, half_size=self.precision)
+                # Wait for bomb to explode
+                for actor in mem.actors:
+                    if actor.kind == Evo1GameEntity2D.EKind.SPECIAL and box.contains(
+                        actor.pos
+                    ):
+                        return False
+            # Close menu
+            ctrl.dpad.none()
+            ctrl.menu()
+            return True
+        # If we're not using menu glitch and bomb is placed; done
+        return True
+
+    def __repr__(self) -> str:
+        glitch = ", using menu glitch" if self.use_menu_glitch else ""
+        return f"Bombing ({self.name}) at {self.target}{glitch}"
 
 
 class SeqSwapWeapon(SeqBase):
@@ -19,6 +83,9 @@ class SeqSwapWeapon(SeqBase):
     def execute(self, delta: float) -> bool:
         if self.cur_selection is None:
             self.cur_selection = get_memory().cur_weapon
+            # Check if we don't need to do anything
+            if self.cur_selection == self.new_weapon:
+                return True
 
         ctrl = evo_ctrl()
         ctrl.dpad.none()
