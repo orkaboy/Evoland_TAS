@@ -217,7 +217,6 @@ class NoriaMazeAndBlocks(SeqList):
 
 class KaerisSkip(SeqSection2D):
     def __init__(self):
-        # TODO: Gets stuck on Kaeris, need better controls (check pos feedback if we're not progressing)
         super().__init__(
             name="Kaeris skip",
         )
