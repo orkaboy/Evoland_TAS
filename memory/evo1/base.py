@@ -1,6 +1,14 @@
+from enum import Enum
+
 # Libraries and Core Files
 from memory.core import LIBHL_OFFSET, mem_handle
 from memory.evo1.map_id import MapID
+
+
+class Evo1Weapon(Enum):
+    SWORD = 0
+    BOMB = 1
+    BOW = 2
 
 
 # TODO: Refactor (currently only used in very specific cases)
@@ -10,6 +18,7 @@ class Evoland1Memory:
     # Zelda player health for roaming battle (hearts)
     _PLAYER_HP_ZELDA_PTR = [0x7FC, 0x8, 0x30, 0x7C, 0x0]  # each heart is 16 "health"
     _GLI_PTR = [0x7FC, 0x8, 0x30, 0x84, 0x0]  # Money
+    _CUR_WEAPON_PTR = [0x7FC, 0x8, 0x30, 0x10, 0x0]  # Sword/Bombs/Bow
 
     _MAP_ID_PTR = [0x7FC, 0x8, 0x30, 0xC8, 0x0, 0x4]
 
@@ -42,6 +51,9 @@ class Evoland1Memory:
         self.lvl_ptr = self.process.get_pointer(
             self.base_addr + LIBHL_OFFSET, self._PLAYER_LVL_PTR
         )
+        self.current_weapon_ptr = self.process.get_pointer(
+            self.base_addr + LIBHL_OFFSET, self._CUR_WEAPON_PTR
+        )
 
     # Only valid in zelda map
     @property
@@ -66,6 +78,10 @@ class Evoland1Memory:
     @property
     def player_hp_overworld(self) -> int:
         return self.process.read_u32(self.player_hp_overworld_ptr)
+
+    @property
+    def cur_weapon(self) -> Evo1Weapon:
+        return Evo1Weapon(self.process.read_u32(self.current_weapon_ptr))
 
 
 _mem = None
