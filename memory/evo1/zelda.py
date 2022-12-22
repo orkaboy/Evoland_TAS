@@ -29,11 +29,12 @@ class Evo1GameEntity2D(GameEntity2D):
     _TIMER_PTR = [0x48]  # double (timeout in s)
     _FACING_PTR = [0x58]  # int
     _ATTACK_PTR = [0x5C]  # byte, bit 5
+    _CUR_ANIM_PTR = [0x88]  # 4 byte pointer
     _ROTATION_PTR = [0x90]  # double (left = 0.0, up = 1.57, right = 3.14, down = -1.57)
-    _HP_PTR = [0x100]  # int, for enemies such as knights
-    # TODO: _ATTACK_TIMER_PTR = [0xC8]  # double. unclear purpose, resets when swinging sword
+    # TODO: _ATTACK_TIMER_PTR = [0xC8]  # double. Attack cooldown
     _ENCOUNTER_TIMER_PTR = [0xD0]  # double. Steps to encounter
     _IN_CONTROL_PTR = [0xA4]
+    _HP_PTR = [0x100]  # int, for enemies such as knights
 
     def __init__(self, process: LocProcess, entity_ptr: int):
         super().__init__(process=process, entity_ptr=entity_ptr)
@@ -80,6 +81,9 @@ class Evo1GameEntity2D(GameEntity2D):
         )
         self.encounter_timer_ptr = self.process.get_pointer(
             self.entity_ptr, offsets=self._ENCOUNTER_TIMER_PTR
+        )
+        self.cur_anim_ptr = self.process.get_pointer(
+            self.entity_ptr, offsets=self._CUR_ANIM_PTR
         )
 
     class EKind(IntEnum):
@@ -192,6 +196,10 @@ class Evo1GameEntity2D(GameEntity2D):
     @property
     def encounter_timer(self) -> float:
         return self.process.read_double(self.encounter_timer_ptr)
+
+    @property
+    def cur_anim(self) -> int:
+        return self.process.read_u32(self.cur_anim_ptr)
 
     def __repr__(self) -> str:
         kind = self.kind

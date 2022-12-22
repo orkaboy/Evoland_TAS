@@ -22,13 +22,14 @@ class SeqCombat(SeqSection2D):
         num_targets: int,
         precision: float = 0.2,
         retracking: bool = False,
+        func=None,
     ) -> None:
         self.plan = None
         self.arena = arena
         self.precision = precision
         self.retracking = retracking
         self.num_targets = num_targets
-        super().__init__(name)
+        super().__init__(name, func)
 
     def reset(self) -> None:
         self.plan = None
@@ -38,6 +39,7 @@ class SeqCombat(SeqSection2D):
         return True
 
     def execute(self, delta: float) -> bool:
+        super().execute(delta=delta)
         if self.plan is None:
             self.plan = CombatPlan(
                 arena=self.arena,
@@ -61,7 +63,7 @@ class SeqCombat(SeqSection2D):
 
         # We are done if all enemies are dead
         if self.plan.done():
-            logger.info(f"Finished battle section: {self.name}")
+            # logger.info(f"Finished battle section: {self.name}")
             return True
         return False
 

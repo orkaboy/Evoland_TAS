@@ -4,14 +4,14 @@
   * Go ahead a bit in the run and do a rough routing of the later parts (Aogai, Sacred Grove, Sarudnahk). Verify using saves
   * Display hp in zelda mode
   * Clink attacks from just out of range, swinging in the air
-  * Juke the two skellies before push block? Mostly do a menu skip
   * Push armored enemy into pit
+  * Solve floor puzzle
   * Navigate the fireballs/wind traps
   * Deathwarp? Some issues reloading currently (need to know which save slot we are using. For now, require use of slot 1?)
   * Bossfight Dark Clink
+    * Observer in place, logic/math TODO
 
 * Do more memory hunting
-  * Dark Clink attack/vulnerable state
   * ATB
     * Potion/phoenix down usage (item amount/pos in menu)
     * Logic for the current active turn (use turn gauge)

@@ -12,6 +12,7 @@ from engine.seq import (
     wait_seconds,
 )
 from evo1.checkpoints import Checkpoints
+from evo1.combat import SeqDarkClinkObserver
 from evo1.observer import SeqObserver2D
 from evo1.route import (
     Aogai1,
@@ -68,6 +69,26 @@ def zephy_observer(window: WindowLayout):
     set_game_version(GameVersion.EVOLAND_1)
 
     obs = SeqZephyrosObserver(func=load_zelda_memory)
+
+    engine = SequencerEngine(
+        window=window,
+        root=obs,
+    )
+
+    window.main.erase()
+    window.stats.erase()
+    window.update()
+
+    while engine.active():
+        engine.run()
+
+    wait_seconds(3)
+
+
+def dark_clink_observer(window: WindowLayout):
+    set_game_version(GameVersion.EVOLAND_1)
+
+    obs = SeqDarkClinkObserver(func=setup_memory)
 
     engine = SequencerEngine(
         window=window,
