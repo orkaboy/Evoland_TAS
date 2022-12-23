@@ -96,8 +96,9 @@ def find_closest_point(origin: Vec2, points: list[Vec2]) -> Vec2:
 
 # Compare two angles and return the angle between the two. Accounts for -PI/+PI
 def angle_between(alpha: float, beta: float) -> float:
-    angle = abs(alpha - beta)
-    return angle_mod(angle)
+    if abs(beta - alpha) < math.pi:
+        return beta - alpha
+    return beta - alpha - math.pi * 2 if (beta > alpha) else beta - alpha + math.pi * 2
 
 
 def angle_mod(angle: float) -> float:

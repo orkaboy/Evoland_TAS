@@ -47,7 +47,7 @@ class SeqCombat3D(SeqCombat):
             player_angle = rot + math.pi if rot < 0 else rot - math.pi
             # Compare player rotation to angle_to_enemy
             angle = angle_between(angle_to_enemy, player_angle)
-            if angle < math.pi / 3:  # Roughly turned in the right direction
+            if abs(angle) < math.pi / 3:  # Roughly turned in the right direction
                 # We are aligned and in position. Attack!
                 ctrl.dpad.none()
                 ctrl.attack()

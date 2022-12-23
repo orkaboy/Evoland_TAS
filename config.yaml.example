@@ -1,12 +1,13 @@
 # Logging
-color_log               : False  # Colors the console output. May not work on some systems. Currently doesn't work with Curses gui
-verbosity               : DEBUG  # Verbosity of log messages in the console.
-                                 # These are the valid levels: DEBUG, INFO, WARNING, ERROR, CRITICAL
-                                 # Full log will always be available in a file.
+color_log       : False         # Colors the console output. May not work on some systems. Currently doesn't work with Curses gui
+verbosity       : DEBUG         # Verbosity of log messages in the console.
+                                # These are the valid levels: DEBUG, INFO, WARNING, ERROR, CRITICAL
+                                # Full log will always be available in a file.
 
 # Debug
-#saveslot                : 0      # Set to 0 or remove to start new game
-#checkpoint              : "overworld"
+saveslot        : 0             # Set to 0 or remove to start new game
+checkpoint      : "overworld"
+
 # Valid checkpoints (correct .sav file must be in saveslot position, 1-indexed):
 #  overworld
 #  meadow

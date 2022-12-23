@@ -470,25 +470,34 @@ class SeqZephyrosFight(SeqZephyrosObserver):
     def _move_to_angle(self, angle: float, epsilon: float = _ANGLE_EPSILON) -> bool:
         ctrl = evo_ctrl()
         angle_1 = angle_mod(angle)
-        angle_2 = angle_mod(self.player.polar.theta)
-        angle_diff = angle_mod(angle_1 - angle_2)
-        ctrl.dpad.none()
-        if angle_diff > epsilon / 2:
-            ctrl.dpad.left()
-        elif angle_diff < -epsilon / 2:
-            ctrl.dpad.right()
+        angle_player = angle_mod(self.player.polar.theta)
 
-        return abs(angle_diff) < epsilon
+        angle_diff = angle_mod(angle_1 - angle_player)
+
+        ctrl.dpad.none()
+        # Check if done
+        if abs(angle_diff) < epsilon:
+            return True
+        # Else, move to position
+        if angle_diff > 0:
+            ctrl.dpad.left()
+        else:
+            ctrl.dpad.right()
+        return False
 
     _GOLEM_ANGLE_1 = 27 * math.pi / 100
-    _GOLEM_ANGLE_2 = 22 * math.pi / 100
+    _GOLEM_ANGLE_2 = 20 * math.pi / 100
+    _ATTACK_THETA = 0.15
 
     def golem_fight(self) -> None:
         ctrl = evo_ctrl()
         # Golem arms in attack state will be located roughly at +-pi/4 compared to boss rotation (90 degree spread)
         # TODO: Magic angles
-        angle_offset = (
+        juke_angle_offset = (
             self._GOLEM_ANGLE_1 if self.golem.right_arm.hp > 0 else -self._GOLEM_ANGLE_1
+        )
+        attack_angle_offset = (
+            self._GOLEM_ANGLE_2 if self.golem.right_arm.hp > 0 else -self._GOLEM_ANGLE_2
         )
         # TODO: Improve on this, it's currently not very good (can get hit sometimes and doesn't land more than 1-2 hits/phase).
         # TODO: Seems to overshoot movement a bit
@@ -498,15 +507,15 @@ class SeqZephyrosFight(SeqZephyrosObserver):
                     ctrl.dpad.none()
             case self.GolemAttackState.TURNING:
                 if self.golem.anim_timer > 30:
-                    self._move_to_angle(self.golem.rotation - angle_offset)
+                    self._move_to_angle(self.golem.rotation - juke_angle_offset)
                 else:
-                    self._move_to_angle(self.golem.rotation + angle_offset)
+                    self._move_to_angle(self.golem.rotation + juke_angle_offset)
             case self.GolemAttackState.ATTACKING:
-                if self.golem.right_arm.hp > 0:
-                    ret = self._move_to_angle(self.golem.rotation + self._GOLEM_ANGLE_2)
-                else:
-                    ret = self._move_to_angle(self.golem.rotation - self._GOLEM_ANGLE_2)
-                if ret:
+                attack_angle = self.golem.rotation + attack_angle_offset
+                self._move_to_angle(attack_angle)
+                player_pos = angle_mod(self.player.polar.theta)
+                # TODO: Fails on left arm?!
+                if abs(angle_between(attack_angle, player_pos)) < self._ATTACK_THETA:
                     ctrl.attack(tapping=True)
 
     def golem_armless_fight(self) -> None:
@@ -547,10 +556,11 @@ class SeqZephyrosFight(SeqZephyrosObserver):
             angle_1 = angle_mod(self.ganon.pos.angle)
             angle_2 = angle_mod(angle_1 + math.pi)
             player_angle = angle_mod(self.player.polar.theta)
+
+            abs_angle_1 = abs(angle_between(angle_1, player_angle))
+            abs_angle_2 = abs(angle_between(angle_2, player_angle))
             # Move to closest angle intersect
-            if angle_between(angle_1, player_angle) < angle_between(
-                angle_2, player_angle
-            ):
+            if abs_angle_1 < abs_angle_2:
                 ret = self._move_to_angle(angle_1)
             else:
                 ret = self._move_to_angle(angle_2)
@@ -558,11 +568,12 @@ class SeqZephyrosFight(SeqZephyrosObserver):
                 # Turn towards boss
                 ctrl.dpad.none()
 
-        # Detect when projectiles spawn and track them
-        if (
-            len(self.ganon.projectiles) > 0
-            and self.ganon.projectiles[0].is_blue
-            and dist(self.player.pos, self.ganon.projectiles[0].pos) < 1.5
-        ):
-            ctrl.attack(tapping=True)
-            # TODO: If red, dodge? Or don't bother? Can tank a few hits
+        with contextlib.suppress(ReferenceError):
+            # Detect when projectiles spawn and track them
+            if (
+                len(self.ganon.projectiles) > 0
+                and self.ganon.projectiles[0].is_blue
+                and dist(self.player.pos, self.ganon.projectiles[0].pos) < 1.5
+            ):
+                ctrl.attack(tapping=True)
+                # TODO: If red, dodge? Or don't bother? Can tank a few hits
