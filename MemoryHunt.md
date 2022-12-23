@@ -4,23 +4,22 @@
 
 * Main menu save slots
 
-* Menu cursor stuff in combat (other than main ATB)
-
 * Anything that can help with menu glitch manip
 
-* Dark Clink attack/dizzy state
-
-* Bomb/Bow usage
-
 * Diablo section boss state. Health if needed
+  * Zatura24 has found some stuff here, need to verify
 
 * Zephy ATB state
+
+## Found
 
 * Zephyros final arena movement
 * Zephyros golem stats
 * Zephyros Ganon stats + projectile tracking
 
-## Found
+* Menu cursor stuff in combat (other than main ATB)
+* Dark Clink attack/dizzy state
+* Bomb/Bow usage
 
 * Player level
 * Current map
