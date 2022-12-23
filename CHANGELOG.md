@@ -6,8 +6,9 @@
 * Added rng tracker to TAS display
 * Added Crystal Caverns menu manipulation
 * Improved on Crystal Caverns ATB battle manipulation (can now run)
-* Minor optimization in Papurika Village
+* Minor optimization in Papurika Village (shopping)
 * Added some menu manipulation glitches in Noria Mines
+* The TAS can defeat the armored enemy in Noria Mines
 
 
 # Older changelogs

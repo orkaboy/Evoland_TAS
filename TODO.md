@@ -4,7 +4,6 @@
   * Go ahead a bit in the run and do a rough routing of the later parts (Aogai, Sacred Grove, Sarudnahk). Verify using saves
   * Display hp in zelda mode
   * Clink attacks from just out of range, swinging in the air
-  * Push armored enemy into pit
   * Solve floor puzzle
   * Navigate the fireballs/wind traps
   * Deathwarp? Some issues reloading currently (need to know which save slot we are using. For now, require use of slot 1?)
