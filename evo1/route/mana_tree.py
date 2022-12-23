@@ -465,7 +465,7 @@ class SeqZephyrosFight(SeqZephyrosObserver):
                 ctrl.confirm(tapping=True)
         return self.done()
 
-    _ANGLE_EPSILON = 0.15
+    _ANGLE_EPSILON = 0.1
 
     def _move_to_angle(self, angle: float, epsilon: float = _ANGLE_EPSILON) -> bool:
         ctrl = evo_ctrl()
@@ -480,12 +480,15 @@ class SeqZephyrosFight(SeqZephyrosObserver):
 
         return abs(angle_diff) < epsilon
 
+    _GOLEM_ANGLE_1 = 27 * math.pi / 100
+    _GOLEM_ANGLE_2 = 22 * math.pi / 100
+
     def golem_fight(self) -> None:
         ctrl = evo_ctrl()
         # Golem arms in attack state will be located roughly at +-pi/4 compared to boss rotation (90 degree spread)
         # TODO: Magic angles
         angle_offset = (
-            2 * math.pi / 7 if self.golem.right_arm.hp > 0 else -2 * math.pi / 7
+            self._GOLEM_ANGLE_1 if self.golem.right_arm.hp > 0 else -self._GOLEM_ANGLE_1
         )
         # TODO: Improve on this, it's currently not very good (can get hit sometimes and doesn't land more than 1-2 hits/phase).
         # TODO: Seems to overshoot movement a bit
@@ -500,9 +503,9 @@ class SeqZephyrosFight(SeqZephyrosObserver):
                     self._move_to_angle(self.golem.rotation + angle_offset)
             case self.GolemAttackState.ATTACKING:
                 if self.golem.right_arm.hp > 0:
-                    ret = self._move_to_angle(self.golem.rotation + math.pi / 5)
+                    ret = self._move_to_angle(self.golem.rotation + self._GOLEM_ANGLE_2)
                 else:
-                    ret = self._move_to_angle(self.golem.rotation - math.pi / 5)
+                    ret = self._move_to_angle(self.golem.rotation - self._GOLEM_ANGLE_2)
                 if ret:
                     ctrl.attack(tapping=True)
 
