@@ -49,6 +49,7 @@ class SacredGroveToBowCave(SeqList):
                     coords=_sg_astar.calculate(start=Vec2(14, 38), goal=Vec2(30, 41)),
                 ),
                 SeqSwapWeapon("Bombs", new_weapon=Evo1Weapon.BOMB),
+                # TODO: Slightly suboptimal movement here
                 SeqPlaceBomb("Crystal", target=Vec2(30, 41), precision=0.1),
                 SeqSwapWeapon("Sword", new_weapon=Evo1Weapon.SWORD),
                 SeqMove2DClunkyCombat(
@@ -98,6 +99,7 @@ class SacredGroveToAmuletCave(SeqList):
         super().__init__(
             name="Navigate to amulet dungeon",
             children=[
+                # TODO: Can fail here if the bats force us back into the bow cave
                 SeqMove2DClunkyCombat(
                     "Move to crystal",
                     coords=_sg_astar.calculate(start=Vec2(14, 18), goal=Vec2(17, 27)),
@@ -111,13 +113,131 @@ class SacredGroveToAmuletCave(SeqList):
                 SeqDelay("Menu skip", timeout_in_s=0.8),
                 SeqMenu("Menu skip"),
                 SeqMove2D("Skip dimension stone", coords=[Vec2(17, 22)]),
-                # Verified up to here
-                # TODO: Navigate to bow puzzle
-                # TODO: Shoot fire arrows to open amulet cave
-                # TODO: Navigate to amulet cave
+                # TODO: Suboptimal, if we just swap to bombs and navigate this is quicker
+                SeqSwapWeapon("Sword", new_weapon=Evo1Weapon.SWORD),
+                SeqMove2DClunkyCombat(
+                    "Move to crystal",
+                    coords=_sg_astar.calculate(start=Vec2(17, 22), goal=Vec2(24, 18)),
+                ),
+                SeqSwapWeapon("Bomb", new_weapon=Evo1Weapon.BOMB),
+                SeqAttack("Crystal"),
+                SeqMove2D(
+                    "Skip dimension tree",
+                    coords=_sg_astar.calculate(start=Vec2(24, 18), goal=Vec2(27, 21)),
+                ),
+                # TODO: Suboptimal, if we just swap to bow this is quicker
+                SeqSwapWeapon("Sword", new_weapon=Evo1Weapon.SWORD),
+                SeqMove2DClunkyCombat(
+                    "Move to crystal",
+                    coords=_sg_astar.calculate(
+                        start=Vec2(27, 21), goal=Vec2(49, 27), final_pos=Vec2(48.7, 27)
+                    ),
+                ),
+                SeqSwapWeapon("Bow", new_weapon=Evo1Weapon.BOW),
+                SeqAttack("Crystal"),
+                # TODO: Suboptimal, if we just keep bow this is quicker?
+                SeqSwapWeapon("Sword", new_weapon=Evo1Weapon.SWORD),
+                SeqMove2DClunkyCombat(
+                    "Move to bush",
+                    coords=_sg_astar.calculate(start=Vec2(49, 27), goal=Vec2(60, 32)),
+                ),
+                SeqAttack("Bush"),
+                SeqMove2D("Move to bush", coords=[Vec2(60, 33)]),
+                SeqAttack("Bush"),
+                SeqMove2D("Move to bush", coords=[Vec2(60, 34)]),
+                SeqAttack("Bush"),
+                SeqMove2DClunkyCombat(
+                    "Move to bush",
+                    coords=_sg_astar.calculate(
+                        start=Vec2(60, 35), goal=Vec2(61, 38), final_pos=Vec2(61, 39)
+                    ),
+                ),
+                SeqAttack("Bush"),
+                SeqMove2DClunkyCombat(
+                    "Move to bush",
+                    coords=_sg_astar.calculate(
+                        start=Vec2(61, 39), goal=Vec2(70, 37), final_pos=Vec2(70, 37.3)
+                    ),
+                ),
+                SeqAttack("Bush"),
+                SeqMove2D("Move to bush", coords=[Vec2(70, 38)]),
+                SeqAttack("Bush"),
+                SeqMove2D("Move to bush", coords=[Vec2(70, 39)]),
+                SeqAttack("Bush"),
+                SeqMove2D("Move to bush", coords=[Vec2(70, 40)]),
+                SeqMove2D(
+                    "Move to bush",
+                    coords=_sg_astar.calculate(start=Vec2(70, 40), goal=Vec2(67, 42)),
+                ),
+                SeqAttack("Bush"),
+                SeqMove2D(
+                    "Move to bush",
+                    coords=_sg_astar.calculate(
+                        start=Vec2(66, 42), goal=Vec2(65, 40), final_pos=Vec2(64.7, 40)
+                    ),
+                ),
+                SeqAttack("Bush"),
+                SeqSwapWeapon("Bow", new_weapon=Evo1Weapon.BOW),
+                SeqAttack("Light fire"),
+                SeqSwapWeapon("Sword", new_weapon=Evo1Weapon.SWORD),
+                SeqMove2D(
+                    "Move to bush",
+                    coords=_sg_astar.calculate(
+                        start=Vec2(65, 40), goal=Vec2(63, 42), final_pos=Vec2(63, 41.7)
+                    ),
+                ),
+                SeqAttack("Bush"),
+                SeqSwapWeapon("Bow", new_weapon=Evo1Weapon.BOW),
+                SeqAttack("Light fire"),
+                SeqSwapWeapon("Sword", new_weapon=Evo1Weapon.SWORD),
+                SeqMove2D(
+                    "Move to bush",
+                    coords=_sg_astar.calculate(
+                        start=Vec2(63, 42), goal=Vec2(60, 42), final_pos=Vec2(60.4, 42)
+                    ),
+                ),
+                SeqMove2D("Move to bush", coords=[Vec2(60.3, 41.7)], precision=0.05),
+                SeqAttack("Bush"),
+                SeqSwapWeapon("Bow", new_weapon=Evo1Weapon.BOW),
+                # TODO: Need verification that we hit in this section. Check if any enemies died instead
+                SeqAttack("Light fire"),
+                SeqMove2D(
+                    "Line up shot",
+                    coords=[Vec2(60.4, 42), Vec2(60.4, 41.7)],
+                    precision=0.05,
+                ),
+                SeqAttack("Light fire"),
+                SeqMove2D(
+                    "Move to crystal",
+                    coords=_sg_astar.calculate(
+                        start=Vec2(60, 42), goal=Vec2(65, 42), final_pos=Vec2(65, 41.7)
+                    ),
+                ),
+                SeqAttack("Crystal"),
+                SeqMenu("Menu glitch"),
+                SeqDelay("Menu glitch", timeout_in_s=0.5),
+                SeqMenu("Menu glitch"),
+                SeqMove2D(
+                    "Move past bushes",
+                    coords=[Vec2(68, 42), Vec2(68, 40), Vec2(70, 40), Vec2(70, 37)],
+                ),
+                # TODO: Suboptimal, keep bow
+                SeqSwapWeapon("Sword", new_weapon=Evo1Weapon.SWORD),
+                SeqMove2DClunkyCombat(
+                    "Move to cave",
+                    coords=_sg_astar.calculate(start=Vec2(70, 37), goal=Vec2(60, 36)),
+                ),
+                SeqMove2DClunkyCombat(
+                    "Move to cave",
+                    coords=_sg_astar.calculate(start=Vec2(60, 33), goal=Vec2(59, 27)),
+                ),
+                SeqMove2D(
+                    "Move to cave",
+                    coords=[Vec2(62, 27)],
+                ),
                 SeqZoneTransition(
-                    "Sacred Grove",
-                    direction=Facing.RIGHT,
+                    "Amulet cave",
+                    direction=Facing.UP,
                     target_zone=MapID.SACRED_GROVE_CAVE_2,
                 ),
             ],

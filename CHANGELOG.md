@@ -2,14 +2,15 @@
 
 0.0.6:
 
-* The TAS can somewhat reliably kill the final boss of the game
 * Added rng tracker to TAS display
+* Improved on the ability to load saves. Saves uploaded, provided by Zatura24
+* Minor optimization in Papurika Village (shopping)
 * Added Crystal Caverns menu manipulation
 * Improved on Crystal Caverns ATB battle manipulation (can now run)
-* Minor optimization in Papurika Village (shopping)
 * Added some menu manipulation glitches in Noria Mines
 * The TAS can defeat the armored enemy in Noria Mines
-* Improved on the ability to load saves. Saves uploaded, provided by Zatura24
+* Routed Sacred Grove up to Amulet cave
+* The TAS can somewhat reliably kill the final boss of the game
 
 
 # Older changelogs
