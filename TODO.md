@@ -1,10 +1,5 @@
 # TODO list
 
-* Save games
-  * Clean up main menu navigation code? Checking for if New game is available
-  * Actually use menu memory pos
-  * Load game will not work correctly if all 5 saves are used
-
 * Next:
   * Go ahead a bit in the run and do a rough routing of the later parts (Aogai, Sacred Grove, Sarudnahk). Verify using saves
   * Display hp in zelda mode
@@ -15,10 +10,19 @@
   * Bossfight Dark Clink
     * Observer in place, logic/math TODO
 
+* Save games
+  * Clean up main menu navigation code? Checking for if New game is available
+  * Actually use menu memory pos
+  * Load game will not work correctly if all 5 saves are used
+
 * Do more memory hunting
   * ATB
     * Potion/phoenix down usage (item amount/pos in menu)
     * Logic for the current active turn (use turn gauge)
+  * Sarudnahk
+    * Health
+    * Enemies
+    * Boss
 
 * Pathfinding
   * Fix the pathfinding to reduce the number of nav nodes/checkpoints, and have the TAS beeline for objectives when possible (use rays to detect map collision)
@@ -36,7 +40,10 @@
   * Route Sarudnahk
   * Zephyros ATB fight
 * Final Zephyros fight
-  * Bug in Golem Armless, doesn't run to the correct position
+  * Improve/optimize movement
+  * Get in 3-4 attacks in the first phase
+  * Dodge attacks in armless phase
+  * Dodge red attacks in Ganon phase
 
 
 * Terminal improvements
