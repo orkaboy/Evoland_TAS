@@ -9,6 +9,7 @@
 * Minor optimization in Papurika Village (shopping)
 * Added some menu manipulation glitches in Noria Mines
 * The TAS can defeat the armored enemy in Noria Mines
+* Improved on the ability to load saves. Saves uploaded, provided by Zatura24
 
 
 # Older changelogs
