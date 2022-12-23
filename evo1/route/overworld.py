@@ -243,3 +243,41 @@ class OverworldToAogai(SeqList):
                 ),
             ],
         )
+
+
+class OverworldToSacredGrove(SeqList):
+    def __init__(self):
+        super().__init__(
+            name="Overworld",
+            children=[
+                SeqMove2D(
+                    "Moving to Sacred Grove",
+                    coords=_overworld_astar.calculate(
+                        start=Vec2(95, 93), goal=Vec2(96, 100)
+                    ),
+                ),
+                SeqZoneTransition(
+                    "Sacred Grove",
+                    direction=Facing.RIGHT,
+                    target_zone=MapID.SACRED_GROVE_3D,
+                ),
+            ],
+        )
+
+
+class SacredGroveToAogai(SeqList):
+    def __init__(self):
+        super().__init__(
+            name="Overworld",
+            children=[
+                SeqMove2D(
+                    "Moving to Aogai",
+                    coords=_overworld_astar.calculate(
+                        start=Vec2(96, 100), goal=Vec2(95, 93)
+                    ),
+                ),
+                SeqZoneTransition(
+                    "Aogai village", direction=Facing.UP, target_zone=MapID.AOGAI
+                ),
+            ],
+        )

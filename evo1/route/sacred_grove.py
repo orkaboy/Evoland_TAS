@@ -35,19 +35,21 @@ class SacredGroveToBowCave(SeqList):
             name="Navigate to bow dungeon",
             children=[
                 # Start at the entrance of Sacred Grove
+                SeqMove2D("Move to rocks", coords=[Vec2(13, 38)]),
                 SeqSwapWeapon("Bombs", new_weapon=Evo1Weapon.BOMB),
                 SeqPlaceBomb(
                     "Rocks",
                     target=Vec2(14.2, 38),
                     use_menu_glitch=True,
                     swap_to_sword=True,
+                    precision=0.1,
                 ),
                 SeqMove2DClunkyCombat(
                     "Move to crystal",
                     coords=_sg_astar.calculate(start=Vec2(14, 38), goal=Vec2(30, 41)),
                 ),
                 SeqSwapWeapon("Bombs", new_weapon=Evo1Weapon.BOMB),
-                SeqPlaceBomb("Crystal", target=Vec2(30, 41)),
+                SeqPlaceBomb("Crystal", target=Vec2(30, 41), precision=0.1),
                 SeqSwapWeapon("Sword", new_weapon=Evo1Weapon.SWORD),
                 SeqMove2DClunkyCombat(
                     "Move to crystal",
@@ -81,7 +83,6 @@ class BowCave(SeqList):
                     ),
                 ),
                 SeqGrabChestKeyItem("Bow", direction=Facing.DOWN),
-                # TODO: Need to move, and detect the teleport to entrance
                 # SeqMove2D("Warp"), # TODO: Slightly faster to move left/right
                 SeqZoneTransition(
                     "Sacred Grove",
@@ -102,15 +103,15 @@ class SacredGroveToAmuletCave(SeqList):
                     coords=_sg_astar.calculate(start=Vec2(14, 18), goal=Vec2(17, 27)),
                 ),
                 # Turn left
-                SeqMove2D("Move to crystal", coords=[Vec2(16.8, 27)], precision=0.1),
+                SeqMove2D("Move to crystal", coords=[Vec2(16.7, 27)], precision=0.1),
                 # TODO: Slightly more efficient to swap when warping earlier
                 SeqSwapWeapon("Bow", new_weapon=Evo1Weapon.BOW),
                 SeqAttack("Shoot crystal"),
-                # TODO: Menu glitch to skip past dimension stone (verify)
                 SeqMenu("Menu skip"),
                 SeqDelay("Menu skip", timeout_in_s=0.8),
                 SeqMenu("Menu skip"),
                 SeqMove2D("Skip dimension stone", coords=[Vec2(17, 22)]),
+                # Verified up to here
                 # TODO: Navigate to bow puzzle
                 # TODO: Shoot fire arrows to open amulet cave
                 # TODO: Navigate to amulet cave

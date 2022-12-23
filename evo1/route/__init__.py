@@ -9,6 +9,8 @@ from evo1.route.overworld import (
     OverworldToCavern,
     OverworldToMeadow,
     OverworldToNoria,
+    OverworldToSacredGrove,
+    SacredGroveToAogai,
 )
 from evo1.route.papurika import MeadowFight, PapurikaVillage
 from evo1.route.sacred_grove import SacredGrove
@@ -25,11 +27,10 @@ __all__ = [
     "OverworldToNoria",
     "NoriaMines",
     "OverworldToAogai",
-    # TODO: In-between sections
     "Aogai1",
-    # TODO: In-between sections
+    "OverworldToSacredGrove",
     "SacredGrove",
-    # TODO: In-between sections
+    "SacredGroveToAogai",
     "Aogai2",
     # TODO: In-between sections
     "Sarudnahk",

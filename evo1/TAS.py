@@ -27,8 +27,10 @@ from evo1.route import (
     OverworldToCavern,
     OverworldToMeadow,
     OverworldToNoria,
+    OverworldToSacredGrove,
     PapurikaVillage,
     SacredGrove,
+    SacredGroveToAogai,
     Sarudnahk,
 )
 from evo1.route.mana_tree import SeqZephyrosObserver
@@ -145,9 +147,9 @@ def perform_TAS(window: WindowLayout):
             SeqCheckpoint(
                 checkpoint_name="sacred_grove"
             ),  # Checkpoint outside Aogai, overworld
-            # TODO: Navigate through the overworld to the sacred grove
+            OverworldToSacredGrove(),
             SacredGrove(),
-            # TODO: Navigate to Aogai
+            SacredGroveToAogai(),
             SeqCheckpoint(checkpoint_name="aogai2"),  # Checkpoint in Aogai
             Aogai2(),
             # TODO: Navigate to Sarudnahk

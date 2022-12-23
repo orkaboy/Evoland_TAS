@@ -38,19 +38,19 @@ class SeqPlaceBomb(SeqSection2D):
         # Move to target area
         if self.bombed is False:
             move_to(player=player_pos, target=self.target, precision=self.precision)
-            # Place bomb if close
-            if is_close(player_pos, self.target, precision=self.precision):
-                self.bombed = True
-                ctrl.attack()
-                if self.use_menu_glitch:
-                    ctrl.dpad.none()
-                    ctrl.menu()
-        # Bomb has been placed
+            if not is_close(player_pos, self.target, precision=self.precision):
+                return False
+            self.bombed = True
+            ctrl.attack()
+            if self.use_menu_glitch:
+                ctrl.dpad.none()
+                ctrl.menu()
+                return False
         elif self.use_menu_glitch:
             if self.swap_to_sword:
                 ctrl.dpad.left()
             with contextlib.suppress(ReferenceError):
-                box = get_box_with_size(center=player_pos, half_size=self.precision)
+                box = get_box_with_size(center=player_pos, half_size=2 * self.precision)
                 # Wait for bomb to explode
                 for actor in mem.actors:
                     if actor.kind == Evo1GameEntity2D.EKind.SPECIAL and box.contains(
