@@ -32,6 +32,9 @@ class SequencerEngine(object):
         self.done = False
         self.root.reset()
 
+    def advance_to_checkpoint(self, checkpoint: str) -> bool:
+        return self.root.advance_to_checkpoint(checkpoint=checkpoint)
+
     def pause(self) -> None:
         # Restore controls to neutral state
         evo_ctrl().dpad.none()
@@ -102,6 +105,16 @@ class SequencerEngine(object):
         self.root.render(window=self.window)
 
         self.window.update()
+
+    def run_engine(self) -> None:
+        # Clear screen
+        self.window.main.erase()
+        self.window.stats.erase()
+        self.window.update()
+
+        # Run sequence
+        while self.active():
+            self.run()
 
     # Execute and render TAS progress
     def run(self) -> None:

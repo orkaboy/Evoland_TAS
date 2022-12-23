@@ -25,6 +25,7 @@ class ManaTree(SeqList):
         super().__init__(
             name="Mana Tree",
             children=[
+                # Start of sequence is outside of airship, near Mana Tree
                 SeqMove2D(
                     "Move to Mana Tree",
                     coords=[

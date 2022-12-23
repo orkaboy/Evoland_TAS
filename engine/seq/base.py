@@ -21,6 +21,9 @@ class SeqBase(object):
     def handle_input(self, input: str) -> None:
         pass
 
+    def advance_to_checkpoint(self, checkpoint: str) -> bool:
+        return False
+
     # Return true if the sequence is done with, or False if we should remain in this state
     def execute(self, delta: float) -> bool:
         if self.func:
@@ -41,6 +44,17 @@ class SeqBase(object):
         return get_current_tilemap()
 
 
+class SeqCheckpoint(SeqBase):
+    def __init__(self, checkpoint_name: str):
+        super().__init__(
+            name="Checkpoint",
+        )
+        self.checkpoint = checkpoint_name
+
+    def advance_to_checkpoint(self, checkpoint: str) -> bool:
+        return checkpoint == self.checkpoint
+
+
 class SeqList(SeqBase):
     def __init__(
         self, name: str, children: list[SeqBase], func=None, shadow: str = False
@@ -53,6 +67,15 @@ class SeqList(SeqBase):
     def reset(self) -> None:
         self.step = 0
         return super().reset()
+
+    def advance_to_checkpoint(self, checkpoint: str) -> bool:
+        num_children = len(self.children)
+        while self.step < num_children:
+            cur_child = self.children[self.step]
+            if cur_child.advance_to_checkpoint(checkpoint):
+                return True
+            self.step += 1
+        return False
 
     # Return true if the sequence is done with, or False if we should remain in this state
     def execute(self, delta: float) -> bool:
@@ -106,6 +129,14 @@ class SeqOptional(SeqBase):
     def reset(self) -> None:
         self.selected = False
         self.selection = None
+
+    def advance_to_checkpoint(self, checkpoint: str) -> bool:
+        selector_repr = self.selector() if callable(self.selector) else self.selector
+        if selection := self.cases.get(selector_repr):
+            return selection.advance_to_checkpoint(checkpoint)
+        if self.fallback:
+            return self.fallback.advance_to_checkpoint(checkpoint)
+        return False
 
     def execute(self, delta: float) -> bool:
         if not self.selected:

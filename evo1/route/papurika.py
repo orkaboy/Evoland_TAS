@@ -54,8 +54,12 @@ class MeadowFight(SeqList):
 
 
 def need_to_steal_cash() -> int:
-    mem = get_memory()
-    return 1 if mem.gli < 250 else 0
+    try:
+        mem = get_memory()
+        return 1 if mem.gli < 250 else 0
+    # This fallback clause is for load game past this point
+    except AttributeError:
+        return 0
 
 
 class PapurikaVillageShopping(SeqList):

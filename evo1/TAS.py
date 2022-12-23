@@ -6,12 +6,11 @@ from engine.game import GameVersion, set_game_version
 from engine.mathlib import Vec2
 from engine.seq import (
     EvolandStartGame,
+    SeqCheckpoint,
     SeqList,
-    SeqOptional,
     SequencerEngine,
     wait_seconds,
 )
-from evo1.checkpoints import Checkpoints
 from evo1.combat import SeqDarkClinkObserver
 from evo1.observer import SeqObserver2D
 from evo1.route import (
@@ -55,12 +54,7 @@ def observer(window: WindowLayout):
         root=obs,
     )
 
-    window.main.erase()
-    window.stats.erase()
-    window.update()
-
-    while engine.active():
-        engine.run()
+    engine.run_engine()
 
     wait_seconds(3)
 
@@ -75,12 +69,7 @@ def zephy_observer(window: WindowLayout):
         root=obs,
     )
 
-    window.main.erase()
-    window.stats.erase()
-    window.update()
-
-    while engine.active():
-        engine.run()
+    engine.run_engine()
 
     wait_seconds(3)
 
@@ -95,12 +84,7 @@ def dark_clink_observer(window: WindowLayout):
         root=obs,
     )
 
-    window.main.erase()
-    window.stats.erase()
-    window.update()
-
-    while engine.active():
-        engine.run()
+    engine.run_engine()
 
     wait_seconds(3)
 
@@ -131,69 +115,76 @@ def perform_TAS(window: WindowLayout):
     )
     logger.info("Preparing TAS... (may take a few seconds)")
 
+    start_game = EvolandStartGame(saveslot, game=1)
+
     root = SeqList(
-        name="Root node",
-        shadow=True,
+        name="Evoland1 Any%",
         func=setup_memory,
         children=[
-            EvolandStartGame(saveslot, game=1),
-            # TODO: This could be set up in a nicer way
-            SeqOptional(
-                shadow=True,
-                name="New/Load",
-                cases={
-                    0: SeqList(
-                        name="Evoland1 Any%",
-                        children=[
-                            Edel1(),
-                            OverworldToMeadow(),
-                            MeadowFight(),
-                            PapurikaVillage(),
-                            OverworldToCavern(),
-                            CrystalCavern(),
-                            Edel2(),
-                            OverworldToNoria(),
-                            NoriaMines(),
-                            OverworldToAogai(),
-                            Aogai1(),
-                            # TODO: Navigate through the overworld to the sacred grove
-                            SacredGrove(),
-                            # TODO: Navigate to Aogai
-                            Aogai2(),
-                            # TODO: Navigate to Sarudnahk
-                            Sarudnahk(),
-                            # TODO: Navigate to the black citadel
-                            BlackCitadel(),
-                            # TODO: Get airship in Aogai
-                            # TODO: Go to the Mana Tree
-                            ManaTree(),
-                            # TODO: End of game! Watch credits.
-                        ],
-                    ),
-                },
-                selector=saveslot,
-                fallback=SeqOptional(
-                    name=f"Evoland1 Any% (checkpoint: {checkpoint})",
-                    selector=checkpoint,
-                    cases=Checkpoints(),
-                ),
-            ),
+            Edel1(),
+            SeqCheckpoint(checkpoint_name="overworld"),
+            OverworldToMeadow(),
+            SeqCheckpoint(checkpoint_name="meadow"),
+            MeadowFight(),
+            SeqCheckpoint(checkpoint_name="papurika"),
+            PapurikaVillage(),
+            SeqCheckpoint(checkpoint_name="cavern"),
+            OverworldToCavern(),
+            CrystalCavern(),
+            SeqCheckpoint(checkpoint_name="edelvale"),
+            Edel2(),
+            OverworldToNoria(),
+            SeqCheckpoint(checkpoint_name="noria"),
+            # TODO: Checkpoint before boss
+            NoriaMines(),
+            SeqCheckpoint(checkpoint_name="noria_after"),
+            OverworldToAogai(),
+            SeqCheckpoint(checkpoint_name="aogai"),
+            # TODO: Checkpoint after bomb skip?
+            Aogai1(),
+            SeqCheckpoint(
+                checkpoint_name="sacred_grove"
+            ),  # Checkpoint outside Aogai, overworld
+            # TODO: Navigate through the overworld to the sacred grove
+            SacredGrove(),
+            # TODO: Navigate to Aogai
+            SeqCheckpoint(checkpoint_name="aogai2"),  # Checkpoint in Aogai
+            Aogai2(),
+            # TODO: Navigate to Sarudnahk
+            SeqCheckpoint(checkpoint_name="sarudnahk"),  # Checkpoint at start of area
+            Sarudnahk(),
+            # TODO: Checkpoint after Sarudnahk?
+            # TODO: Navigate to the black citadel
+            BlackCitadel(),
+            # TODO: Get airship in Aogai
+            SeqCheckpoint(checkpoint_name="aogai3"),  # Checkpoint in Aogai
+            # TODO: Go to the Mana Tree
+            SeqCheckpoint(checkpoint_name="mana_tree"),  # Checkpoint outside tree
+            ManaTree(),
+            # TODO: End of game! Watch credits.
         ],
     )
 
     engine = SequencerEngine(
         window=window,
+        root=start_game,
+    )
+    # Run the initial start game sequence
+    engine.run_engine()
+
+    # Reset the root node
+    engine = SequencerEngine(
+        window=window,
         root=root,
     )
-
-    # Clear screen
-    window.main.erase()
-    window.stats.erase()
-    window.update()
-
-    # Run sequence
-    while engine.active():
-        engine.run()
+    if saveslot == 0:
+        logger.info("Starting from the beginning")
+    elif engine.advance_to_checkpoint(checkpoint=checkpoint):
+        logger.info(f"Advanced TAS to checkpoint '{checkpoint}'")
+    else:
+        logger.error(f"Couldn't find checkpoint '{checkpoint}'")
+    # Run the TAS
+    engine.run_engine()
 
     logger.info("Evoland1 TAS Done!"),
 

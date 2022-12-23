@@ -1,5 +1,10 @@
 # TODO list
 
+* Save games
+  * Clean up main menu navigation code? Checking for if New game is available
+  * Actually use menu memory pos
+  * Load game will not work correctly if all 5 saves are used
+
 * Next:
   * Go ahead a bit in the run and do a rough routing of the later parts (Aogai, Sacred Grove, Sarudnahk). Verify using saves
   * Display hp in zelda mode
@@ -15,7 +20,6 @@
     * Potion/phoenix down usage (item amount/pos in menu)
     * Logic for the current active turn (use turn gauge)
 
-* Clean up main menu navigation code? Checking for if New game is available
 * Pathfinding
   * Fix the pathfinding to reduce the number of nav nodes/checkpoints, and have the TAS beeline for objectives when possible (use rays to detect map collision)
 * Improve knights combat logic
@@ -31,6 +35,9 @@
   * Route Sacred Grove
   * Route Sarudnahk
   * Zephyros ATB fight
+* Final Zephyros fight
+  * Bug in Golem Armless, doesn't run to the correct position
+
 
 * Terminal improvements
   * Experiment more with Textual/Rich

@@ -5,14 +5,7 @@ import logging
 from control import evo_ctrl
 from engine.game import GameVersion, set_game_version
 from engine.mathlib import Vec2
-from engine.seq import (
-    EvolandStartGame,
-    SeqList,
-    SeqOptional,
-    SequencerEngine,
-    wait_seconds,
-)
-from evo2.checkpoints import Checkpoints
+from engine.seq import EvolandStartGame, SeqList, SequencerEngine, wait_seconds
 from evo2.route import MagiStart
 from memory.evo2 import load_zelda_memory
 from term.window import WindowLayout
@@ -52,47 +45,36 @@ def perform_TAS(window: WindowLayout):
     )
     logger.info("Preparing TAS... (may take a few seconds)")
 
+    start_game = EvolandStartGame(saveslot, game=2)
+
     root = SeqList(
-        name="Root node",
-        shadow=True,
+        name="Evoland2 Any%",
         func=setup_memory,
         children=[
-            EvolandStartGame(saveslot, game=2),
-            # TODO: This could be set up in a nicer way
-            SeqOptional(
-                shadow=True,
-                name="New/Load",
-                cases={
-                    0: SeqList(
-                        name="Evoland2 Any%",
-                        children=[
-                            MagiStart(),
-                        ],
-                    ),
-                },
-                selector=saveslot,
-                fallback=SeqOptional(
-                    name=f"Evoland2 Any% (checkpoint: {checkpoint})",
-                    selector=checkpoint,
-                    cases=Checkpoints(),
-                ),
-            ),
+            MagiStart(),
         ],
     )
 
     engine = SequencerEngine(
         window=window,
+        root=start_game,
+    )
+    # Run the initial start game sequence
+    engine.run_engine()
+
+    # Reset the root node
+    engine = SequencerEngine(
+        window=window,
         root=root,
     )
+    if saveslot == 0:
+        logger.info("Starting from the beginning")
+    elif engine.advance_to_checkpoint(checkpoint=checkpoint):
+        logger.info(f"Advanced TAS to checkpoint '{checkpoint}'")
+    else:
+        logger.error(f"Couldn't find checkpoint '{checkpoint}'")
 
-    # Clear screen
-    window.main.erase()
-    window.stats.erase()
-    window.update()
-
-    # Run sequence
-    while engine.active():
-        engine.run()
+    engine.run_engine()
 
     logger.info("Evoland2 TAS Done!"),
 

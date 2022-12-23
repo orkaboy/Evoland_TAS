@@ -5,5 +5,19 @@ verbosity               : DEBUG  # Verbosity of log messages in the console.
                                  # Full log will always be available in a file.
 
 # Debug
-#saveslot                : 3      # Set to 0 or remove to start new game
-#checkpoint              : "edel_expr" # Testing, remove to play from start
+#saveslot                : 0      # Set to 0 or remove to start new game
+#checkpoint              : "overworld"
+# Valid checkpoints (correct .sav file must be in saveslot position, 1-indexed):
+#  overworld
+#  meadow
+#  papurika
+#  cavern
+#  edelvale
+#  noria
+#  noria_after
+#  aogai
+#  sacred_grove
+#  aogai2
+#  sarudnahk
+#  aogai3
+#  mana_tree

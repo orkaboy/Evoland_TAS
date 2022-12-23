@@ -1,4 +1,4 @@
-from engine.seq.base import SeqBase, SeqList, SeqOptional
+from engine.seq.base import SeqBase, SeqCheckpoint, SeqList, SeqOptional
 from engine.seq.interact import (
     SeqAttack,
     SeqDirHoldUntilLostControl,
@@ -23,6 +23,7 @@ __all__ = [
     "SeqBase",
     "SeqList",
     "SeqOptional",
+    "SeqCheckpoint",
     "SeqTapDirection",
     "SeqAttack",
     "SeqMenu",
