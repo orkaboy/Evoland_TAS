@@ -471,11 +471,11 @@ class SeqZephyrosFight(SeqZephyrosObserver):
         ctrl = evo_ctrl()
         angle_1 = angle_mod(angle)
         angle_2 = angle_mod(self.player.polar.theta)
-        angle_diff = angle_1 - angle_2
+        angle_diff = angle_mod(angle_1 - angle_2)
         ctrl.dpad.none()
-        if angle_diff > 0:
+        if angle_diff > epsilon / 2:
             ctrl.dpad.left()
-        elif angle_diff < 0:
+        elif angle_diff < -epsilon / 2:
             ctrl.dpad.right()
 
         return abs(angle_diff) < epsilon
@@ -541,8 +541,8 @@ class SeqZephyrosFight(SeqZephyrosObserver):
         ctrl.dpad.none()
         # TODO: Align against closest position opposite to Zephyros
         if self.ganon.pos.norm > 3:  # TODO: Magic number. Don't calc angle if in center
-            angle_1 = self.ganon.pos.angle
-            angle_2 = angle_1 + math.pi
+            angle_1 = angle_mod(self.ganon.pos.angle)
+            angle_2 = angle_mod(angle_1 + math.pi)
             player_angle = angle_mod(self.player.polar.theta)
             # Move to closest angle intersect
             if angle_between(angle_1, player_angle) < angle_between(
