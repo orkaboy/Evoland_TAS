@@ -8,6 +8,8 @@ from maps.evo1 import GetAStar
 from memory.evo1 import Evo1Weapon, MapID
 
 _sg_astar = GetAStar(MapID.SACRED_GROVE_2D)
+_bow_astar = GetAStar(MapID.SACRED_GROVE_CAVE_1)
+# _amulet_astar = GetAStar(MapID.SACRED_GROVE_CAVE_2)
 
 
 class SacredGrove(SeqList):
@@ -74,7 +76,7 @@ class BowCave(SeqList):
             children=[
                 SeqMove2DClunkyCombat(
                     "Maze",
-                    coords=_sg_astar.calculate(
+                    coords=_bow_astar.calculate(
                         start=Vec2(12, 26), goal=Vec2(12, 17), final_pos=Vec2(12, 17.4)
                     ),
                 ),
@@ -126,6 +128,7 @@ class AmuletCave(SeqList):
         super().__init__(
             name="Amulet dungeon",
             children=[
+                # _amulet_astar
                 # TODO: Push blocks (room with bats)
                 # TODO: Menu glitch door
                 # TODO: Grab amulet
