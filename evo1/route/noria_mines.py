@@ -205,7 +205,7 @@ class NoriaMazeAndBlocks(SeqList):
                 SeqMenu("Menu manip"),
                 SeqDelay(name="Menu manip", timeout_in_s=0.5),
                 SeqMenu("Menu manip"),
-                SeqMove2D("Menu manip", coords=[Vec2(15, 5)]),
+                SeqMove2D("Menu manip", coords=[Vec2(14.5, 5)]),
                 SeqMenu("Menu manip"),
                 SeqMove2DClunkyCombat(
                     "Move to trap",
@@ -412,8 +412,8 @@ class NoriaPuzzles(SeqList):
                 ),
                 SeqMenu("Menu manip"),
                 SeqDelay(name="Trigger plate(L)", timeout_in_s=0.5),
+                # TODO: Full menu manip (bad timing)
                 SeqMenu("Menu manip"),
-                # TODO: Full menu manip
                 # TODO: Just move here? Ignore skellies?
                 SeqMove2D(
                     "Move to chest",
