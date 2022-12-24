@@ -15,6 +15,22 @@ from memory.zelda_base import GameEntity2D, ZeldaMemory
 logger = logging.getLogger(__name__)
 
 
+class MKind(IntEnum):
+    OCTOROC = 0
+    ARMOS = 1
+    BAT = 2
+    OCTOROC_ARMOR = 3
+    SKELETON = 4
+    RED_MAGE = 5
+    DARK_CLINK = 6
+    WASP = 7
+    CHAMPI = 8
+    SPIDER = 9
+    WORM = 10
+    LICH = 11
+    UNKNOWN = -1
+
+
 # Only valid when instantiated, on the screen that they live
 class Evo1GameEntity2D(GameEntity2D):
     _ENT_KIND_PTR = [0x4, 0x4]  # int
@@ -32,9 +48,14 @@ class Evo1GameEntity2D(GameEntity2D):
     _CUR_ANIM_PTR = [0x88]  # 4 byte pointer
     _ROTATION_PTR = [0x90]  # double (left = 0.0, up = 1.57, right = 3.14, down = -1.57)
     # TODO: _ATTACK_TIMER_PTR = [0xC8]  # double. Attack cooldown
-    _ENCOUNTER_TIMER_PTR = [0xD0]  # double. Steps to encounter
-    _IN_CONTROL_PTR = [0xA4]
+
+    # Just for monster, split class?
+    _MKIND_PTR = [0xA8, 0x4]  # int (MKind)
     _HP_PTR = [0x100]  # int, for enemies such as knights
+
+    # Just for Hero, split class?
+    _IN_CONTROL_PTR = [0xA4]
+    _ENCOUNTER_TIMER_PTR = [0xD0]  # double. Steps to encounter
 
     def __init__(self, process: LocProcess, entity_ptr: int):
         super().__init__(process=process, entity_ptr=entity_ptr)
@@ -84,6 +105,9 @@ class Evo1GameEntity2D(GameEntity2D):
         )
         self.cur_anim_ptr = self.process.get_pointer(
             self.entity_ptr, offsets=self._CUR_ANIM_PTR
+        )
+        self.mkind_ptr = self.process.get_pointer(
+            self.entity_ptr, offsets=self._MKIND_PTR
         )
 
     class EKind(IntEnum):
@@ -182,9 +206,29 @@ class Evo1GameEntity2D(GameEntity2D):
         return self.process.read_double(self.rotation_ptr)
 
     @property
+    def cur_anim(self) -> int:
+        return self.process.read_u32(self.cur_anim_ptr)
+
+    def __repr__(self) -> str:
+        kind = self.kind
+        hp_str = f", hp: {self.hp}" if kind == self.EKind.ENEMY else ""
+        return f"Ent({kind.name}, {self.pos}{hp_str})"
+
+    # Only monster
+    @property
+    def mkind(self) -> MKind:
+        mkind_val = self.process.read_u32(self.mkind_ptr)
+        try:
+            return MKind(mkind_val)
+        except ValueError:
+            logger.error(f"Unknown GameEntity2D MKind: {mkind_val}")
+            return MKind.UNKNOWN
+
+    @property
     def hp(self) -> int:
         return self.process.read_u32(self.hp_ptr)
 
+    # Only Hero
     @property
     def not_in_control(self) -> bool:
         return self.process.read_u8(self.in_control_ptr) == 1
@@ -196,15 +240,6 @@ class Evo1GameEntity2D(GameEntity2D):
     @property
     def encounter_timer(self) -> float:
         return self.process.read_double(self.encounter_timer_ptr)
-
-    @property
-    def cur_anim(self) -> int:
-        return self.process.read_u32(self.cur_anim_ptr)
-
-    def __repr__(self) -> str:
-        kind = self.kind
-        hp_str = f", hp: {self.hp}" if kind == self.EKind.ENEMY else ""
-        return f"Ent({kind.name}, {self.pos}{hp_str})"
 
 
 class Evo1ZeldaMemory(ZeldaMemory):
@@ -266,7 +301,11 @@ class Evo1ZeldaMemory(ZeldaMemory):
             # Set enemy offsets
             actor_offset = self._ACTOR_BASE_ADDR + i * self._ACTOR_PTR_SIZE
             actor_ptr = self.process.get_pointer(actor_arr_offset, [actor_offset])
-            self.actors.append(Evo1GameEntity2D(self.process, actor_ptr))
+            self.actors.append(self._alloc_monster(actor_ptr))
+
+    # OVERRIDE
+    def _alloc_monster(self, actor_ptr) -> Evo1GameEntity2D:
+        return Evo1GameEntity2D(self.process, actor_ptr)
 
     @property
     def in_zephy_fight(self) -> bool:

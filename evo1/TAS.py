@@ -34,7 +34,7 @@ from evo1.route import (
     Sarudnahk,
 )
 from evo1.route.mana_tree import SeqZephyrosObserver
-from memory.evo1 import load_memory, load_zelda_memory
+from memory.evo1 import load_diablo_memory, load_memory, load_zelda_memory
 from term.window import WindowLayout
 
 logger = logging.getLogger("SYSTEM")
@@ -44,6 +44,8 @@ def setup_memory() -> None:
     with contextlib.suppress(ReferenceError):
         load_memory()
         load_zelda_memory()
+        # TODO: Optimize this, should only load when relevant
+        load_diablo_memory()
 
 
 def observer(window: WindowLayout):
