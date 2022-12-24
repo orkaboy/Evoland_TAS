@@ -4,7 +4,7 @@ from typing import Optional
 
 from control import evo_ctrl
 from engine.combat import SeqCombat3D, SeqMove2DClunkyCombat
-from engine.mathlib import Box2, Facing, Vec2, get_box_with_size
+from engine.mathlib import Box2, Facing, Vec2, get_box_with_size, is_close
 from engine.move2d import (
     SeqGrabChest,
     SeqGrabChestKeyItem,
@@ -309,7 +309,8 @@ class Whackamole(SeqSection2D):
         if enemy is None:
             # TODO:
             # 4. Detect when enemy falls into pit
-            # 5. Trigger menu glitch before cutscene triggers
+            # 5. Move towards exit instead of following enemy
+            # 6. Trigger menu glitch before cutscene triggers
             return self.spawned
         self.spawned = True
 
@@ -340,7 +341,7 @@ class NavigateWindtraps(SeqSection2D):
     def execute(self, delta: float) -> bool:
         # TODO: Avoid windtraps
 
-        # 1. Walk south
+        # 1. Walk south [start=Vec2(38, 14), goal=Vec2(39, 26)]
         # 2. Time wind traps
         # 3. If caught (detect target?), open menu
         # 4. Detect when it's ok to move on
@@ -350,9 +351,19 @@ class NavigateWindtraps(SeqSection2D):
 class SolveFloorPuzzle(SeqSection2D):
     """Solve floor puzzle, avoiding getting hit by the mages."""
 
-    def __init__(self):
+    _COORDS = [
+        Vec2(45, 26),
+        Vec2(45, 28),
+        Vec2(43, 28),
+        Vec2(43, 24),
+        Vec2(46, 24),
+        Vec2(46, 28),
+    ]
+
+    def __init__(self, precision: float = 0.2):
         super().__init__(name="Solve puzzle")
         self.step = 0
+        self.precision = precision
 
     def reset(self):
         self.step = 0
@@ -360,10 +371,22 @@ class SolveFloorPuzzle(SeqSection2D):
     def execute(self, delta: float) -> bool:
         # TODO: Solve puzzle
 
-        # 1. Move to maze entrypoint Vec2(45, 26)
-        # 2. Move through maze: [Vec2(45, 28), Vec2(43, 28), Vec2(43, 24), Vec2(46, 24), Vec2(46, 28)]
+        num_coords = len(self._COORDS)
+        if self.step >= num_coords:
+            return True
+
+        target = self._COORDS[self.step]
+        player_pos = self.zelda_mem().player.pos
+
+        if is_close(player_pos, target, precision=self.precision):
+            self.step += 1
+        else:
+            move_to(player=player_pos, target=target)
+
+        # 1. Move to puzzle entrypoint Vec2(45, 26)
+        # 2. Move through puzzle: [Vec2(45, 28), Vec2(43, 28), Vec2(43, 24), Vec2(46, 24), Vec2(46, 28)]
         # 3. Check for failures and reset
-        # While navigating the maze, keep an eye out for enemies/fireballs. Open menu to avoid damage
+        # While navigating the puzzle, keep an eye out for enemies/fireballs. Open menu to avoid damage
         return False
 
 
@@ -424,11 +447,21 @@ class NoriaPuzzles(SeqList):
                 SeqGrabChest("Wind trap", direction=Facing.DOWN),
                 # TODO: Navigate the wind traps
                 # TODO: NavigateWindtraps(),
-                SeqManualUntilClose("NAVIGATE WIND TRAPS", target=Vec2(44, 23)),
+                SeqManualUntilClose("NAVIGATE WIND TRAPS", target=Vec2(39, 26)),
                 # TODO: Remove manual
-                # Get in position for chest
-                SeqMove2D("Move to chest", coords=[Vec2(44, 22.6)]),
+                SeqMove2DClunkyCombat(
+                    "Move to chest",
+                    coords=_noria_astar.calculate(
+                        start=Vec2(39, 26), goal=Vec2(44, 23), final_pos=Vec2(44, 22.6)
+                    ),
+                ),
                 SeqGrabChest("Puzzle", direction=Facing.UP),
+                SeqMove2DClunkyCombat(
+                    "Move to puzzle",
+                    coords=_noria_astar.calculate(
+                        start=Vec2(44, 23), goal=Vec2(45, 26)
+                    ),
+                ),
                 # TODO: Solve puzzle
                 # SolveFloorPuzzle(),
                 SeqManualUntilClose("SOLVE PUZZLE", target=Vec2(61, 27)),
