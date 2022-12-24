@@ -74,7 +74,9 @@ class Sarudnahk(SeqList):
                 ),
                 SeqCharacterSelect(),
                 # TODO: Navigate through the Diablo section (Boid behavior?)
-                # TODO: Fight the Undead King boss (abuse gravestone hitbox)
+                # TODO: Pick up chests: Combo, Life meter, Ambient light (can glitch otherwise?), Boss
+                # TODO: Fight the Undead King boss (abuse gravestone hitbox). Track Lich hp/position
                 # TODO: Navigate past enemies in the Diablo section and grab the second part of the amulet
+                # TODO: Grab the portal chest and teleport to Aogai
             ],
         )
