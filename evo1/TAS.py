@@ -157,7 +157,9 @@ def perform_TAS(window: WindowLayout):
             # TODO: Navigate to Sarudnahk
             SeqCheckpoint(checkpoint_name="sarudnahk"),  # Checkpoint at start of area
             Sarudnahk(),
-            # TODO: Checkpoint after Sarudnahk? In Aogai square after town portal
+            # Checkpoint in Aogai square after town portal
+            SeqCheckpoint(checkpoint_name="black_citadel"),
+            # TODO: Leave Aogai
             # TODO: Navigate to the black citadel
             BlackCitadel(),
             # TODO: Get airship in Aogai
