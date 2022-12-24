@@ -533,20 +533,41 @@ class NoriaLavaMaze(SeqList):
                 ),
                 SeqGrabChest("Boss key", direction=Facing.RIGHT),
                 # TODO: Deathwarp or kill everything here
-                SeqManualUntilClose("GO TO BOSS DOOR", target=Vec2(41, 55)),
+                SeqManualUntilClose("GO TO START OF DUNGEON", target=Vec2(47, 67)),
                 # TODO: Remove manual
             ],
         )
 
 
-class NoriaBossFight(SeqList):
+class NoriaMines(SeqList):
+    """Top level sequence for Noria Mines."""
+
+    def __init__(self):
+        super().__init__(
+            name="Noria Mines",
+            children=[
+                NoriaToMaze(),
+                NoriaMazeAndBlocks(),
+                NoriaPuzzles(),
+                NoriaLavaMaze(),
+            ],
+        )
+
+
+# Separate section (checkpoint between)
+class NoriaBoss(SeqList):
     """Handle navigating to and defeating Dark Clink, and leaving the Mines for the overworld."""
 
     def __init__(self):
         super().__init__(
             name="Boss segment",
             children=[
-                # SeqMove2DClunkyCombat("Move to door", coords=_noria_astar.calculate(start=Vec2(47, 67), goal=Vec2(41, 55))),
+                SeqMove2D(
+                    "Move to door",
+                    coords=_noria_astar.calculate(
+                        start=Vec2(47, 67), goal=Vec2(41, 55)
+                    ),
+                ),
                 # Get in position for chest
                 # TODO: Open door(N)
                 SeqMove2D("Boss door", coords=[Vec2(41, 53)]),
@@ -572,21 +593,5 @@ class NoriaBossFight(SeqList):
                 SeqZoneTransition(
                     "To overworld", direction=Facing.DOWN, target_zone=MapID.OVERWORLD
                 ),
-            ],
-        )
-
-
-class NoriaMines(SeqList):
-    """Top level sequence for Noria Mines."""
-
-    def __init__(self):
-        super().__init__(
-            name="Noria Mines",
-            children=[
-                NoriaToMaze(),
-                NoriaMazeAndBlocks(),
-                NoriaPuzzles(),
-                NoriaLavaMaze(),
-                NoriaBossFight(),
             ],
         )

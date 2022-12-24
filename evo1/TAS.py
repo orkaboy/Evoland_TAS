@@ -22,6 +22,7 @@ from evo1.route import (
     Edel2,
     ManaTree,
     MeadowFight,
+    NoriaBoss,
     NoriaMines,
     OverworldToAogai,
     OverworldToCavern,
@@ -139,8 +140,9 @@ def perform_TAS(window: WindowLayout):
             Edel2(),
             OverworldToNoria(),
             SeqCheckpoint(checkpoint_name="noria"),
-            # TODO: Checkpoint before boss
             NoriaMines(),
+            SeqCheckpoint(checkpoint_name="noria_boss"),
+            NoriaBoss(),
             SeqCheckpoint(checkpoint_name="noria_after"),
             OverworldToAogai(),
             SeqCheckpoint(checkpoint_name="aogai"),

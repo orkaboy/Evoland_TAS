@@ -3,7 +3,7 @@ from evo1.route.black_citadel import BlackCitadel
 from evo1.route.crystal_cavern import CrystalCavern
 from evo1.route.edel_vale import Edel1, Edel2
 from evo1.route.mana_tree import ManaTree
-from evo1.route.noria_mines import NoriaMines
+from evo1.route.noria_mines import NoriaBoss, NoriaMines
 from evo1.route.overworld import (
     OverworldToAogai,
     OverworldToCavern,
@@ -26,6 +26,7 @@ __all__ = [
     "Edel2",
     "OverworldToNoria",
     "NoriaMines",
+    "NoriaBoss",
     "OverworldToAogai",
     "Aogai1",
     "OverworldToSacredGrove",
