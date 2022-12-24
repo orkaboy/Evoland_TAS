@@ -27,6 +27,8 @@ class Evo1DiabloEntity(Evo1GameEntity2D):
 
 
 class Evo1DiabloMemory(Evo1ZeldaMemory):
+    # _DIABLO_HERO_SELECT_PTR = [0x7FC, 0x8, 0x30, 0xA4, 0x0] # TODO: Verify
+
     # Override to get correct class
     def _alloc_monster(self, actor_ptr) -> Evo1DiabloEntity:
         return Evo1DiabloEntity(self.process, actor_ptr)
