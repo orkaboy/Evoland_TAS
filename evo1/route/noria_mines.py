@@ -553,17 +553,53 @@ class NoriaPuzzles(SeqList):
 class NavigateFireballs(SeqSection2D):
     """Avoid fireballs."""
 
-    def __init__(self):
+    def __init__(self, precision: float = 0.2):
         super().__init__(name="Fireballs")
         self.coords = _noria_astar.calculate(start=Vec2(70, 31), goal=Vec2(70, 49))
         self.step = 0
+        self.precision = precision
 
     def reset(self):
         self.step = 0
 
-    def execute(self, delta: float) -> bool:
-        # TODO: Avoid fireballs
+    _FIRE_HITBOX_SIZE = 0.5
 
+    def execute(self, delta: float) -> bool:
+        num_coords = len(self.coords)
+        if self.step >= num_coords:
+            return True
+
+        mem = get_zelda_memory()
+        target = self.coords[self.step]
+        player_pos = mem.player.pos
+
+        if is_close(player_pos, target, precision=self.precision):
+            self.step += 1
+        else:
+            move_to(player=player_pos, target=target, precision=self.precision)
+
+        player_hitbox = get_box_with_size(
+            center=player_pos, half_size=self._FIRE_HITBOX_SIZE
+        )
+
+        # While navigating the maze, keep an eye out for fireballs. Open menu to avoid damage
+        ctrl = evo_ctrl()
+        with contextlib.suppress(ReferenceError):
+            for actor in mem.actors:
+                if player_hitbox.contains(actor.pos):
+                    kind = actor.kind
+                    # Fireballs will have target set, the floor will not
+                    is_projectile = (
+                        kind == Evo1GameEntity2D.EKind.SPECIAL
+                        and actor.target is not None
+                    )
+                    if is_projectile:
+                        # 2. Time fireballs
+                        # 3. If caught (detect target?), open menu
+                        ctrl.menu()
+                        sleep(0.3)
+                        ctrl.menu()
+        # TODO: Prep deathwarp
         # (1). Prep death warp by repeatedly moving into lava: Vec2(71, 31)
         # 2. Navigate over bridge and through maze: AStar start=Vec2(70, 31), goal=Vec2(70, 49)
         # While navigating the maze, keep an eye out for fireballs. Open menu to avoid damage
@@ -615,9 +651,7 @@ class NoriaLavaMaze(SeqList):
                 ),
                 SeqGrabChest("Fire maze", direction=Facing.DOWN),
                 # TODO: Fire maze! Have fallback for dying here to recover (can also lower health to deathwarp later)
-                # NavigateFireballs(),
-                SeqManualUntilClose("NAVIGATE FIRE MAZE", target=Vec2(70, 51)),
-                # TODO: Remove manual
+                NavigateFireballs(),
                 SeqMove2DClunkyCombat(
                     "Move to chest",
                     coords=_noria_astar.calculate(

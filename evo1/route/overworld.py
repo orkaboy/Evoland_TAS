@@ -225,13 +225,13 @@ class OverworldToAogai(SeqList):
         super().__init__(
             name="Overworld",
             children=[
-                # TODO: Glitch around the 3D combat chest to avoid more overworld encounters (watch speedrun)
-                # TODO: Navigate to Aogai village
+                # TODO: Chest skip can sometimes fail
                 SeqMove2D(
                     "Performing skip",
                     coords=[Vec2(75, 84.95), Vec2(78, 84.95)],
                     precision=0.05,
                 ),
+                # Navigate to Aogai village
                 SeqMove2D(
                     "Moving to Aogai",
                     coords=_overworld_astar.calculate(

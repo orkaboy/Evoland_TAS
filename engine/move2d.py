@@ -126,9 +126,11 @@ class SeqManualUntilClose(SeqBase):
         ctrl = evo_ctrl()
         ctrl.dpad.none()
         # Check if we have reached the goal
-        mem = self.zelda_mem()
-        player_pos = mem.player.pos
-        return is_close(player_pos, self.target, precision=self.precision)
+        with contextlib.suppress(ReferenceError, ValueError):
+            mem = self.zelda_mem()
+            player_pos = mem.player.pos
+            return is_close(player_pos, self.target, precision=self.precision)
+        return False
 
     def __repr__(self) -> str:
         return f"MANUAL CONTROL({self.name}) until reaching {self.target}"
