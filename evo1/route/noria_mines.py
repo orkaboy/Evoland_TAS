@@ -1,5 +1,6 @@
 import contextlib
 import itertools
+from time import sleep
 from typing import Optional
 
 from control import evo_ctrl
@@ -338,14 +339,37 @@ class NavigateWindtraps(SeqSection2D):
     def __init__(self):
         super().__init__(name="Windtraps")
 
-    def execute(self, delta: float) -> bool:
-        # TODO: Avoid windtraps
+    _WIND_HITBOX_SIZE = 0.5
 
-        # 1. Walk south [start=Vec2(38, 14), goal=Vec2(39, 26)]
-        # 2. Time wind traps
-        # 3. If caught (detect target?), open menu
-        # 4. Detect when it's ok to move on
-        return False
+    def execute(self, delta: float) -> bool:
+        ctrl = evo_ctrl()
+        # 1. Walk south [start=Vec2(39, 16), goal=Vec2(39, 26)]
+        ctrl.dpad.down()
+
+        mem = get_zelda_memory()
+        player_pos = mem.player.pos
+        player_hitbox = get_box_with_size(
+            center=player_pos, half_size=self._WIND_HITBOX_SIZE
+        )
+
+        with contextlib.suppress(ReferenceError):
+            for actor in mem.actors:
+                if (
+                    actor.kind == Evo1GameEntity2D.EKind.SPECIAL
+                    and player_hitbox.contains(actor.pos)
+                ):
+                    # 2. Time wind traps
+                    # 3. If caught (detect target?), open menu
+                    ctrl.menu(tapping=True)
+                    sleep(0.2)
+                    ctrl.menu(tapping=True)
+
+        # 4. Detect when we've reached the bottom
+        done = player_pos.y >= 26
+
+        if done:
+            ctrl.dpad.none()
+        return done
 
 
 class SolveFloorPuzzle(SeqSection2D):
@@ -434,10 +458,8 @@ class NoriaPuzzles(SeqList):
                     precision=0.1,
                 ),
                 SeqMenu("Menu manip"),
-                SeqDelay(name="Trigger plate(L)", timeout_in_s=0.5),
-                # TODO: Full menu manip (bad timing)
+                SeqDelay(name="Trigger plate(L)", timeout_in_s=0.7),
                 SeqMenu("Menu manip"),
-                # TODO: Just move here? Ignore skellies?
                 SeqMove2D(
                     "Move to chest",
                     coords=_noria_astar.calculate(
@@ -445,10 +467,13 @@ class NoriaPuzzles(SeqList):
                     ),
                 ),
                 SeqGrabChest("Wind trap", direction=Facing.DOWN),
-                # TODO: Navigate the wind traps
-                # TODO: NavigateWindtraps(),
-                SeqManualUntilClose("NAVIGATE WIND TRAPS", target=Vec2(39, 26)),
-                # TODO: Remove manual
+                SeqMove2D(
+                    "Move to wind traps",
+                    coords=_noria_astar.calculate(
+                        start=Vec2(38, 14), goal=Vec2(39, 16)
+                    ),
+                ),
+                NavigateWindtraps(),
                 SeqMove2DClunkyCombat(
                     "Move to chest",
                     coords=_noria_astar.calculate(

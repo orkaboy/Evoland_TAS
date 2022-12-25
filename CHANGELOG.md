@@ -9,6 +9,7 @@
 * Improved on Crystal Caverns ATB battle manipulation (can now run)
 * Added some menu manipulation glitches in Noria Mines
 * The TAS can defeat the armored enemy in Noria Mines
+* The TAS can navigate the wind traps in Noria Mines
 * Routed Sacred Grove up to Amulet cave
 * The TAS can somewhat reliably kill the final boss of the game
 

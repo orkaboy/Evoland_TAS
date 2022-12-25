@@ -4,8 +4,9 @@
   * Go ahead a bit in the run and do a rough routing of the later parts (Aogai, Sacred Grove, Sarudnahk). Verify using saves
   * Display hp in zelda mode
   * Clink attacks from just out of range, swinging in the air
+  * Do full menu manip at start of Noria to get two keys
   * Solve floor puzzle
-  * Navigate the fireballs/wind traps
+  * Navigate the fireballs
   * Deathwarp? Some issues reloading currently (need to know which save slot we are using. For now, require use of slot 1?)
   * Bossfight Dark Clink
     * Observer in place, logic/math TODO
