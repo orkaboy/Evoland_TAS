@@ -19,7 +19,7 @@ from engine.move2d import (
 from engine.seq import SeqAttack, SeqDelay, SeqList, SeqMenu
 from evo1.move2d import SeqZoneTransition
 from maps.evo1 import GetAStar, GetTilemap
-from memory.evo1 import Evo1GameEntity2D, MapID, get_zelda_memory
+from memory.evo1 import Evo1GameEntity2D, MapID, MKind, get_zelda_memory
 
 _noria_astar = GetAStar(MapID.NORIA)
 _noria_start_astar = GetAStar(MapID.NORIA_CLOSED)
@@ -71,33 +71,47 @@ class NoriaToMaze(SeqList):
                     precision=0.1,
                 ),
                 SeqMenu("Menu manip"),
-                SeqDelay(name="Trigger plate(L)", timeout_in_s=1.5),
+                SeqDelay(name="Trigger plate(L)", timeout_in_s=0.7),
                 SeqMenu("Menu manip"),
-                # TODO: Full menu glitch (important)
-                SeqMove2DClunkyCombat(
+                SeqMove2D(
                     "Move to chest",
                     coords=_noria_astar.calculate(
-                        start=Vec2(50, 37), goal=Vec2(48, 45), final_pos=Vec2(48, 44.6)
+                        start=Vec2(50, 37),
+                        goal=Vec2(48, 47),
+                    ),
+                ),
+                SeqMenu("Menu manip"),
+                SeqMove2D(
+                    "Move to chest",
+                    coords=_noria_astar.calculate(
+                        start=Vec2(48, 47), goal=Vec2(48, 45), final_pos=Vec2(48, 44.6)
                     ),
                 ),
                 SeqGrabChest("Red Mage", direction=Facing.UP),
-                SeqMove2DClunkyCombat(
+                SeqMove2D(
                     "Move to chest",
                     coords=_noria_astar.calculate(
                         start=Vec2(48, 44), goal=Vec2(35, 41), final_pos=Vec2(35, 40.6)
                     ),
                 ),
-                # TODO: Trigger menu glitch to get two keys
-                SeqGrabChest("Trap room", direction=Facing.UP),
+                SeqGrabChestKeyItem("Trap room", direction=Facing.UP, manip=True),
+                SeqMove2D(
+                    "Retrigger room",
+                    coords=_noria_astar.calculate(
+                        start=Vec2(35, 41), goal=Vec2(38, 44)
+                    ),
+                ),
+                SeqDelay(name="Wait for bats", timeout_in_s=3),
                 SeqCombat3D(
                     "Killing bats",
                     arena=Box2(Vec2(32, 40), w=8, h=8),
-                    num_targets=3,
+                    num_targets=6,
                     retracking=True,
                 ),
                 SeqMove2DClunkyCombat("Move to chest", coords=[Vec2(34, 41)]),
                 # Get in position for chest
                 SeqMove2D("Move to chest", coords=[Vec2(33.6, 41)]),
+                SeqGrabChest("Key", direction=Facing.LEFT),
                 SeqGrabChest("Key", direction=Facing.LEFT),
                 SeqMove2DClunkyCombat(
                     "Move to door",
@@ -296,8 +310,8 @@ class Whackamole(SeqSection2D):
         with contextlib.suppress(ReferenceError):
             for actor in mem.actors:
                 if (
-                    self._BOUNDS.contains(actor.pos)
-                    and actor.kind == Evo1GameEntity2D.EKind.ENEMY
+                    actor.kind == Evo1GameEntity2D.EKind.ENEMY
+                    and actor.mkind == MKind.OCTOROC_ARMOR
                 ):
                     return actor
         return None
@@ -384,6 +398,8 @@ class SolveFloorPuzzle(SeqSection2D):
         Vec2(46, 28),
     ]
 
+    _FIRE_HITBOX_SIZE = 0.5
+
     def __init__(self, precision: float = 0.2):
         super().__init__(name="Solve puzzle")
         self.step = 0
@@ -393,24 +409,44 @@ class SolveFloorPuzzle(SeqSection2D):
         self.step = 0
 
     def execute(self, delta: float) -> bool:
-        # TODO: Solve puzzle
-
         num_coords = len(self._COORDS)
         if self.step >= num_coords:
             return True
 
+        mem = get_zelda_memory()
         target = self._COORDS[self.step]
-        player_pos = self.zelda_mem().player.pos
+        player_pos = mem.player.pos
 
         if is_close(player_pos, target, precision=self.precision):
             self.step += 1
         else:
-            move_to(player=player_pos, target=target)
+            # Move through puzzle: [Vec2(45, 28), Vec2(43, 28), Vec2(43, 24), Vec2(46, 24), Vec2(46, 28)]
+            move_to(player=player_pos, target=target, precision=self.precision)
 
-        # 1. Move to puzzle entrypoint Vec2(45, 26)
-        # 2. Move through puzzle: [Vec2(45, 28), Vec2(43, 28), Vec2(43, 24), Vec2(46, 24), Vec2(46, 28)]
-        # 3. Check for failures and reset
+        player_hitbox = get_box_with_size(
+            center=player_pos, half_size=self._FIRE_HITBOX_SIZE
+        )
+
         # While navigating the puzzle, keep an eye out for enemies/fireballs. Open menu to avoid damage
+        ctrl = evo_ctrl()
+        with contextlib.suppress(ReferenceError):
+            for actor in mem.actors:
+                # Some issues with detection here; the floor is entities in the same cathegory as the fireballs
+                if player_hitbox.contains(actor.pos):
+                    kind = actor.kind
+                    is_enemy = kind == Evo1GameEntity2D.EKind.ENEMY
+                    # Fireballs will have target set, the floor will not
+                    is_projectile = (
+                        kind == Evo1GameEntity2D.EKind.SPECIAL
+                        and actor.target is not None
+                    )
+                    if is_projectile or is_enemy:
+                        # 2. Time fireballs
+                        # 3. If caught (detect target?), open menu
+                        ctrl.menu()
+                        sleep(0.3)
+                        ctrl.menu()
+        # TODO: Check for failures and reset
         return False
 
 
@@ -487,18 +523,16 @@ class NoriaPuzzles(SeqList):
                         start=Vec2(44, 23), goal=Vec2(45, 26)
                     ),
                 ),
-                # TODO: Solve puzzle
-                # SolveFloorPuzzle(),
-                SeqManualUntilClose("SOLVE PUZZLE", target=Vec2(61, 27)),
-                # TODO: Remove manual
+                # TODO: Can be somewhat unreliable
+                SolveFloorPuzzle(),
                 # Get in position for chest
-                # TODO: Can ignore this key if we do the skip earlier
-                SeqMove2D("Move to chest", coords=[Vec2(61.4, 27)]),
-                SeqGrabChest("Key", direction=Facing.RIGHT),
+                # Can ignore this key if we do the skip earlier
+                # SeqMove2D("Move to chest", coords=[Vec2(61.4, 27)]),
+                # SeqGrabChest("Key", direction=Facing.RIGHT),
                 SeqMove2DClunkyCombat(
                     "Move to door",
                     coords=_noria_astar.calculate(
-                        start=Vec2(61, 27), goal=Vec2(51, 24)
+                        start=Vec2(47, 27), goal=Vec2(51, 24)
                     ),
                 ),
                 # TODO: Open door(N)
@@ -511,6 +545,7 @@ class NoriaPuzzles(SeqList):
                 ),
                 SeqMove2D("Move to chest", coords=[Vec2(53, 18.6)]),
                 SeqGrabChest("Lava", direction=Facing.UP),
+                # TODO: Can fail at picking up the chest if the bat throws it off
             ],
         )
 

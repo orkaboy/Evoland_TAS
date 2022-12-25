@@ -10,6 +10,7 @@ from memory.evo1.map_id import MapID
 from memory.evo1.zelda import (
     Evo1GameEntity2D,
     Evo1ZeldaMemory,
+    MKind,
     get_zelda_memory,
     load_zelda_memory,
 )
@@ -26,6 +27,7 @@ __all__ = [
     "Evo1DiabloMemory",
     "Evo1DiabloEntity",
     "MapID",
+    "MKind",
     "get_memory",
     "load_memory",
     "Evo1Weapon",
