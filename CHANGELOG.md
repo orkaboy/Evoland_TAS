@@ -1,5 +1,11 @@
 # Current
 
+0.0.7:
+
+*
+
+# Older changelogs
+
 0.0.6:
 
 * Added rng tracker to TAS display
@@ -15,9 +21,6 @@
 * The TAS can somewhat reliably get past the fireballs in Noria Mines
 * Routed Sacred Grove up to Amulet cave
 * The TAS can somewhat reliably kill the final boss of the game
-
-
-# Older changelogs
 
 0.0.5:
 
