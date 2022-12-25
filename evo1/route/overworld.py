@@ -281,3 +281,40 @@ class SacredGroveToAogai(SeqList):
                 ),
             ],
         )
+
+
+class OverworldToSarudnahk(SeqList):
+    def __init__(self):
+        super().__init__(
+            name="Overworld",
+            children=[
+                SeqMove2D(
+                    "Moving to Sarudnahk",
+                    coords=_overworld_astar.calculate(
+                        start=Vec2(95, 91), goal=Vec2(100, 77)
+                    ),
+                ),
+                SeqZoneTransition(
+                    "Sarudnahk",
+                    direction=Facing.UP,
+                    target_zone=MapID.SARUDNAHK,
+                ),
+            ],
+        )
+
+
+class OverworldToBlackCitadel(SeqList):
+    def __init__(self):
+        super().__init__(
+            name="Overworld",
+            children=[
+                SeqMove2D(
+                    "Moving to Black Citadel",
+                    coords=_overworld_astar.calculate(
+                        start=Vec2(95, 91), goal=Vec2(117, 88)
+                    ),
+                ),
+                # TODO: Menu glitch
+                # TODO: Trigger Zephyros fight
+            ],
+        )

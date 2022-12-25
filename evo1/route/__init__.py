@@ -6,10 +6,12 @@ from evo1.route.mana_tree import ManaTree
 from evo1.route.noria_mines import NoriaBoss, NoriaMines
 from evo1.route.overworld import (
     OverworldToAogai,
+    OverworldToBlackCitadel,
     OverworldToCavern,
     OverworldToMeadow,
     OverworldToNoria,
     OverworldToSacredGrove,
+    OverworldToSarudnahk,
     SacredGroveToAogai,
 )
 from evo1.route.papurika import MeadowFight, PapurikaVillage
@@ -33,9 +35,10 @@ __all__ = [
     "SacredGrove",
     "SacredGroveToAogai",
     "Aogai2",
-    # TODO: In-between sections
+    "OverworldToSarudnahk",
     "Sarudnahk",
     # TODO: In-between sections
+    "OverworldToBlackCitadel",
     "BlackCitadel",
     # TODO: In-between sections
     "ManaTree",

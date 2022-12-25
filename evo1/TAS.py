@@ -25,10 +25,12 @@ from evo1.route import (
     NoriaBoss,
     NoriaMines,
     OverworldToAogai,
+    OverworldToBlackCitadel,
     OverworldToCavern,
     OverworldToMeadow,
     OverworldToNoria,
     OverworldToSacredGrove,
+    OverworldToSarudnahk,
     PapurikaVillage,
     SacredGrove,
     SacredGroveToAogai,
@@ -156,17 +158,18 @@ def perform_TAS(window: WindowLayout):
             SacredGroveToAogai(),
             SeqCheckpoint(checkpoint_name="aogai2"),  # Checkpoint in Aogai
             Aogai2(),
-            # TODO: Navigate to Sarudnahk
+            OverworldToSarudnahk(),
             SeqCheckpoint(checkpoint_name="sarudnahk"),  # Checkpoint at start of area
             Sarudnahk(),
             # Checkpoint in Aogai square after town portal
             SeqCheckpoint(checkpoint_name="black_citadel"),
-            # TODO: Leave Aogai
-            # TODO: Navigate to the black citadel
+            # TODO: Leave Aogai (buy potions, trigger card bug, leave north)
+            OverworldToBlackCitadel(),
             BlackCitadel(),
-            # TODO: Get airship in Aogai
+            # TODO: Get airship in Aogai (carry menu glitch to Aogai)
             SeqCheckpoint(checkpoint_name="aogai3"),  # Checkpoint in Aogai
-            # TODO: Go to the Mana Tree
+            # TODO: Trigger conversation and leave, wait for airship to spawn
+            # TODO: Go to the Mana Tree on airship
             SeqCheckpoint(checkpoint_name="mana_tree"),  # Checkpoint outside tree
             ManaTree(),
             # TODO: End of game! Watch credits.
