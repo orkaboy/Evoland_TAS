@@ -3,11 +3,10 @@
 * Next:
   * Go ahead a bit in the run and do a rough routing of the later parts (Aogai, Sacred Grove, Sarudnahk). Verify using saves
   * Display hp in zelda mode
-  * Clink attacks from just out of range, swinging in the air
   * Deathwarp? Some issues reloading currently (need to know which save slot we are using. For now, require use of slot 1?)
   * Bossfight Dark Clink
     * Observer in place, logic/math TODO
-  * Route Aogai bomb skip
+  * Route Aogai bomb skip (WIP)
 
 * Save games
   * Clean up main menu navigation code? Checking for if New game is available
@@ -31,7 +30,9 @@
   * Improve on encounter manip logic
     * Read chest timers from memory and avoid moving just before they advance RNG
 * 3D Movement and combat
+  * Clink attacks from just out of range, swinging in the air
   * Handle pathfinding past breakable objects (bushes/pots). Can do this manually, but it's less elegant
+  * Use joystick for free movement
 * Routing
   * Route Noria mines
   * Route Aogai/Bomb skip
