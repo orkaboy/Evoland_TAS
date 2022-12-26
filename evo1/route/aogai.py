@@ -1,21 +1,64 @@
+import logging
+
+from control import evo_ctrl
 from engine.mathlib import Facing, Vec2
 from engine.move2d import SeqGrabChest, SeqMove2DCancel
-from engine.seq import SeqInteract, SeqList
+from engine.seq import SeqBase, SeqInteract, SeqList
 from evo1.move2d import SeqZoneTransition
 from maps.evo1 import GetNavmap
-from memory.evo1 import MapID
+from memory.evo1 import MapID, get_memory
+
+logger = logging.getLogger(__name__)
 
 _aogai_nav = GetNavmap(MapID.AOGAI)
 
 _SOUTH_ENTRANCE = _aogai_nav.map[0]
-# _NORTH_ENTRANCE = _aogai_nav.map[18]
+_NORTH_ENTRANCE = _aogai_nav.map[18]
 _SID = _aogai_nav.map[6]
 _HEALER = _aogai_nav.map[16]
 _CARD_CHEST = _aogai_nav.map[10]
 _SHOP_CHEST = _aogai_nav.map[13]
-_GRANNY = _aogai_nav.map[8]
+_GRANNY = _aogai_nav.map[5]  # Note, not on Granny map
 _DEPUTY = _aogai_nav.map[1]  # TODO
 _MOM = _aogai_nav.map[6]  # TODO
+
+
+class AogaiWrongWarp(SeqBase):
+    """When on the world map, to the north of Aogai, wrong warp to south entrance. This requires precise joystick input."""
+
+    def __init__(self, name: str):
+        super().__init__(name)
+
+    def execute(self, delta: float) -> bool:
+        ctrl = evo_ctrl()
+        ctrl.dpad.none()
+        ctrl.set_joystick(Vec2(-1, -0.1))
+
+        mem = get_memory()
+        if mem.map_id == MapID.AOGAI:
+            ctrl.set_neutral()
+            logger.info(f"Transitioned to zone: {MapID.AOGAI.name}")
+            return True
+        return False
+
+    def __repr__(self) -> str:
+        return f"Transition to {self.name}, using wrong-warp"
+
+
+class TalkToGranny(SeqBase):
+    """Requires some special movement, since this zone has rotated controls."""
+
+    def __init__(self):
+        super().__init__(name="Granny")
+
+    def execute(self, delta: float) -> bool:
+        # TODO: Implement:
+        # Go from [5] into Granny area
+        # Approach Granny (rotated controls)
+        # Talk to Granny (bomb skip?)
+        # Go away from Granny
+        # Detect when we return to regular control area
+        return True
 
 
 class Aogai1(SeqList):
@@ -47,36 +90,40 @@ class Aogai1(SeqList):
                     coords=_aogai_nav.calculate(start=_CARD_CHEST, goal=_SHOP_CHEST),
                     invert=True,
                 ),
+                # TODO: Some wonky movement getting the chest, not quite correct coordinates
                 SeqGrabChest("Shop keeper", direction=Facing.LEFT),
-                # TODO: Get bombs by talking to everyone
                 SeqMove2DCancel(
                     "Move to Healer",
                     coords=_aogai_nav.calculate(start=_SHOP_CHEST, goal=_HEALER),
                     invert=True,
                 ),
                 SeqInteract("Healer"),
-                # SeqMove2DCancel("Move to Exit", coords=_aogai_nav.calculate(start=_HEALER, goal=_NORTH_ENTRANCE), invert=True),
-                # SeqZoneTransition("Overworld", direction=Facing.UP, target_zone=MapID.OVERWORLD),
-                # TODO: How does this work? Supposed to go to start of Aogai. Maybe only when bomb skip?
-                # SeqZoneTransition("Aogai", direction=Facing.DOWN, target_zone=MapID.AOGAI),
                 SeqMove2DCancel(
-                    "Move to Granny",
-                    coords=_aogai_nav.calculate(start=_HEALER, goal=_GRANNY),
+                    "Move to Exit",
+                    coords=_aogai_nav.calculate(start=_HEALER, goal=_NORTH_ENTRANCE),
                     invert=True,
                 ),
-                # TODO: Rotate axis here (in granny area)!
-                # SeqMove2DCancel("Move to Granny", coords=_aogai_nav.calculate(start=_SOUTH_ENTRANCE, goal=_GRANNY), invert=True),
-                # TODO: Rotate axis here (in granny area)!
+                SeqZoneTransition(
+                    "Overworld", direction=Facing.UP, target_zone=MapID.OVERWORLD
+                ),
+                AogaiWrongWarp("Aogai"),  # TODO: Could be slightly faster
+                SeqMove2DCancel(
+                    "Move to Granny",
+                    coords=_aogai_nav.calculate(start=_SOUTH_ENTRANCE, goal=_GRANNY),
+                    invert=True,
+                ),
+                # TODO: Get bombs by talking to everyone
+                TalkToGranny(),
                 SeqMove2DCancel(
                     "Move to Deputy",
                     coords=_aogai_nav.calculate(start=_GRANNY, goal=_DEPUTY),
                     invert=True,
-                ),
+                ),  # TODO: Approach deputy (coords)
                 SeqMove2DCancel(
                     "Move to Mom",
                     coords=_aogai_nav.calculate(start=_DEPUTY, goal=_MOM),
                     invert=True,
-                ),
+                ),  # TODO: Approach mom (coords)
                 # TODO: Bomb skip
                 SeqMove2DCancel(
                     "Move to exit",
