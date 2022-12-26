@@ -1,35 +1,50 @@
-from typing import Optional
+from typing import Dict, Optional
 
-from engine.pathing import AStar, TileMap
+from engine.pathing import AStar, NavMesh, Pathing, TileMap
 from memory.evo1 import MapID, get_memory
 
 
 class NavMap:
+    def __init__(self) -> None:
+        self.tilemap: Optional[TileMap] = None
+        self.nav: Optional[Pathing] = None
+
+
+class AStarNavMap(NavMap):
     def __init__(self, filename: str) -> None:
         self.tilemap = TileMap(filename=filename)
-        self.astar = AStar(self.tilemap.map)
+        self.nav = AStar(self.tilemap.map)
 
 
-_sacred_grove = NavMap("maps/evo1/sacred_grove.yaml")
+class NavMeshNavMap(NavMap):
+    def __init__(self, filename: str) -> None:
+        self.tilemap = TileMap(filename=filename)
+        self.nav = NavMesh(
+            map_nodes=self.tilemap.nav_nodes, edges=self.tilemap.nav_edges
+        )
 
-_maps = {
-    MapID.EDEL_VALE: NavMap("maps/evo1/edel_vale.yaml"),
-    MapID.OVERWORLD: NavMap("maps/evo1/overworld.yaml"),
-    MapID.MEADOW: NavMap("maps/evo1/meadow.yaml"),
-    MapID.PAPURIKA: NavMap("maps/evo1/village.yaml"),
-    MapID.PAPURIKA_WELL: NavMap("maps/evo1/village_well.yaml"),
-    MapID.PAPURIKA_INTERIOR: NavMap("maps/evo1/village_interior.yaml"),
-    MapID.CRYSTAL_CAVERN: NavMap("maps/evo1/crystal_cavern.yaml"),
-    MapID.LIMBO: NavMap("maps/evo1/limbo.yaml"),
-    MapID.NORIA_CLOSED: NavMap("maps/evo1/noria_start.yaml"),
-    MapID.NORIA: NavMap("maps/evo1/noria_mines.yaml"),
+
+_sacred_grove = AStarNavMap("maps/evo1/sacred_grove.yaml")
+
+_maps: Dict[MapID, NavMap] = {
+    MapID.EDEL_VALE: AStarNavMap("maps/evo1/edel_vale.yaml"),
+    MapID.OVERWORLD: AStarNavMap("maps/evo1/overworld.yaml"),
+    MapID.MEADOW: AStarNavMap("maps/evo1/meadow.yaml"),
+    MapID.PAPURIKA: AStarNavMap("maps/evo1/village.yaml"),
+    MapID.PAPURIKA_WELL: AStarNavMap("maps/evo1/village_well.yaml"),
+    MapID.PAPURIKA_INTERIOR: AStarNavMap("maps/evo1/village_interior.yaml"),
+    MapID.CRYSTAL_CAVERN: AStarNavMap("maps/evo1/crystal_cavern.yaml"),
+    MapID.LIMBO: AStarNavMap("maps/evo1/limbo.yaml"),
+    MapID.NORIA_CLOSED: AStarNavMap("maps/evo1/noria_start.yaml"),
+    MapID.NORIA: AStarNavMap("maps/evo1/noria_mines.yaml"),
+    MapID.AOGAI: NavMeshNavMap("maps/evo1/aogai.yaml"),
     MapID.SACRED_GROVE_2D: _sacred_grove,
     # TODO: Add the 3d map too?
     MapID.SACRED_GROVE_3D: _sacred_grove,
-    MapID.SACRED_GROVE_CAVE_1: NavMap("maps/evo1/sacred_grove_cave1.yaml"),
-    MapID.SACRED_GROVE_CAVE_2: NavMap("maps/evo1/sacred_grove_cave2.yaml"),
+    MapID.SACRED_GROVE_CAVE_1: AStarNavMap("maps/evo1/sacred_grove_cave1.yaml"),
+    MapID.SACRED_GROVE_CAVE_2: AStarNavMap("maps/evo1/sacred_grove_cave2.yaml"),
     # TODO: Sarudnahk
-    MapID.END: NavMap("maps/evo1/end.yaml"),
+    MapID.END: AStarNavMap("maps/evo1/end.yaml"),
     # TODO: Side dungeons
 }
 
@@ -44,5 +59,5 @@ def CurrentTilemap() -> Optional[TileMap]:
     return navmap.tilemap if (navmap := _maps.get(current_map)) else None
 
 
-def GetAStar(map_id: MapID) -> AStar:
-    return _maps.get(map_id).astar
+def GetNavmap(map_id: MapID) -> Pathing:
+    return _maps.get(map_id).nav

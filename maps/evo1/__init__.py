@@ -1,7 +1,7 @@
-from maps.evo1.maps import CurrentTilemap, GetAStar, GetTilemap
+from maps.evo1.maps import CurrentTilemap, GetNavmap, GetTilemap
 
 __all__ = [
     "CurrentTilemap",
-    "GetAStar",
+    "GetNavmap",
     "GetTilemap",
 ]

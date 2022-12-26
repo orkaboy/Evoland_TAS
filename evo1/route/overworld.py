@@ -13,12 +13,12 @@ from evo1.atb import (
     calc_next_encounter,
 )
 from evo1.move2d import SeqZoneTransition
-from maps.evo1 import GetAStar
+from maps.evo1 import GetNavmap
 from memory.evo1 import MapID, get_memory, get_zelda_memory
 from memory.rng import EvolandRNG
 from term.window import WindowLayout
 
-_overworld_astar = GetAStar(MapID.OVERWORLD)
+_overworld_astar = GetNavmap(MapID.OVERWORLD)
 
 logger = logging.getLogger(__name__)
 

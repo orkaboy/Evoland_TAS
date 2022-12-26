@@ -16,6 +16,8 @@ from evo1.observer import SeqObserver2D
 from evo1.route import (
     Aogai1,
     Aogai2,
+    Aogai3,
+    Aogai4,
     BlackCitadel,
     CrystalCavern,
     Edel1,
@@ -163,11 +165,12 @@ def perform_TAS(window: WindowLayout):
             Sarudnahk(),
             # Checkpoint in Aogai square after town portal
             SeqCheckpoint(checkpoint_name="black_citadel"),
-            # TODO: Leave Aogai (buy potions, trigger card bug, leave north)
+            Aogai3(),
             OverworldToBlackCitadel(),
             BlackCitadel(),
             # TODO: Get airship in Aogai (carry menu glitch to Aogai)
             SeqCheckpoint(checkpoint_name="aogai3"),  # Checkpoint in Aogai
+            Aogai4(),
             # TODO: Trigger conversation and leave, wait for airship to spawn
             # TODO: Go to the Mana Tree on airship
             SeqCheckpoint(checkpoint_name="mana_tree"),  # Checkpoint outside tree

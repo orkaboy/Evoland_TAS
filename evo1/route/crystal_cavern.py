@@ -6,15 +6,15 @@ from engine.move2d import SeqGrabChest, SeqMove2D, SeqMove2DConfirm
 from engine.seq import SeqDelay, SeqList, SeqMashDelay, SeqMenu
 from evo1.atb import EncounterID, FarmingGoal, SeqATBCombat, SeqATBmove2D
 from evo1.move2d import SeqZoneTransition
-from maps.evo1 import GetAStar
+from maps.evo1 import GetNavmap
 from memory.evo1 import MapID, get_zelda_memory
 from term.window import WindowLayout
 
 logger = logging.getLogger(__name__)
 
 
-_cavern_astar = GetAStar(MapID.CRYSTAL_CAVERN)
-_limbo_astar = GetAStar(MapID.LIMBO)
+_cavern_astar = GetNavmap(MapID.CRYSTAL_CAVERN)
+_limbo_astar = GetNavmap(MapID.LIMBO)
 
 
 class CrystalCavernEncManip(SeqATBmove2D):

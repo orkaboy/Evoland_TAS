@@ -10,7 +10,7 @@ from term.window import SubWindow, WindowLayout
 logger = logging.getLogger(__name__)
 
 
-def move_to(player: Vec2, target: Vec2, precision: float) -> None:
+def move_to(player: Vec2, target: Vec2, precision: float, invert: bool = False) -> None:
     ctrl = evo_ctrl()
     ctrl.dpad.none()
     # Very dumb
@@ -19,15 +19,27 @@ def move_to(player: Vec2, target: Vec2, precision: float) -> None:
         precision / 2
     )  # Need to get closer so that is_close() will trigger on diagonals
     # Left right
-    if diff.x > controller_precision:
-        ctrl.dpad.right()
-    elif diff.x < -controller_precision:
+    if (
+        diff.x > controller_precision
+        and invert
+        or diff.x <= controller_precision
+        and diff.x < -controller_precision
+        and not invert
+    ):
         ctrl.dpad.left()
+    elif diff.x > controller_precision or diff.x < -controller_precision:
+        ctrl.dpad.right()
     # Up down
-    if diff.y > controller_precision:
-        ctrl.dpad.down()
-    elif diff.y < -controller_precision:
+    if (
+        diff.y > controller_precision
+        and invert
+        or diff.y <= controller_precision
+        and diff.y < -controller_precision
+        and not invert
+    ):
         ctrl.dpad.up()
+    elif diff.y > controller_precision or diff.y < -controller_precision:
+        ctrl.dpad.down()
 
 
 class SeqCtrlNeutral(SeqBase):
@@ -243,11 +255,13 @@ class SeqMove2D(SeqSection2D):
         precision: float = 0.2,
         func=None,
         emergency_skip: Optional[Callable[[], bool]] = None,
+        invert: bool = False,
     ):
         self.step = 0
         self.coords = coords
         self.precision = precision
         self.emergency_skip = emergency_skip
+        self.invert = invert
         super().__init__(name, func=func)
 
     def reset(self) -> None:
@@ -266,7 +280,9 @@ class SeqMove2D(SeqSection2D):
         mem = self.zelda_mem()
         cur_pos = mem.player.pos
 
-        move_to(player=cur_pos, target=target, precision=self.precision)
+        move_to(
+            player=cur_pos, target=target, precision=self.precision, invert=self.invert
+        )
 
         # If arrived, go to next coordinate in the list
         if is_close(cur_pos, target, self.precision):
@@ -340,8 +356,9 @@ class SeqMove2DCancel(SeqMove2D):
         coords: list[Vec2],
         precision: float = 0.2,
         timeout_in_s: float = 0.2,
+        invert: bool = False,
     ):
-        super().__init__(name, coords, precision)
+        super().__init__(name, coords, precision, invert=invert)
         self.timer = 0
         self.timeout = timeout_in_s
         self.state = False

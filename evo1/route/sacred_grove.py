@@ -4,12 +4,12 @@ from engine.move2d import SeqGrabChestKeyItem, SeqMove2D
 from engine.seq import SeqAttack, SeqDelay, SeqList, SeqMenu
 from evo1.combat.weapons import SeqPlaceBomb, SeqSwapWeapon
 from evo1.move2d import SeqZoneTransition
-from maps.evo1 import GetAStar
+from maps.evo1 import GetNavmap
 from memory.evo1 import Evo1Weapon, MapID
 
-_sg_astar = GetAStar(MapID.SACRED_GROVE_2D)
-_bow_astar = GetAStar(MapID.SACRED_GROVE_CAVE_1)
-# _amulet_astar = GetAStar(MapID.SACRED_GROVE_CAVE_2)
+_sg_astar = GetNavmap(MapID.SACRED_GROVE_2D)
+_bow_astar = GetNavmap(MapID.SACRED_GROVE_CAVE_1)
+# _amulet_astar = GetNavmap(MapID.SACRED_GROVE_CAVE_2)
 
 
 class SacredGrove(SeqList):

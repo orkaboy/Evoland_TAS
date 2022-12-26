@@ -1,4 +1,4 @@
-from evo1.route.aogai import Aogai1, Aogai2
+from evo1.route.aogai import Aogai1, Aogai2, Aogai3, Aogai4
 from evo1.route.black_citadel import BlackCitadel
 from evo1.route.crystal_cavern import CrystalCavern
 from evo1.route.edel_vale import Edel1, Edel2
@@ -37,10 +37,11 @@ __all__ = [
     "Aogai2",
     "OverworldToSarudnahk",
     "Sarudnahk",
-    # TODO: In-between sections
+    "Aogai3",
     "OverworldToBlackCitadel",
     "BlackCitadel",
     # TODO: In-between sections
+    "Aogai4",
     "ManaTree",
     # TODO: End
 ]

@@ -2,7 +2,7 @@
 
 0.0.7:
 
-*
+* Very crude routing of Sarudnahk. Can't make it through without help/cheats.
 
 # Older changelogs
 

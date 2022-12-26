@@ -7,10 +7,10 @@ from engine.move2d import SeqGrabChest, SeqGrabChestKeyItem, SeqMove2D, SeqMove2
 from engine.seq import SeqAttack, SeqList
 from evo1.combat import SeqKnight2D
 from evo1.move2d import SeqZoneTransition
-from maps.evo1 import GetAStar
+from maps.evo1 import GetNavmap
 from memory.evo1 import Evo1GameEntity2D, MapID
 
-_edel_vale_astar = GetAStar(MapID.EDEL_VALE)
+_edel_vale_astar = GetNavmap(MapID.EDEL_VALE)
 
 
 class SeqGridLockedCombat(SeqMove2DClunkyCombat):

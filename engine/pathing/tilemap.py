@@ -34,6 +34,10 @@ class TileMap:
             case "tmx":
                 tmx_filename = f"{os.path.splitext(filename)[0]}.tmx"
                 self._load_tmx(filename=tmx_filename, map_data=map_data)
+        # NavMesh graph nodes
+        nodes = map_data.get("nodes", [])
+        self.nav_nodes = [Vec2(x=node[0], y=node[1]) for node in nodes]
+        self.nav_edges = map_data.get("edges", [])
 
     def _load_ascii(self, map_data: dict) -> None:
         # ascii representation of map, as array of strings

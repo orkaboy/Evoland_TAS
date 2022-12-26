@@ -18,11 +18,11 @@ from engine.move2d import (
 )
 from engine.seq import SeqAttack, SeqDelay, SeqList, SeqMenu
 from evo1.move2d import SeqZoneTransition
-from maps.evo1 import GetAStar, GetTilemap
+from maps.evo1 import GetNavmap, GetTilemap
 from memory.evo1 import Evo1GameEntity2D, MapID, MKind, get_zelda_memory
 
-_noria_astar = GetAStar(MapID.NORIA)
-_noria_start_astar = GetAStar(MapID.NORIA_CLOSED)
+_noria_astar = GetNavmap(MapID.NORIA)
+_noria_start_astar = GetNavmap(MapID.NORIA_CLOSED)
 
 
 # TODO: Improve on the chest grab to be more concise (don't require the approach)
