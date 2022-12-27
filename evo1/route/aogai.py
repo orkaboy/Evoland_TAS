@@ -210,6 +210,7 @@ class Aogai2(SeqList):
             name="Aogai Village",
             children=[
                 # Get heal bug (card player, healer)
+                # TODO: Consistently fails
                 SeqMove2D(
                     "Move to card player",
                     coords=_aogai_nav.calculate(

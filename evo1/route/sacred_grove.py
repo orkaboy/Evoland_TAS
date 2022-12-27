@@ -1,6 +1,11 @@
 from engine.combat import SeqMove2DClunkyCombat
 from engine.mathlib import Facing, Vec2
-from engine.move2d import SeqGrabChestKeyItem, SeqMove2D
+from engine.move2d import (
+    SeqGrabChestKeyItem,
+    SeqManualUntilClose,
+    SeqMove2D,
+    SeqMove2DConfirm,
+)
 from engine.seq import SeqAttack, SeqDelay, SeqList, SeqMenu
 from evo1.combat.weapons import SeqPlaceBomb, SeqSwapWeapon
 from evo1.move2d import SeqZoneTransition
@@ -9,7 +14,7 @@ from memory.evo1 import Evo1Weapon, MapID
 
 _sg_astar = GetNavmap(MapID.SACRED_GROVE_2D)
 _bow_astar = GetNavmap(MapID.SACRED_GROVE_CAVE_1)
-# _amulet_astar = GetNavmap(MapID.SACRED_GROVE_CAVE_2)
+_amulet_astar = GetNavmap(MapID.SACRED_GROVE_CAVE_2)
 
 
 class SacredGrove(SeqList):
@@ -130,7 +135,7 @@ class SacredGroveToAmuletCave(SeqList):
                 SeqMove2DClunkyCombat(
                     "Move to crystal",
                     coords=_sg_astar.calculate(
-                        start=Vec2(27, 21), goal=Vec2(49, 27), final_pos=Vec2(48.7, 27)
+                        start=Vec2(27, 21), goal=Vec2(49, 27), final_pos=Vec2(48.6, 27)
                     ),
                 ),
                 SeqSwapWeapon("Bow", new_weapon=Evo1Weapon.BOW),
@@ -249,12 +254,47 @@ class AmuletCave(SeqList):
         super().__init__(
             name="Amulet dungeon",
             children=[
-                # _amulet_astar
-                # TODO: Push blocks (room with bats)
+                # Push blocks (room with bats)
+                SeqMove2DClunkyCombat(
+                    "Move to push block(N)",
+                    coords=_amulet_astar.calculate(
+                        start=Vec2(4, 20), goal=Vec2(11, 18), final_pos=Vec2(11, 17.3)
+                    ),
+                ),
+                SeqMove2DClunkyCombat(
+                    "Move to push block(S)",
+                    coords=_amulet_astar.calculate(
+                        start=Vec2(11, 17), goal=Vec2(11, 22), final_pos=Vec2(11, 22.5)
+                    ),
+                ),
+                SeqMove2DClunkyCombat(
+                    "Move to door",
+                    coords=_amulet_astar.calculate(
+                        start=Vec2(11, 22), goal=Vec2(12, 21)
+                    ),
+                ),
+                SeqMenu("Menu glitch"),
+                SeqDelay("Menu glitch", timeout_in_s=0.5),
+                SeqMenu("Menu glitch"),
                 # TODO: Menu glitch door
-                # TODO: Grab amulet
+                # Grab amulet
+                SeqMove2D(
+                    "Move to chest",
+                    coords=_amulet_astar.calculate(
+                        start=Vec2(12, 21), goal=Vec2(26, 20)
+                    ),
+                ),
+                SeqGrabChestKeyItem("Amulet", direction=Facing.RIGHT, manip=True),
                 # TODO: Fight the skellies and mages using bow/bombs
-                # TODO: Leave cave
+                SeqManualUntilClose("FIGHT SKELLIES AND MAGES", target=Vec2(14, 20)),
+                # TODO: Remove manual
+                # Leave cave
+                SeqMove2DClunkyCombat(
+                    "Move to exit",
+                    coords=_amulet_astar.calculate(
+                        start=Vec2(14, 20), goal=Vec2(4, 20)
+                    ),
+                ),
                 SeqZoneTransition(
                     "Sacred Grove",
                     direction=Facing.LEFT,
@@ -269,10 +309,32 @@ class SacredGroveToExit(SeqList):
         super().__init__(
             name="Leave area",
             children=[
-                # TODO: Activate crystal with sword
-                # TODO: Use bomb to skip puzzle
-                # TODO: Move to south exit
-                # TODO: Skip past dialog
+                SeqSwapWeapon("Sword", Evo1Weapon.SWORD),
+                SeqMove2DClunkyCombat(
+                    "Move to crystal",
+                    coords=_sg_astar.calculate(start=Vec2(62, 27), goal=Vec2(53, 32)),
+                ),
+                # Activate crystal with sword
+                SeqAttack("Crystal"),
+                # TODO: In order for this timing to work, need to carry menu skip and close
+                SeqSwapWeapon("Bombs", Evo1Weapon.BOMB),
+                # Use bomb to skip puzzle
+                SeqPlaceBomb("Crystal", target=Vec2(53, 32.3), precision=0.1),
+                SeqMove2D(
+                    "Move to exit",
+                    coords=_sg_astar.calculate(start=Vec2(53, 32), goal=Vec2(51, 34)),
+                ),
+                SeqSwapWeapon("Sword", Evo1Weapon.SWORD),
+                # Move to south exit
+                SeqMove2DClunkyCombat(
+                    "Move to exit",
+                    coords=_sg_astar.calculate(start=Vec2(51, 34), goal=Vec2(47, 40)),
+                ),
+                # Skip past dialog and leave for world map
+                SeqMove2DConfirm(
+                    "Move to exit",
+                    coords=_sg_astar.calculate(start=Vec2(47, 40), goal=Vec2(47, 43)),
+                ),
                 SeqZoneTransition(
                     "Overworld",
                     direction=Facing.DOWN,
