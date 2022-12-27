@@ -245,7 +245,7 @@ class Aogai3(SeqList):
             name="Aogai Village",
             children=[
                 # Teleport into town square
-                # TODO: Buy potions
+                # TODO: Buy potions for ATB Zephy
                 # Get heal bug (card player, healer)
                 SeqMove2D(
                     "Move to card player",
@@ -280,6 +280,14 @@ class Aogai4(SeqList):
             name="Aogai Village",
             children=[
                 # TODO: Trigger conversation to get airship
-                # TODO: Exit south
+                SeqMove2DCancel(
+                    "Move to exit",
+                    coords=_aogai_nav.calculate(start=_SID, goal=_SOUTH_ENTRANCE),
+                    invert=True,
+                ),
+                # Exit south
+                SeqZoneTransition(
+                    "Overworld", direction=Facing.DOWN, target_zone=MapID.OVERWORLD
+                ),
             ],
         )
