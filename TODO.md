@@ -34,11 +34,11 @@
   * Handle pathfinding past breakable objects (bushes/pots). Can do this manually, but it's less elegant
   * Use joystick for free movement
 * Routing
-  * Route Noria mines
-  * Route Aogai/Bomb skip
-  * Route Sacred Grove
-  * Route Sarudnahk
-  * Zephyros ATB fight
+  * Route Noria mines (Dark Clink, deathwarp)
+  * Route Aogai (Bomb skip, heal glitch for Sarudnahk, Buying pots for Zephy, getting airship)
+  * Route Sacred Grove (fallbacks for killing bats, menu glitches, killing skellies/mages)
+  * Route Sarudnahk (heal glitch, survival/movement, boss fight, comboing)
+  * Zephyros ATB fight (phase detection, healing, X-crystal, 2nd phase, babamut)
 * Final Zephyros fight
   * Improve/optimize movement
   * Get in 3-4 attacks in the first phase
