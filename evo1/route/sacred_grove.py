@@ -183,6 +183,7 @@ class SacredGroveToAmuletCave(SeqList):
                 ),
                 SeqAttack("Bush"),
                 SeqSwapWeapon("Bow", new_weapon=Evo1Weapon.BOW),
+                # TODO: Need verification that we hit in this section. Check if any enemies died instead
                 SeqAttack("Light fire"),
                 SeqSwapWeapon("Sword", new_weapon=Evo1Weapon.SWORD),
                 SeqMove2D(
@@ -193,6 +194,7 @@ class SacredGroveToAmuletCave(SeqList):
                 ),
                 SeqAttack("Bush"),
                 SeqSwapWeapon("Bow", new_weapon=Evo1Weapon.BOW),
+                # TODO: Need verification that we hit in this section. Check if any enemies died instead
                 SeqAttack("Light fire"),
                 SeqSwapWeapon("Sword", new_weapon=Evo1Weapon.SWORD),
                 SeqMove2D(
@@ -211,6 +213,7 @@ class SacredGroveToAmuletCave(SeqList):
                     coords=[Vec2(60.4, 42), Vec2(60.4, 41.7)],
                     precision=0.05,
                 ),
+                # TODO: Need verification that we hit in this section. Check if any enemies died instead
                 SeqAttack("Light fire"),
                 SeqMove2D(
                     "Move to crystal",
@@ -288,6 +291,7 @@ class AmuletCave(SeqList):
                 # TODO: Fight the skellies and mages using bow/bombs
                 SeqManualUntilClose("FIGHT SKELLIES AND MAGES", target=Vec2(14, 20)),
                 # TODO: Remove manual
+                # TODO: Keep menu glitch
                 # Leave cave
                 SeqMove2DClunkyCombat(
                     "Move to exit",
