@@ -74,6 +74,7 @@ class TileMap:
         TREE = 0x0F6D01  # Passable on overworld map
         DEAD_TREE = 0x3D2E01
         WATER = 0x65B4FB
+        RIVER = 0x0685F9
         ROCKS = 0x9E9E9E
         DARK_ROCKS = 0xC08879
         CACTI = 0x6FDA02
@@ -123,6 +124,7 @@ class TileMap:
         BitmapTile.TREE: "#",
         BitmapTile.DEAD_TREE: "[",
         BitmapTile.WATER: "~",
+        BitmapTile.RIVER: "~",
         BitmapTile.WATER_DUNGEON: "~",
         BitmapTile.ROCKS: "o",
         BitmapTile.DARK_ROCKS: "O",
@@ -156,7 +158,7 @@ class TileMap:
 
     def _is_passable(self, tile: BitmapTile, trees_passable: bool) -> bool:
         match tile:
-            case self.BitmapTile.EMPTY | self.BitmapTile.EMPTY_DUNGEON | self.BitmapTile.DEAD_TREE | self.BitmapTile.WALLS | self.BitmapTile.WATER | self.BitmapTile.WATER_DUNGEON | self.BitmapTile.ROCKS | self.BitmapTile.CACTI | self.BitmapTile.BUSH | self.BitmapTile.POT | self.BitmapTile.LAVA | self.BitmapTile.LAVA_TRAP | self.BitmapTile.PITFALL | self.BitmapTile.PITFALL2 | self.BitmapTile.STATUE | self.BitmapTile.WIND_TRAP:
+            case self.BitmapTile.EMPTY | self.BitmapTile.EMPTY_DUNGEON | self.BitmapTile.DEAD_TREE | self.BitmapTile.WALLS | self.BitmapTile.WATER | self.BitmapTile.RIVER | self.BitmapTile.WATER_DUNGEON | self.BitmapTile.ROCKS | self.BitmapTile.DARK_ROCKS | self.BitmapTile.CACTI | self.BitmapTile.BUSH | self.BitmapTile.POT | self.BitmapTile.LAVA | self.BitmapTile.LAVA_TRAP | self.BitmapTile.PITFALL | self.BitmapTile.PITFALL2 | self.BitmapTile.STATUE | self.BitmapTile.WIND_TRAP:
                 return False
             case self.BitmapTile.TREE:
                 return trees_passable
