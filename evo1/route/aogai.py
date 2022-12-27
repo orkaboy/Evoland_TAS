@@ -2,8 +2,8 @@ import logging
 
 from control import evo_ctrl
 from engine.mathlib import Facing, Vec2
-from engine.move2d import SeqGrabChest, SeqMove2DCancel
-from engine.seq import SeqBase, SeqInteract, SeqList
+from engine.move2d import SeqGrabChest, SeqMove2D, SeqMove2DCancel
+from engine.seq import SeqBase, SeqInteract, SeqList, wait_seconds
 from evo1.move2d import SeqZoneTransition
 from maps.evo1 import GetNavmap
 from memory.evo1 import MapID, get_memory
@@ -12,15 +12,18 @@ logger = logging.getLogger(__name__)
 
 _aogai_nav = GetNavmap(MapID.AOGAI)
 
-_SOUTH_ENTRANCE = _aogai_nav.map[0]
-_NORTH_ENTRANCE = _aogai_nav.map[18]
-_SID = _aogai_nav.map[6]
-_HEALER = _aogai_nav.map[16]
-_CARD_CHEST = _aogai_nav.map[10]
-_SHOP_CHEST = _aogai_nav.map[13]
-_GRANNY = _aogai_nav.map[5]  # Note, not on Granny map
-_DEPUTY = _aogai_nav.map[1]  # TODO
-_MOM = _aogai_nav.map[6]  # TODO
+_SOUTH_ENTRANCE = _aogai_nav.map[0]  # Exit is down
+_NORTH_ENTRANCE = _aogai_nav.map[18]  # Exit is up
+_SID = _aogai_nav.map[6]  # Sid is left
+_HEALER = _aogai_nav.map[16]  # Healer is right
+_CARD_CHEST = _aogai_nav.map[10]  # Chest is up
+_SHOP_CHEST = _aogai_nav.map[13]  # Chest is left
+_GRANNY = _aogai_nav.map[5]  # Note, adjacent point to Granny map
+_DEPUTY = _aogai_nav.map[21]  # Deputy is left
+_MOM = _aogai_nav.map[7]  # Mom is up
+_CARD_PLAYER = _aogai_nav.map[22]  # Player is left
+_SHOP_KEEPER = _aogai_nav.map[19]  # Shop is up
+_KID_CHEST = _aogai_nav.map[23]  # Chest is up
 
 
 class AogaiWrongWarp(SeqBase):
@@ -52,12 +55,59 @@ class TalkToGranny(SeqBase):
         super().__init__(name="Granny")
 
     def execute(self, delta: float) -> bool:
-        # TODO: Implement:
-        # Go from [5] into Granny area
-        # Approach Granny (rotated controls)
+        ctrl = evo_ctrl()
+        # Go from [8.8, 6.6] into Granny area (hold right)
+        ctrl.dpad.none()
+        ctrl.dpad.right()
+        # Wait for screen transition
+        wait_seconds(0.5)
+        # Approach Granny (hold up)
+        ctrl.dpad.none()
+        ctrl.dpad.up()
+        player = self.zelda_mem().player
+        # Wait until x < 3.5
+        while player.pos.x > 3.5:
+            wait_seconds(0.1)
+        ctrl.dpad.none()
         # Talk to Granny (bomb skip?)
+        ctrl.confirm()
         # Go away from Granny
+        ctrl.dpad.down()
         # Detect when we return to regular control area
+        while player.pos.x < 7:
+            wait_seconds(0.1)
+        ctrl.dpad.none()
+        return True
+
+
+class TriggerCardGlitch(SeqBase):
+    def __init__(self):
+        super().__init__(name="Card glitch")
+
+    def execute(self, delta: float) -> bool:
+        ctrl = evo_ctrl()
+        ctrl.dpad.none()
+        # Turn
+        ctrl.dpad.left()
+        wait_seconds(0.4)
+        ctrl.dpad.none()
+        # Talk
+        ctrl.confirm(tapping=True)
+        # Tap past first text
+        ctrl.confirm(tapping=True)
+        # Select "Yes" to trigger glitch
+        ctrl.confirm(tapping=False)
+        # Move on
+        return True
+
+
+class HealerGlitch(SeqBase):
+    def __init__(self):
+        super().__init__(name="Healer glitch")
+
+    def execute(self, delta: float) -> bool:
+        ctrl = evo_ctrl()
+        ctrl.confirm(tapping=False)
         return True
 
 
@@ -75,30 +125,33 @@ class Aogai1(SeqList):
                     invert=True,
                 ),
                 SeqInteract("Sid"),
-                SeqMove2DCancel(
+                SeqMove2D(
                     "Move to Card player",
                     coords=_aogai_nav.calculate(start=_SID, goal=_CARD_CHEST),
                     invert=True,
                 ),
                 SeqGrabChest("Card players", direction=Facing.UP),
-                SeqMove2DCancel("Card player", coords=[Vec2(-8.5, -6)], invert=True),
-                # TODO: Talk to top card player
+                SeqMove2D("Card player", coords=[Vec2(-8.5, -6)], invert=True),
+                # Talk to top card player
                 SeqInteract("Card player"),
-                # TODO: Get the text glitch from card player in Aogai
-                SeqMove2DCancel(
+                SeqMove2D("Card player", coords=[_CARD_PLAYER], invert=True),
+                TriggerCardGlitch(),
+                # Some wonky movement getting the chest, not quite correct coordinates
+                SeqMove2D(
                     "Move to chest",
-                    coords=_aogai_nav.calculate(start=_CARD_CHEST, goal=_SHOP_CHEST),
+                    coords=_aogai_nav.calculate(
+                        start=_CARD_CHEST, goal=_SHOP_CHEST, final_pos=Vec2(-9.5, -3)
+                    ),
                     invert=True,
                 ),
-                # TODO: Some wonky movement getting the chest, not quite correct coordinates
-                SeqGrabChest("Shop keeper", direction=Facing.LEFT),
-                SeqMove2DCancel(
+                # SeqGrabChest("Shop keeper", direction=Facing.LEFT),
+                SeqMove2D(
                     "Move to Healer",
                     coords=_aogai_nav.calculate(start=_SHOP_CHEST, goal=_HEALER),
                     invert=True,
                 ),
-                SeqInteract("Healer"),
-                SeqMove2DCancel(
+                HealerGlitch(),
+                SeqMove2D(
                     "Move to Exit",
                     coords=_aogai_nav.calculate(start=_HEALER, goal=_NORTH_ENTRANCE),
                     invert=True,
@@ -106,28 +159,40 @@ class Aogai1(SeqList):
                 SeqZoneTransition(
                     "Overworld", direction=Facing.UP, target_zone=MapID.OVERWORLD
                 ),
-                AogaiWrongWarp("Aogai"),  # TODO: Could be slightly faster
-                SeqMove2DCancel(
+                SeqMove2D(  # Adjusting to be slightly faster
+                    "Adjust position",
+                    coords=[Vec2(95, 91.5)],
+                ),
+                AogaiWrongWarp("Aogai"),
+                SeqMove2D(
                     "Move to Granny",
                     coords=_aogai_nav.calculate(start=_SOUTH_ENTRANCE, goal=_GRANNY),
                     invert=True,
                 ),
-                # TODO: Get bombs by talking to everyone
+                # Get bombs by talking to everyone
                 TalkToGranny(),
-                SeqMove2DCancel(
+                SeqMove2D(
                     "Move to Deputy",
                     coords=_aogai_nav.calculate(start=_GRANNY, goal=_DEPUTY),
                     invert=True,
-                ),  # TODO: Approach deputy (coords)
-                SeqMove2DCancel(
+                ),  # TODO: Bomb glitch
+                SeqInteract("Deputy"),
+                SeqMove2D(
                     "Move to Mom",
                     coords=_aogai_nav.calculate(start=_DEPUTY, goal=_MOM),
                     invert=True,
-                ),  # TODO: Approach mom (coords)
+                ),  # TODO: Bomb glitch
+                SeqInteract("Mom"),
+                SeqMove2D(
+                    "Move to kid",
+                    coords=_aogai_nav.calculate(start=_MOM, goal=_KID_CHEST),
+                    invert=True,
+                ),
+                # TODO: Get bombs (get chest, talk to kid)
                 # TODO: Bomb skip
-                SeqMove2DCancel(
+                SeqMove2D(
                     "Move to exit",
-                    coords=_aogai_nav.calculate(start=_MOM, goal=_SOUTH_ENTRANCE),
+                    coords=_aogai_nav.calculate(start=_KID_CHEST, goal=_SOUTH_ENTRANCE),
                     invert=True,
                 ),
                 SeqZoneTransition(
@@ -144,8 +209,30 @@ class Aogai2(SeqList):
         super().__init__(
             name="Aogai Village",
             children=[
-                # TODO: Get heal bug (card player, healer)
-                # TODO: Exit north
+                # Get heal bug (card player, healer)
+                SeqMove2D(
+                    "Move to card player",
+                    coords=_aogai_nav.calculate(
+                        start=_SOUTH_ENTRANCE, goal=_CARD_PLAYER
+                    ),
+                    invert=True,
+                ),
+                TriggerCardGlitch(),
+                SeqMove2D(
+                    "Move to healer",
+                    coords=_aogai_nav.calculate(start=_CARD_PLAYER, goal=_HEALER),
+                    invert=True,
+                ),
+                HealerGlitch(),
+                SeqMove2D(
+                    "Move to exit",
+                    coords=_aogai_nav.calculate(start=_HEALER, goal=_NORTH_ENTRANCE),
+                    invert=True,
+                ),
+                # Exit north
+                SeqZoneTransition(
+                    "Overworld", direction=Facing.UP, target_zone=MapID.OVERWORLD
+                ),
             ],
         )
 
@@ -159,8 +246,28 @@ class Aogai3(SeqList):
             children=[
                 # Teleport into town square
                 # TODO: Buy potions
-                # TODO: Get heal bug (card player)
-                # TODO: Exit north
+                # Get heal bug (card player, healer)
+                SeqMove2D(
+                    "Move to card player",
+                    coords=[_CARD_PLAYER],
+                    invert=True,
+                ),
+                TriggerCardGlitch(),
+                SeqMove2D(
+                    "Move to healer",
+                    coords=_aogai_nav.calculate(start=_CARD_PLAYER, goal=_HEALER),
+                    invert=True,
+                ),
+                HealerGlitch(),
+                SeqMove2D(
+                    "Move to exit",
+                    coords=_aogai_nav.calculate(start=_HEALER, goal=_NORTH_ENTRANCE),
+                    invert=True,
+                ),
+                # Exit north
+                SeqZoneTransition(
+                    "Overworld", direction=Facing.UP, target_zone=MapID.OVERWORLD
+                ),
             ],
         )
 
