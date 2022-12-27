@@ -26,6 +26,9 @@
   * Fix the pathfinding to reduce the number of nav nodes/checkpoints, and have the TAS beeline for objectives when possible (use rays to detect map collision)
 * Improve knights combat logic
   * Account for spaces that are invalid (not passable). Can use navmap here
+* Overworld gli farm
+  * Improve on encounter manip logic
+    * Allow for entering/leaving Meadow as manip (relatively quick, worth it? Consistency?)
 * Cavern
   * Improve on encounter manip logic
     * Read chest timers from memory and avoid moving just before they advance RNG
