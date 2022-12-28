@@ -10,13 +10,13 @@ from engine.move2d import (
     SeqGrabChest,
     SeqGrabChestKeyItem,
     SeqHoldInPlace,
-    SeqManualUntilClose,
     SeqMove2D,
     SeqMove2DCancel,
     SeqSection2D,
     move_to,
 )
 from engine.seq import SeqAttack, SeqDebug, SeqDelay, SeqList, SeqMenu
+from evo1.combat import SeqDarkClinkFight
 from evo1.move2d import SeqZoneTransition
 from maps.evo1 import GetNavmap, GetTilemap
 from memory.evo1 import Evo1GameEntity2D, MapID, MKind, get_memory, get_zelda_memory
@@ -746,9 +746,7 @@ class NoriaBoss(SeqList):
                     ),
                 ),
                 SeqMove2DCancel("Talk", coords=[Vec2(32, 56)], precision=0.4),
-                # TODO: Defeat the Dark Clink boss
-                SeqManualUntilClose("DEFEAT BOSS", target=Vec2(27, 62)),
-                # TODO: Remove manual
+                SeqDarkClinkFight(),
                 SeqMove2D(
                     "Move to chest",
                     coords=_noria_astar.calculate(

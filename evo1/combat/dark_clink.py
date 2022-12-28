@@ -98,7 +98,6 @@ class SeqDarkClinkObserver(SeqCombat3D):
                     self.state = self.FightState.IDLE
 
     def execute(self, delta: float) -> bool:
-        super().execute(delta=delta)
         self._update_state()
         return self._is_done()
 
@@ -123,7 +122,8 @@ class SeqDarkClinkFight(SeqDarkClinkObserver):
 
     def fight_logic(self):
         """The actual fight logic."""
-        # ctrl = evo_ctrl()
+        ctrl = evo_ctrl()
+        ctrl.dpad.none()
         # mem = get_zelda_memory()
         # TODO: Fight logic
         # Move so that the boss will point himself to the wall
