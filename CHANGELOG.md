@@ -2,6 +2,7 @@
 
 0.0.7:
 
+* TAS can perform a deathwarp in Noria Mines, skipping a forced combat encounter.
 * Very crude routing of Sarudnahk. Can't make it through without help/cheats.
 * Very crude routing of Sacred Grove. Has some minor issues still.
 * Very crude routing of Aogai sections. Need more work.
