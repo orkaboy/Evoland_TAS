@@ -225,11 +225,10 @@ class OverworldToAogai(SeqList):
         super().__init__(
             name="Overworld",
             children=[
-                # TODO: Chest skip can sometimes fail
                 SeqMove2D(
                     "Performing skip",
-                    coords=[Vec2(75, 84.95), Vec2(78, 84.95)],
-                    precision=0.05,
+                    coords=[Vec2(75, 84.97), Vec2(78, 84.97)],
+                    precision=0.03,
                 ),
                 # Navigate to Aogai village
                 SeqMove2D(

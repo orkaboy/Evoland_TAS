@@ -3,7 +3,7 @@ import itertools
 from time import sleep
 from typing import Optional
 
-from control import evo_ctrl
+from control import SeqLoadGame, SeqMenuConfirm, SeqMenuDown, evo_ctrl
 from engine.combat import SeqCombat3D, SeqMove2DClunkyCombat
 from engine.mathlib import Box2, Facing, Vec2, get_box_with_size, is_close
 from engine.move2d import (
@@ -16,10 +16,10 @@ from engine.move2d import (
     SeqSection2D,
     move_to,
 )
-from engine.seq import SeqAttack, SeqDelay, SeqList, SeqMenu
+from engine.seq import SeqAttack, SeqDebug, SeqDelay, SeqList, SeqMenu
 from evo1.move2d import SeqZoneTransition
 from maps.evo1 import GetNavmap, GetTilemap
-from memory.evo1 import Evo1GameEntity2D, MapID, MKind, get_zelda_memory
+from memory.evo1 import Evo1GameEntity2D, MapID, MKind, get_memory, get_zelda_memory
 
 _noria_astar = GetNavmap(MapID.NORIA)
 _noria_start_astar = GetNavmap(MapID.NORIA_CLOSED)
@@ -652,16 +652,56 @@ class NoriaLavaMaze(SeqList):
                 SeqGrabChest("Fire maze", direction=Facing.DOWN),
                 # TODO: Fire maze! Have fallback for dying here to recover (can also lower health to deathwarp later)
                 NavigateFireballs(),
-                SeqMove2DClunkyCombat(
+                # Use move here; fighting can cause death before picking up the chest
+                SeqMove2D(
                     "Move to chest",
                     coords=_noria_astar.calculate(
-                        start=Vec2(70, 51), goal=Vec2(78, 56), final_pos=Vec2(78.4, 56)
+                        start=Vec2(70, 50), goal=Vec2(78, 56), final_pos=Vec2(78.4, 56)
                     ),
                 ),
                 SeqGrabChest("Boss key", direction=Facing.RIGHT),
-                # TODO: Deathwarp or kill everything here
-                SeqManualUntilClose("GO TO START OF DUNGEON", target=Vec2(47, 67)),
-                # TODO: Remove manual
+            ],
+        )
+
+
+class SeekDeath(SeqSection2D):
+    def __init__(self, name: str, target: Vec2):
+        super().__init__(name)
+        self.target = target
+
+    def execute(self, delta: float) -> bool:
+        player_pos = self.zelda_mem().player.pos
+        move_to(player=player_pos, target=self.target, precision=0.2)
+        # TODO: Actively bump into enemies
+        # Check if we are dead, if so, return to menu
+        return get_memory().player_hearts <= 0
+
+    def __repr__(self) -> str:
+        return f"Seeking death ({self.name})"
+
+
+class NoriaDeathwarp(SeqList):
+    def __init__(self):
+        super().__init__(
+            name="Noria Deathwarp",
+            children=[
+                # Move to center of room to draw enemies in
+                SeekDeath("Boss key room", target=Vec2(70, 56)),
+                SeqDelay("Wait for game over", timeout_in_s=1.0),
+                SeqMenuConfirm("Game over"),
+                # Wait for game to load into menu
+                SeqDelay("Wait for menu", timeout_in_s=6.0),
+                SeqDebug(name="SYSTEM", text="Press confirm to activate main menu."),
+                SeqMenuConfirm(),
+                SeqDelay(name="Menu", timeout_in_s=1.0),
+                SeqMenuDown("Load game"),
+                SeqDelay(name="Menu", timeout_in_s=0.5),
+                SeqMenuConfirm(),
+                SeqDelay(name="Menu", timeout_in_s=1.0),
+                # TODO: Currently always save slot 0
+                SeqLoadGame("Select save slot", 0),
+                SeqMenuConfirm("Load save slot"),
+                SeqDelay("Wait for game to load", timeout_in_s=3.0),
             ],
         )
 
@@ -677,6 +717,7 @@ class NoriaMines(SeqList):
                 NoriaMazeAndBlocks(),
                 NoriaPuzzles(),
                 NoriaLavaMaze(),
+                NoriaDeathwarp(),
             ],
         )
 

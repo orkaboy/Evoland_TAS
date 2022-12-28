@@ -16,7 +16,7 @@ class Evoland1Memory:
 
     # TODO
     # Zelda player health for roaming battle (hearts)
-    _PLAYER_HP_ZELDA_PTR = [0x7FC, 0x8, 0x30, 0x7C, 0x0]  # each heart is 16 "health"
+    _PLAYER_HP_ZELDA_PTR = [0x7FC, 0x8, 0x30, 0x7C, 0x0]  # each heart is 4 "hits"
     _GLI_PTR = [0x7FC, 0x8, 0x30, 0x84, 0x0]  # Money
     _CUR_WEAPON_PTR = [0x7FC, 0x8, 0x30, 0x10, 0x0]  # Sword/Bombs/Bow
 
