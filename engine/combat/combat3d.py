@@ -32,6 +32,36 @@ class SeqCombat3D(SeqCombat):
         attack_vector = enemy_pos + (direction * self.MIN_DISTANCE)
         return [attack_vector]
 
+    def _turn_towards_pos(self, target_pos: Vec2) -> bool:
+        ctrl = evo_ctrl()
+        mem = self.zelda_mem()
+        player_pos = mem.player.pos
+
+        angle_to_target = (target_pos - player_pos).angle
+        # The rotation is stored somewhat strangely in memory
+        rot = mem.player.rotation
+        player_angle = rot + math.pi if rot < 0 else rot - math.pi
+        # Compare player rotation to angle_to_target
+        angle = angle_between(angle_to_target, player_angle)
+        if abs(angle) < math.pi / 3:  # Roughly turned in the right direction
+            # We are aligned and in position
+            ctrl.dpad.none()
+            return True
+        else:
+            # Turn to the correct direction, facing the enemy
+            # Split into 8 directions. 0 is to the right
+            # Horizontal axis
+            if abs(angle_to_target) < 3 * math.pi / 8:
+                ctrl.dpad.right()
+            elif abs(angle_to_target) > 5 * math.pi / 8:
+                ctrl.dpad.left()
+            # Vertical axis
+            if angle_to_target > math.pi / 8 and angle_to_target < 5 * math.pi / 8:
+                ctrl.dpad.down()
+            elif angle_to_target < -math.pi / 8 and angle_to_target > -5 * math.pi / 8:
+                ctrl.dpad.up()
+            return False
+
     def _try_attack(self, target: GameEntity2D, weak_spot: Vec2) -> bool:
         ctrl = evo_ctrl()
         mem = self.zelda_mem()
@@ -41,33 +71,10 @@ class SeqCombat3D(SeqCombat):
         enemy_pos = target.pos
         # Check position (must be in range, in a weak spot)
         if box.contains(weak_spot) or dist(player_pos, enemy_pos) < self.MIN_DISTANCE:
-            angle_to_enemy = (enemy_pos - player_pos).angle
-            # The rotation is stored somewhat strangely in memory
-            rot = mem.player.rotation
-            player_angle = rot + math.pi if rot < 0 else rot - math.pi
-            # Compare player rotation to angle_to_enemy
-            angle = angle_between(angle_to_enemy, player_angle)
-            if abs(angle) < math.pi / 3:  # Roughly turned in the right direction
-                # We are aligned and in position. Attack!
-                ctrl.dpad.none()
+            turned = self._turn_towards_pos(enemy_pos)
+            if turned:
                 ctrl.attack()
-                return True
-            else:
-                # Turn to the correct direction, facing the enemy
-                # Split into 8 directions. 0 is to the right
-                # Horizontal axis
-                if abs(angle_to_enemy) < 3 * math.pi / 8:
-                    ctrl.dpad.right()
-                elif abs(angle_to_enemy) > 5 * math.pi / 8:
-                    ctrl.dpad.left()
-                # Vertical axis
-                if angle_to_enemy > math.pi / 8 and angle_to_enemy < 5 * math.pi / 8:
-                    ctrl.dpad.down()
-                elif (
-                    angle_to_enemy < -math.pi / 8 and angle_to_enemy > -5 * math.pi / 8
-                ):
-                    ctrl.dpad.up()
-                return False
+            return turned
         return False
 
     def try_move_into_position_and_attack(self, target: GameEntity2D) -> bool:

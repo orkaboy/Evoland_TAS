@@ -1,6 +1,5 @@
 import contextlib
 import itertools
-from time import sleep
 from typing import Optional
 
 from control import SeqLoadGame, SeqMenuConfirm, SeqMenuDown, evo_ctrl
@@ -15,7 +14,7 @@ from engine.move2d import (
     SeqSection2D,
     move_to,
 )
-from engine.seq import SeqAttack, SeqDebug, SeqDelay, SeqList, SeqMenu
+from engine.seq import SeqAttack, SeqDebug, SeqDelay, SeqList, SeqMenu, wait_seconds
 from evo1.combat import SeqDarkClinkFight
 from evo1.move2d import SeqZoneTransition
 from maps.evo1 import GetNavmap, GetTilemap
@@ -375,7 +374,7 @@ class NavigateWindtraps(SeqSection2D):
                     # 2. Time wind traps
                     # 3. If caught (detect target?), open menu
                     ctrl.menu(tapping=True)
-                    sleep(0.2)
+                    wait_seconds(0.2)
                     ctrl.menu(tapping=True)
 
         # 4. Detect when we've reached the bottom
@@ -398,7 +397,7 @@ class SolveFloorPuzzle(SeqSection2D):
         Vec2(46, 28),
     ]
 
-    _FIRE_HITBOX_SIZE = 0.5
+    _FIRE_HITBOX_SIZE = 0.6
 
     def __init__(self, precision: float = 0.2):
         super().__init__(name="Solve puzzle")
@@ -444,7 +443,7 @@ class SolveFloorPuzzle(SeqSection2D):
                         # 2. Time fireballs
                         # 3. If caught (detect target?), open menu
                         ctrl.menu()
-                        sleep(0.3)
+                        wait_seconds(0.4)
                         ctrl.menu()
         # TODO: Check for failures and reset
         return False
@@ -562,7 +561,7 @@ class NavigateFireballs(SeqSection2D):
     def reset(self):
         self.step = 0
 
-    _FIRE_HITBOX_SIZE = 0.5
+    _FIRE_HITBOX_SIZE = 0.6
 
     def execute(self, delta: float) -> bool:
         num_coords = len(self.coords)
@@ -597,7 +596,7 @@ class NavigateFireballs(SeqSection2D):
                         # 2. Time fireballs
                         # 3. If caught (detect target?), open menu
                         ctrl.menu()
-                        sleep(0.3)
+                        wait_seconds(0.4)
                         ctrl.menu()
         # TODO: Prep deathwarp
         # (1). Prep death warp by repeatedly moving into lava: Vec2(71, 31)
@@ -690,7 +689,7 @@ class NoriaDeathwarp(SeqList):
                 SeqDelay("Wait for game over", timeout_in_s=1.0),
                 SeqMenuConfirm("Game over"),
                 # Wait for game to load into menu
-                SeqDelay("Wait for menu", timeout_in_s=6.0),
+                SeqDelay("Wait for menu", timeout_in_s=6.2),
                 SeqDebug(name="SYSTEM", text="Press confirm to activate main menu."),
                 SeqMenuConfirm(),
                 SeqDelay(name="Menu", timeout_in_s=1.0),

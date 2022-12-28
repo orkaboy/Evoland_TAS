@@ -3,8 +3,6 @@
 * Next:
   * Go ahead a bit in the run and do a rough routing of the later parts (Aogai, Sacred Grove, Sarudnahk). Verify using saves
   * Display hp in zelda mode
-  * Bossfight Dark Clink
-    * Observer in place, logic/math TODO
   * Route Aogai bomb skip (WIP)
 
 * Save games
@@ -32,13 +30,18 @@
   * Improve on encounter manip logic
     * Read chest timers from memory and avoid moving just before they advance RNG
 * Noria
+  * Improve on 2xBat room (can fail detection)
+  * Fallback for floor puzzle
+  * Fallback for fireballs? Can sometimes fail on this section.
   * Deathwarp. Allow for other save slots than 0 to be used
+  * Bossfight Dark Clink
+    * Make the logic more complicated (though maybe it doesn't need to be?)
+    * Menu glitch after boss death
 * 3D Movement and combat
   * Clink attacks from just out of range, swinging in the air
   * Handle pathfinding past breakable objects (bushes/pots). Can do this manually, but it's less elegant
   * Use joystick for free movement
 * Routing
-  * Route Noria mines (Dark Clink, deathwarp)
   * Route Aogai (Bomb skip, heal glitch for Sarudnahk, Buying pots for Zephy, getting airship)
   * Route Sacred Grove (fallbacks for killing bats, menu glitches, killing skellies/mages)
   * Route Sarudnahk (heal glitch, survival/movement, boss fight, comboing)

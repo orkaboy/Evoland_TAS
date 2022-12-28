@@ -16,7 +16,7 @@ class Buttons(IntEnum):
 class MenuController:
     def __init__(self):
         self.ctrl = handle()
-        self.delay = 0.3
+        self.delay = 0.4
         self.dpad = self.DPad(ctrl=self.ctrl, delay=self.delay)
 
     # Wrappers
