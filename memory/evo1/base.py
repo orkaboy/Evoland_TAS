@@ -22,6 +22,8 @@ class Evoland1Memory:
 
     _MAP_ID_PTR = [0x7FC, 0x8, 0x30, 0xC8, 0x0, 0x4]
 
+    _NR_POTIONS = [0x7FC, 0x8, 0x30, 0x68, 0x0, 0x8, 0x10, 0x8, 0x0]  # int
+
     # TODO: Verify these are useful/correct (got from mem searching)
     _PLAYER_MAX_HP_ZELDA_PTR = [0x7FC, 0x8, 0x30, 0x80, 0x0]
     _PLAYER_HP_OVERWORLD_PTR = [0x7FC, 0x8, 0x30, 0x3C, 0x0]
@@ -54,6 +56,9 @@ class Evoland1Memory:
         self.current_weapon_ptr = self.process.get_pointer(
             self.base_addr + LIBHL_OFFSET, self._CUR_WEAPON_PTR
         )
+        self.nr_potions_ptr = self.process.get_pointer(
+            self.base_addr + LIBHL_OFFSET, self._NR_POTIONS
+        )
 
     # Only valid in zelda map
     @property
@@ -62,6 +67,10 @@ class Evoland1Memory:
             self.base_addr + LIBHL_OFFSET, offsets=self._PLAYER_HP_ZELDA_PTR
         )
         return self.process.read_double(player_hearts_ptr)
+
+    @property
+    def nr_potions(self) -> int:
+        return self.process.read_u32(self.nr_potions_ptr)
 
     @property
     def gli(self) -> int:
