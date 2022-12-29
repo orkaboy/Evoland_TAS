@@ -71,10 +71,8 @@ class BattleEntity:
 
     @property
     def name(self) -> str:
-        # TODO: Verify, doesn't work yet
         num_chars = self.process.read_u32(self.name_len_ptr)
-        name_str = self.process.read_string(self.name_buf_ptr, num_chars)
-        return name_str
+        return self.process.read_string(self.name_buf_ptr, num_chars)
 
     @property
     def max_hp(self) -> int:
