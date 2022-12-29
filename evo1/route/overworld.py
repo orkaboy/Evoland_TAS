@@ -2,9 +2,10 @@ import logging
 from enum import Enum, auto
 from typing import Optional
 
+from control import evo_ctrl
 from engine.mathlib import Facing, Vec2, dist, is_close
 from engine.move2d import SeqGrabChest, SeqMove2D, move_to
-from engine.seq import SeqList
+from engine.seq import SeqBase, SeqDelay, SeqList
 from evo1.atb import (
     Encounter,
     EncounterID,
@@ -13,6 +14,7 @@ from evo1.atb import (
     calc_next_encounter,
 )
 from evo1.move2d import SeqZoneTransition
+from evo1.route.aogai import AogaiWrongWarp
 from maps.evo1 import GetNavmap
 from memory.evo1 import MapID, get_memory, get_zelda_memory
 from memory.rng import EvolandRNG
@@ -302,6 +304,18 @@ class OverworldToSarudnahk(SeqList):
         )
 
 
+class BlackCitadelMenuGlitch(SeqBase):
+    def __init__(self) -> None:
+        super().__init__("Menu glitch")
+
+    def execute(self, delta: float) -> bool:
+        ctrl = evo_ctrl()
+        ctrl.menu(tapping=True)
+        ctrl.confirm()
+        ctrl.dpad.right()
+        return True
+
+
 class OverworldToBlackCitadel(SeqList):
     def __init__(self):
         super().__init__(
@@ -313,7 +327,28 @@ class OverworldToBlackCitadel(SeqList):
                         start=Vec2(95, 91), goal=Vec2(117, 88)
                     ),
                 ),
-                # TODO: Menu glitch
-                # TODO: Trigger Zephyros fight
+                # Menu glitch and trigger Zephyros fight
+                BlackCitadelMenuGlitch(),
+                SeqDelay("Going into tower", timeout_in_s=1.0),
+            ],
+        )
+
+
+class BlackCitadelToAogai(SeqList):
+    def __init__(self):
+        super().__init__(
+            name="Overworld",
+            children=[
+                SeqMove2D(
+                    "Moving to Aogai",
+                    coords=_overworld_astar.calculate(
+                        start=Vec2(116, 88), goal=Vec2(95, 91)
+                    ),
+                ),
+                SeqMove2D(  # Adjusting to be slightly faster
+                    "Adjust position",
+                    coords=[Vec2(95, 91.4)],
+                ),
+                AogaiWrongWarp("Aogai"),
             ],
         )

@@ -11,60 +11,57 @@ class Evo1Weapon(Enum):
     BOW = 2
 
 
-# TODO: Refactor (currently only used in very specific cases)
 class Evoland1Memory:
+    """Class for 'game' variables that don't fit under any other subsystem."""
 
-    # TODO
+    # Base pointer to game structure
+    _GAME_PTR = [0x7FC, 0x8, 0x30]
     # Zelda player health for roaming battle (hearts)
-    _PLAYER_HP_ZELDA_PTR = [0x7FC, 0x8, 0x30, 0x7C, 0x0]  # each heart is 4 "hits"
-    _GLI_PTR = [0x7FC, 0x8, 0x30, 0x84, 0x0]  # Money
-    _CUR_WEAPON_PTR = [0x7FC, 0x8, 0x30, 0x10, 0x0]  # Sword/Bombs/Bow
+    _PLAYER_HP_ZELDA_PTR = [0x7C, 0x0]  # each heart is 4 "hits"
+    _GLI_PTR = [0x84, 0x0]  # Money, int
+    _CUR_WEAPON_PTR = [0x10, 0x0]  # Sword/Bombs/Bow enum (Evo1Weapon)
 
-    _MAP_ID_PTR = [0x7FC, 0x8, 0x30, 0xC8, 0x0, 0x4]
+    _MAP_ID_PTR = [0xC8, 0x0, 0x4]  # Current map enum (MapID)
 
-    _NR_POTIONS = [0x7FC, 0x8, 0x30, 0x68, 0x0, 0x8, 0x10, 0x8, 0x0]  # int
+    _NR_POTIONS = [0x68, 0x0, 0x8, 0x10, 0x8, 0x0]  # int
 
-    # TODO: Verify these are useful/correct (got from mem searching)
-    _PLAYER_MAX_HP_ZELDA_PTR = [0x7FC, 0x8, 0x30, 0x80, 0x0]
-    _PLAYER_HP_OVERWORLD_PTR = [0x7FC, 0x8, 0x30, 0x3C, 0x0]
-    # _KAERIS_HP_OVERWORLD_PTR = [0x7FC, 0x8, 0x30, 0x48] # TODO: Verify, looks wrong
-    _LEVEL_ARRAY_SIZE_PTR = [0x7FC, 0x8, 0x30, 0x78, 0x0, 0x4]  # Should be 2
-    _PLAYER_LVL_PTR = [0x7FC, 0x8, 0x30, 0x78, 0x0, 0x8, 0x10, 0x8, 0x0]  # int
-    _PLAYER_EXP_PTR = [0x7FC, 0x8, 0x30, 0x78, 0x0, 0x8, 0x10, 0x8, 0x4]  # int
-    _KAERIS_LVL_PTR = [0x7FC, 0x8, 0x30, 0x78, 0x0, 0x8, 0x14, 0x8, 0x0]  # int
-    _KAERIS_EXP_PTR = [0x7FC, 0x8, 0x30, 0x78, 0x0, 0x8, 0x14, 0x8, 0x4]  # int
+    # TODO: Remove? Not really used/needed
+    _PLAYER_MAX_HP_ZELDA_PTR = [0x80, 0x0]
+    _PLAYER_HP_OVERWORLD_PTR = [0x3C, 0x0]  # int, ATB health
+    # _KAERIS_HP_OVERWORLD_PTR = [0x48] # TODO: Verify, looks wrong
+    _LEVEL_ARRAY_SIZE_PTR = [0x78, 0x0, 0x4]  # Should be 2
+    _PLAYER_LVL_PTR = [0x78, 0x0, 0x8, 0x10, 0x8, 0x0]  # int
+    _PLAYER_EXP_PTR = [0x78, 0x0, 0x8, 0x10, 0x8, 0x4]  # int
+    _KAERIS_LVL_PTR = [0x78, 0x0, 0x8, 0x14, 0x8, 0x0]  # int
+    _KAERIS_EXP_PTR = [0x78, 0x0, 0x8, 0x14, 0x8, 0x4]  # int
 
     def __init__(self):
         mem = mem_handle()
         self.process = mem.process
         self.base_addr = mem.base_addr
+
+        self.base_ptr = self.process.get_pointer(
+            self.base_addr + LIBHL_OFFSET, offsets=self._GAME_PTR
+        )
         self.setup_pointers()
 
     def setup_pointers(self):
         self.player_hp_overworld_ptr = self.process.get_pointer(
-            self.base_addr + LIBHL_OFFSET, offsets=self._PLAYER_HP_OVERWORLD_PTR
+            self.base_ptr, offsets=self._PLAYER_HP_OVERWORLD_PTR
         )
-        self.gli_ptr = self.process.get_pointer(
-            self.base_addr + LIBHL_OFFSET, offsets=self._GLI_PTR
-        )
-        self.map_id_ptr = self.process.get_pointer(
-            self.base_addr + LIBHL_OFFSET, self._MAP_ID_PTR
-        )
-        self.lvl_ptr = self.process.get_pointer(
-            self.base_addr + LIBHL_OFFSET, self._PLAYER_LVL_PTR
-        )
+        self.gli_ptr = self.process.get_pointer(self.base_ptr, offsets=self._GLI_PTR)
+        self.map_id_ptr = self.process.get_pointer(self.base_ptr, self._MAP_ID_PTR)
+        self.lvl_ptr = self.process.get_pointer(self.base_ptr, self._PLAYER_LVL_PTR)
         self.current_weapon_ptr = self.process.get_pointer(
-            self.base_addr + LIBHL_OFFSET, self._CUR_WEAPON_PTR
+            self.base_ptr, self._CUR_WEAPON_PTR
         )
-        self.nr_potions_ptr = self.process.get_pointer(
-            self.base_addr + LIBHL_OFFSET, self._NR_POTIONS
-        )
+        self.nr_potions_ptr = self.process.get_pointer(self.base_ptr, self._NR_POTIONS)
 
     # Only valid in zelda map
     @property
     def player_hearts(self) -> float:
         player_hearts_ptr = self.process.get_pointer(
-            self.base_addr + LIBHL_OFFSET, offsets=self._PLAYER_HP_ZELDA_PTR
+            self.base_ptr, offsets=self._PLAYER_HP_ZELDA_PTR
         )
         return self.process.read_double(player_hearts_ptr)
 

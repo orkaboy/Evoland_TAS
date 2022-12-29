@@ -9,8 +9,6 @@
 * Diablo section boss state. Health if needed
   * Zatura24 has found some stuff here, need to verify
 
-* Zephy ATB state
-
 ## Found
 
 * Zephyros final arena movement
