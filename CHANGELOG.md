@@ -6,6 +6,7 @@
 * TAS can kill Dark Clink boss, making the Noria section completely automated (if unreliable).
 * Very crude routing of Sarudnahk. Can't make it through without help/cheats.
 * Very crude routing of Sacred Grove. Has some minor issues still.
+* TAS can kill Zephyros in the first ATB battle.
 * Very crude routing of Aogai sections. Need more work.
 
 # Older changelogs

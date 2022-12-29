@@ -19,6 +19,7 @@ from evo1.route import (
     Aogai3,
     Aogai4,
     BlackCitadel,
+    BlackCitadelToAogai,
     CrystalCavern,
     Edel1,
     Edel2,
@@ -168,6 +169,7 @@ def perform_TAS(window: WindowLayout):
             Aogai3(),
             OverworldToBlackCitadel(),
             BlackCitadel(),
+            BlackCitadelToAogai(),
             # TODO: Get airship in Aogai (carry menu glitch to Aogai)
             SeqCheckpoint(checkpoint_name="aogai3"),  # Checkpoint in Aogai
             Aogai4(),

@@ -1,9 +1,10 @@
 import contextlib
 import logging
+import math
 from typing import Callable, Optional
 
 from control import evo_ctrl
-from engine.mathlib import Facing, Vec2, is_close
+from engine.mathlib import Facing, Vec2, angle_between, is_close
 from engine.seq import SeqBase, SeqDelay
 from term.window import SubWindow, WindowLayout
 
@@ -182,6 +183,48 @@ class SeqHoldInPlace(SeqDelay):
 class SeqSection2D(SeqBase):
     def __init__(self, name: str, func=None):
         super().__init__(name, func=func)
+
+    def turn_towards_pos(self, target_pos: Vec2, invert: bool = False) -> bool:
+        ctrl = evo_ctrl()
+        mem = self.zelda_mem()
+        player_pos = mem.player.pos
+
+        angle_to_target = (target_pos - player_pos).angle
+        # The rotation is stored somewhat strangely in memory
+        rot = mem.player.rotation
+        player_angle = rot + math.pi if rot < 0 else rot - math.pi
+        # Compare player rotation to angle_to_target
+        angle = angle_between(angle_to_target, player_angle)
+        if abs(angle) < math.pi / 3:  # Roughly turned in the right direction
+            # We are aligned and in position
+            ctrl.dpad.none()
+            return True
+        else:
+            # Turn to the correct direction, facing the enemy
+            # Split into 8 directions. 0 is to the right
+            # Horizontal axis
+            if abs(angle_to_target) < 3 * math.pi / 8:
+                if invert:
+                    ctrl.dpad.left()
+                else:
+                    ctrl.dpad.right()
+            elif abs(angle_to_target) > 5 * math.pi / 8:
+                if invert:
+                    ctrl.dpad.right()
+                else:
+                    ctrl.dpad.left()
+            # Vertical axis
+            if angle_to_target > math.pi / 8 and angle_to_target < 5 * math.pi / 8:
+                if invert:
+                    ctrl.dpad.up()
+                else:
+                    ctrl.dpad.down()
+            elif angle_to_target < -math.pi / 8 and angle_to_target > -5 * math.pi / 8:
+                if invert:
+                    ctrl.dpad.down()
+                else:
+                    ctrl.dpad.up()
+            return False
 
     # Map starts at line 2 and fills the rest of the map window
     _map_start_y = 2

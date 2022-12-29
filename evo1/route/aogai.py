@@ -2,7 +2,7 @@ import logging
 
 from control import evo_ctrl
 from engine.mathlib import Facing, Vec2
-from engine.move2d import SeqGrabChest, SeqMove2D, SeqMove2DCancel
+from engine.move2d import SeqGrabChest, SeqMove2D, SeqMove2DCancel, SeqSection2D
 from engine.seq import SeqBase, SeqInteract, SeqList, wait_seconds
 from evo1.move2d import SeqZoneTransition
 from maps.evo1 import GetNavmap
@@ -161,7 +161,7 @@ class Aogai1(SeqList):
                 ),
                 SeqMove2D(  # Adjusting to be slightly faster
                     "Adjust position",
-                    coords=[Vec2(95, 91.5)],
+                    coords=[Vec2(95, 91.4)],
                 ),
                 AogaiWrongWarp("Aogai"),
                 SeqMove2D(
@@ -238,6 +238,41 @@ class Aogai2(SeqList):
         )
 
 
+class AogaiPotionShopping(SeqSection2D):
+    def __init__(self, amount: int):
+        super().__init__(name="Buying potions")
+        self.amount = amount
+        self.pots = 0
+
+    def reset(self) -> None:
+        self.pots = 0
+
+    _SHOP_KEEPER_POS = Vec2(-11, -3)
+
+    def execute(self, delta: float) -> bool:
+        ret = self.turn_towards_pos(self._SHOP_KEEPER_POS, invert=True)
+        if ret is False:
+            return False
+
+        mem = get_memory()
+        self.pots = mem.nr_potions
+        if self.pots < self.amount:
+            ctrl = evo_ctrl()
+            # Approach vendor
+            ctrl.confirm(tapping=True)
+            # Select buy
+            ctrl.confirm(tapping=True)
+            # Buy the potion
+            ctrl.confirm(tapping=True)
+            # Cancel out of confirmation dialog
+            ctrl.confirm(tapping=True)
+            return False
+        return True
+
+    def __repr__(self) -> str:
+        return f"{self.name}: {self.pots}/{self.amount}"
+
+
 class Aogai3(SeqList):
     """Back in Aogai village (from town portal). Buy pots and leave to the north for Black Citadel."""
 
@@ -246,23 +281,25 @@ class Aogai3(SeqList):
             name="Aogai Village",
             children=[
                 # Teleport into town square
-                # TODO: Buy potions for ATB Zephy
+                SeqMove2D(
+                    "Move to shop keeper",
+                    coords=[_SHOP_KEEPER],
+                    invert=True,
+                ),
+                AogaiPotionShopping(amount=5),  # TODO: is 5 enough?
                 # Get heal bug (card player, healer)
                 SeqMove2D(
                     "Move to card player",
                     coords=[_CARD_PLAYER],
                     invert=True,
                 ),
+                # TODO: Glitchy, sometimes doesn't exit the menu
                 TriggerCardGlitch(),
                 SeqMove2D(
-                    "Move to healer",
-                    coords=_aogai_nav.calculate(start=_CARD_PLAYER, goal=_HEALER),
-                    invert=True,
-                ),
-                HealerGlitch(),
-                SeqMove2D(
                     "Move to exit",
-                    coords=_aogai_nav.calculate(start=_HEALER, goal=_NORTH_ENTRANCE),
+                    coords=_aogai_nav.calculate(
+                        start=_CARD_PLAYER, goal=_NORTH_ENTRANCE
+                    ),
                     invert=True,
                 ),
                 # Exit north
@@ -280,8 +317,14 @@ class Aogai4(SeqList):
         super().__init__(
             name="Aogai Village",
             children=[
+                SeqMove2D(
+                    "Move to square",
+                    coords=_aogai_nav.calculate(start=_SOUTH_ENTRANCE, goal=_SID),
+                    invert=True,
+                ),
                 # TODO: Trigger conversation to get airship
-                SeqMove2DCancel(
+                # TODO: Need to leave the menu if holding menu skip
+                SeqMove2D(
                     "Move to exit",
                     coords=_aogai_nav.calculate(start=_SID, goal=_SOUTH_ENTRANCE),
                     invert=True,

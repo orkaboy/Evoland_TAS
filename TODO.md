@@ -1,18 +1,16 @@
 # TODO list
 
 * Route Aogai bomb skip (WIP), tying the Noria and Sacred Grove segments together
-* Route Aogai segments (Bomb skip, heal glitch for Sarudnahk, Buying pots for Zephy, getting airship)
+* Route Aogai segments (Bomb skip, heal glitch for Sarudnahk, getting airship)
 * Automate the skeleton/mage fight in the Amulet cave
 * Route Sacred Grove (fallbacks for killing bats, menu glitches, killing skellies/mages)
 * Route Sarudnahk (heal glitch, survival/movement, boss fight, comboing)
-* Zephyros ATB fight (phase detection, healing, X-crystal, 2nd phase, babamut)
+* Zephyros ATB fight (final dialogs/menu skip)
+* Route Aogai airship to Mana Tree
 
 # Improvements for later
 
 * Do more memory hunting
-  * ATB
-    * Potion/phoenix down usage (item amount/pos in menu)
-    * Logic for the current active turn (use turn gauge)
   * Sarudnahk
     * Health
     * Enemies
@@ -47,6 +45,9 @@
   * Bossfight Dark Clink
     * Make the logic more complicated (though maybe it doesn't need to be?)
     * Menu glitch after boss death
+* Zephyros ATB fight
+  * Double turns confuse the TAS (when both Clink and Kaeris act at the same time). Kaeris will take the wrong action
+  * Fallback for if we run out of potions
 * Final Zephyros fight
   * Improve/optimize movement
   * Get in 3-4 attacks in the first phase

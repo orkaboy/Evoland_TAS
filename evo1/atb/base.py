@@ -1,6 +1,7 @@
 import contextlib
 import logging
-from enum import Enum, auto
+from enum import Enum, IntEnum, auto
+from typing import NamedTuple, Optional
 
 from control import evo_ctrl
 from engine.mathlib import Vec2
@@ -20,6 +21,36 @@ def _tap_confirm() -> None:
     ctrl.confirm(tapping=True)
 
 
+class ATBAction(Enum):
+    ATTACK = auto()
+    POTION = auto()
+    HEAL = auto()
+    X_CRYSTAL = auto()
+    BABAMUT = auto()
+
+
+class ATBActor(IntEnum):
+    CLINK = 0
+    KAERIS = 1
+
+
+class ATBPlan(NamedTuple):
+    cur_actor: ATBActor
+    action: ATBAction
+    target: Optional[ATBActor | int]
+
+    def __repr__(self) -> str:
+        if self.target is not None:
+            target = (
+                f"->{self.target.name}"
+                if isinstance(self.target, ATBActor)
+                else f"->{self.target}"
+            )
+        else:
+            target = ""
+        return f"Plan({self.cur_actor.name}: {self.action.name}{target})"
+
+
 # Handling of the actual battle logic itself (base class, replace with more complex logic)
 class SeqATBCombat(SeqBase):
     # Finite state machine for keeping track of the battle state
@@ -31,11 +62,13 @@ class SeqATBCombat(SeqBase):
     def __init__(self, name: str = "Generic") -> None:
         self.mem: BattleMemory = None
         self.state = self._BattleFSM.PRE_BATTLE
+        self.cur_plan: Optional[ATBPlan] = None
         super().__init__(name=name)
 
     def reset(self) -> None:
         self.mem = None
         self.state = self._BattleFSM.PRE_BATTLE
+        self.cur_plan: Optional[ATBPlan] = None
 
     def update_mem(self) -> bool:
         # Check if we need to create a new ATB battle structure, or update the old one
@@ -46,7 +79,76 @@ class SeqATBCombat(SeqBase):
             return False
         return True
 
+    _ATTACK_CURSOR_POS = 0
+    _SPECIAL_CURSOR_POS = 1
+    _ITEM_CURSOR_POS = 2
     _RUN_CURSOR_POS = 3
+
+    def _execute_plan(self, plan: ATBPlan) -> bool:
+        match plan.action:
+            case ATBAction.ATTACK:
+                return self._act_attack(plan.target)
+            case ATBAction.POTION:
+                return self._act_item(item_index=0, target=plan.target)
+            # Kaeris/Clink Special (once he has it)
+            case ATBAction.HEAL:
+                return self._act_special(option=0, target=0)
+            # Kaeris Special
+            case ATBAction.X_CRYSTAL:
+                return self._act_special(option=1, target=plan.target)
+            # Clink Special (once he has it)
+            case ATBAction.BABAMUT:
+                return self._act_special(option=1)
+        return True
+
+    def _act_attack(self, target: int) -> bool:
+        ctrl = evo_ctrl()
+        if self.mem.menu_open:
+            ctrl.confirm(tapping=True)
+            for _ in range(target):
+                ctrl.dpad.tap_down()
+            ctrl.confirm()
+            return True
+        return False
+
+    def _act_special(self, option: int, target: Optional[int] = None) -> bool:
+        ctrl = evo_ctrl()
+        if self.mem.menu_open:
+            # Select special sub-menu
+            with contextlib.suppress(ReferenceError):
+                while self.mem.cursor != self._SPECIAL_CURSOR_POS:
+                    ctrl.dpad.tap_down()
+            ctrl.confirm(tapping=True)
+            # Select special ability
+            for _ in range(option):
+                ctrl.dpad.tap_down()
+            if target is not None:
+                ctrl.confirm(tapping=True)
+                for _ in range(target):
+                    ctrl.dpad.tap_down()
+            ctrl.confirm()
+            return True
+        return False
+
+    def _act_item(self, item_index: int, target: ATBActor) -> bool:
+        ctrl = evo_ctrl()
+        if self.mem.menu_open:
+            # Select item sub-menu
+            with contextlib.suppress(ReferenceError):
+                while self.mem.cursor != self._ITEM_CURSOR_POS:
+                    ctrl.dpad.tap_down()
+            ctrl.confirm(tapping=True)
+            # Select item
+            for _ in range(item_index):
+                ctrl.dpad.tap_down()
+            ctrl.confirm(tapping=True)
+            # Select target
+            for _ in range(target.value):
+                ctrl.dpad.tap_down()
+            # Use item
+            ctrl.confirm()
+            return True
+        return False
 
     # TODO: Actual combat logic
     # TODO: Overload with more complex
@@ -101,11 +203,27 @@ class SeqATBCombat(SeqBase):
         self._print_group(window=window, group=self.mem.enemies, y_offset=9)
         # Render damage predictions
         if not self.mem.ended:
+            self._print_plan(window=window)
             self._render_combat_predictions(window=window)
             # TODO: map representation?
 
-    def _render_combat_predictions(self, window: WindowLayout):
+    def _cur_actor(self) -> Optional[ATBActor]:
         # Who is acting?
+        clink_turn = self.mem.allies[0].turn_gauge
+        if clink_turn >= 1:
+            return ATBActor.CLINK
+        if len(self.mem.allies) > 1:
+            kaeris_turn = self.mem.allies[1].turn_gauge
+            if kaeris_turn >= 1:
+                return ATBActor.KAERIS
+        return None
+
+    def _print_plan(self, window: WindowLayout) -> None:
+        if self.cur_plan is not None:
+            window.stats.addstr(Vec2(1, 12), f"{self.cur_plan}")
+
+    def _render_combat_predictions(self, window: WindowLayout):
+        # Who is next actor?
         clink_turn = self.mem.allies[0].turn_gauge
         if len(self.mem.allies) > 1:
             kaeris_turn = self.mem.allies[1].turn_gauge

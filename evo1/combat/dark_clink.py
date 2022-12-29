@@ -154,7 +154,7 @@ class SeqDarkClinkFight(SeqDarkClinkObserver):
                 )
                 if is_bat:
                     enemy_pos = actor.pos
-                    if is_close(player_pos, enemy_pos, 1.2) and self._turn_towards_pos(
+                    if is_close(player_pos, enemy_pos, 1.2) and self.turn_towards_pos(
                         enemy_pos
                     ):
                         ctrl.attack()
@@ -194,7 +194,7 @@ class SeqDarkClinkFight(SeqDarkClinkObserver):
                 # If dizzy, close in and attack!
                 enemy_pos = self.dark_clink.pos
                 move_to(player=player_pos, target=enemy_pos, precision=0.7)
-                if is_close(player_pos, enemy_pos, 0.8) and self._turn_towards_pos(
+                if is_close(player_pos, enemy_pos, 0.8) and self.turn_towards_pos(
                     enemy_pos
                 ):
                     ctrl.attack(tapping=True)

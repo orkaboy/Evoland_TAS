@@ -153,6 +153,7 @@ class BattleMemory:
         )
 
         self.menu_open = False
+        self.spec_menu_open = False
         self.active = True
         self.update()
 
@@ -177,6 +178,12 @@ class BattleMemory:
                     self.base_offset, offsets=self._PLAYER_ATB_MENU_CURSOR_PTR
                 )
                 self.menu_open = True
+
+            with contextlib.suppress(ValueError):
+                self.spec_cursor_ptr = self.process.get_pointer(
+                    self.base_offset, offsets=self._PLAYER_ATB_SPECIAL_MENU_CURSOR_PTR
+                )
+                self.spec_menu_open = True
 
     def _init_entities(
         self, array_size_ptr: list[int], array_base_ptr: list[int]
@@ -207,6 +214,10 @@ class BattleMemory:
     @property
     def cursor(self) -> int:
         return self.process.read_u32(self.cursor_ptr)
+
+    @property
+    def spec_cursor(self) -> int:
+        return self.process.read_u32(self.spec_cursor_ptr)
 
     @property
     def battle_active(self) -> bool:
