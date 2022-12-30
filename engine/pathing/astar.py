@@ -1,9 +1,5 @@
-import logging
-
 from engine.mathlib import Vec2
 from engine.pathing.base import Pathing
-
-logger = logging.getLogger(__name__)
 
 
 # f(n) = g(n) + h(n)

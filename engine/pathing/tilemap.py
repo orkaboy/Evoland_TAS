@@ -61,11 +61,11 @@ class TileMap:
                 continue
             tile: tmx.LayerTile
             for i, tile in enumerate(layer.tiles):
-                x, y = i % width, i // width
+                x_pos, y_pos = i % width, i // width
                 wall = tile.gid != 0
-                self.tiles[y] += "#" if wall else "."
+                self.tiles[y_pos] += "#" if wall else "."
                 if not wall:
-                    self.map.append(Vec2(x, y))
+                    self.map.append(Vec2(x_pos, y_pos))
 
     class BitmapTile(Enum):
         # Impassable terrain
@@ -170,21 +170,21 @@ class TileMap:
         bitmap = Image.open(filename)
         if bitmap.mode != "RGB":
             bitmap = bitmap.convert("RGB")
-        W, H = bitmap.size[0], bitmap.size[1]
-        logger.debug(f"Map bitmap {filename} dims: {W} x {H}")
-        for y in range(H):
+        width, height = bitmap.size[0], bitmap.size[1]
+        logger.debug(f"Map bitmap {filename} dims: {width} x {height}")
+        for y_pos in range(height):
             self.tiles.append("")  # Append new empty line
-            for x in range(W):
-                coord = x, y
+            for x_pos in range(width):
+                coord = x_pos, y_pos
                 rgb = self._get_rgb_hex(bitmap.getpixel(coord))
                 tile = self.BitmapTile(rgb)
                 # Fill out ascii tile
-                self.tiles[y] += self.TileToAscii.get(tile, ".")
+                self.tiles[y_pos] += self.TileToAscii.get(tile, ".")
                 # Add passable nodes to AStar map
                 if self._is_passable(tile, trees_passable):
-                    self.map.append(Vec2(x, y))
+                    self.map.append(Vec2(x_pos, y_pos))
 
     def _open(self, filename: str) -> dict:
         # Open the map file and parse the yaml contents
-        with open(filename) as map_file:
+        with open(filename, mode="r") as map_file:
             return yaml.load(map_file, Loader=Loader)
