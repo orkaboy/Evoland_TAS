@@ -184,8 +184,6 @@ class TileMap:
                 if self._is_passable(tile, trees_passable):
                     self.map.append(Vec2(x, y))
 
-        # self.map.append()
-
     def _open(self, filename: str) -> dict:
         # Open the map file and parse the yaml contents
         with open(filename) as map_file:
