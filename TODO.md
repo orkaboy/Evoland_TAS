@@ -5,7 +5,6 @@
 * Automate the skeleton/mage fight in the Amulet cave
 * Route Sacred Grove (fallbacks for killing bats, menu glitches, killing skellies/mages)
 * Route Sarudnahk (heal glitch, survival/movement, boss fight, comboing)
-* Zephyros ATB fight (final dialogs/menu skip)
 * Route Aogai airship to Mana Tree
 
 # Improvements for later
