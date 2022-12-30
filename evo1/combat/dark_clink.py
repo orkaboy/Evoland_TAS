@@ -8,7 +8,7 @@ from engine.combat import SeqCombat3D
 from engine.mathlib import Box2, Vec2, get_box_with_size, is_close
 from engine.move2d import move_to
 from engine.seq import wait_seconds
-from memory.evo1 import Evo1GameEntity2D, MKind, get_zelda_memory
+from memory.evo1 import EKind, Evo1GameEntity2D, MKind, get_zelda_memory
 from term.window import WindowLayout
 
 logger = logging.getLogger(__name__)
@@ -137,9 +137,7 @@ class SeqDarkClinkFight(SeqDarkClinkObserver):
             for actor in mem.actors:
                 kind = actor.kind
                 # Fireballs will have target set, the floor will not
-                is_projectile = (
-                    kind == Evo1GameEntity2D.EKind.SPECIAL and actor.target is not None
-                )
+                is_projectile = kind == EKind.INTERACT and actor.target is not None
                 if is_projectile and player_hitbox.contains(actor.pos):
                     # 2. Time fireballs
                     # 3. If caught (detect target?), open menu
@@ -149,9 +147,7 @@ class SeqDarkClinkFight(SeqDarkClinkObserver):
                     return True  # We are out of date, refresh state
 
                 # Handle bats
-                is_bat = (
-                    kind == Evo1GameEntity2D.EKind.ENEMY and actor.mkind == MKind.BAT
-                )
+                is_bat = kind == EKind.MONSTER and actor.mkind == MKind.BAT
                 if is_bat:
                     enemy_pos = actor.pos
                     if is_close(player_pos, enemy_pos, 1.2) and self.turn_towards_pos(

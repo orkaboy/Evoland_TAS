@@ -16,7 +16,7 @@ from engine.move2d import (
 )
 from engine.seq import SeqList
 from evo1.move2d import SeqZoneTransition
-from memory.evo1 import Evo1DiabloEntity, MapID, MKind, get_diablo_memory
+from memory.evo1 import EKind, Evo1DiabloEntity, MapID, MKind, get_diablo_memory
 
 logger = logging.getLogger(__name__)
 
@@ -55,10 +55,7 @@ class SeqDiabloBoss(SeqSection2D):
             case self.FightState.NOT_STARTED:
                 with contextlib.suppress(ReferenceError):
                     for actor in mem.actors:
-                        if (
-                            actor.kind == Evo1DiabloEntity.EKind.ENEMY
-                            and actor.mkind == MKind.LICH
-                        ):
+                        if actor.kind == EKind.MONSTER and actor.mkind == MKind.LICH:
                             self.lich = actor
                             if mem.player.in_control:
                                 self.state = self.FightState.STARTED

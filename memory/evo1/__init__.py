@@ -6,11 +6,11 @@ from memory.evo1.diablo import (
     get_diablo_memory,
     load_diablo_memory,
 )
+from memory.evo1.kind import EKind, IKind, MKind
 from memory.evo1.map_id import MapID
 from memory.evo1.zelda import (
     Evo1GameEntity2D,
     Evo1ZeldaMemory,
-    MKind,
     get_zelda_memory,
     load_zelda_memory,
 )
@@ -28,6 +28,8 @@ __all__ = [
     "Evo1DiabloEntity",
     "MapID",
     "MKind",
+    "EKind",
+    "IKind",
     "get_memory",
     "load_memory",
     "Evo1Weapon",

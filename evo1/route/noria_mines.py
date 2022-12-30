@@ -18,7 +18,14 @@ from engine.seq import SeqAttack, SeqDebug, SeqDelay, SeqList, SeqMenu, wait_sec
 from evo1.combat import SeqDarkClinkFight
 from evo1.move2d import SeqZoneTransition
 from maps.evo1 import GetNavmap, GetTilemap
-from memory.evo1 import Evo1GameEntity2D, MapID, MKind, get_memory, get_zelda_memory
+from memory.evo1 import (
+    EKind,
+    Evo1GameEntity2D,
+    MapID,
+    MKind,
+    get_memory,
+    get_zelda_memory,
+)
 
 _noria_astar = GetNavmap(MapID.NORIA)
 _noria_start_astar = GetNavmap(MapID.NORIA_CLOSED)
@@ -308,10 +315,7 @@ class Whackamole(SeqSection2D):
         mem = get_zelda_memory()
         with contextlib.suppress(ReferenceError):
             for actor in mem.actors:
-                if (
-                    actor.kind == Evo1GameEntity2D.EKind.ENEMY
-                    and actor.mkind == MKind.OCTOROC_ARMOR
-                ):
+                if actor.kind == EKind.MONSTER and actor.mkind == MKind.OCTOROC_ARMOR:
                     return actor
         return None
 
@@ -367,10 +371,7 @@ class NavigateWindtraps(SeqSection2D):
 
         with contextlib.suppress(ReferenceError):
             for actor in mem.actors:
-                if (
-                    actor.kind == Evo1GameEntity2D.EKind.SPECIAL
-                    and player_hitbox.contains(actor.pos)
-                ):
+                if actor.kind == EKind.INTERACT and player_hitbox.contains(actor.pos):
                     # 2. Time wind traps
                     # 3. If caught (detect target?), open menu
                     ctrl.menu(tapping=True)
@@ -433,12 +434,9 @@ class SolveFloorPuzzle(SeqSection2D):
                 # Some issues with detection here; the floor is entities in the same cathegory as the fireballs
                 if player_hitbox.contains(actor.pos):
                     kind = actor.kind
-                    is_enemy = kind == Evo1GameEntity2D.EKind.ENEMY
+                    is_enemy = kind == EKind.MONSTER
                     # Fireballs will have target set, the floor will not
-                    is_projectile = (
-                        kind == Evo1GameEntity2D.EKind.SPECIAL
-                        and actor.target is not None
-                    )
+                    is_projectile = kind == EKind.INTERACT and actor.target is not None
                     if is_projectile or is_enemy:
                         # 2. Time fireballs
                         # 3. If caught (detect target?), open menu
@@ -588,10 +586,7 @@ class NavigateFireballs(SeqSection2D):
                 if player_hitbox.contains(actor.pos):
                     kind = actor.kind
                     # Fireballs will have target set, the floor will not
-                    is_projectile = (
-                        kind == Evo1GameEntity2D.EKind.SPECIAL
-                        and actor.target is not None
-                    )
+                    is_projectile = kind == EKind.INTERACT and actor.target is not None
                     if is_projectile:
                         # 2. Time fireballs
                         # 3. If caught (detect target?), open menu

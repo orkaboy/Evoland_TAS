@@ -5,7 +5,7 @@ from control import evo_ctrl
 from engine.mathlib import Vec2, get_box_with_size, is_close
 from engine.move2d import SeqSection2D, move_to
 from engine.seq import SeqBase
-from memory.evo1 import Evo1GameEntity2D, Evo1Weapon, get_memory, get_zelda_memory
+from memory.evo1 import EKind, Evo1Weapon, get_memory, get_zelda_memory
 
 
 class SeqPlaceBomb(SeqSection2D):
@@ -53,9 +53,7 @@ class SeqPlaceBomb(SeqSection2D):
                 box = get_box_with_size(center=player_pos, half_size=2 * self.precision)
                 # Wait for bomb to explode
                 for actor in mem.actors:
-                    if actor.kind == Evo1GameEntity2D.EKind.SPECIAL and box.contains(
-                        actor.pos
-                    ):
+                    if actor.kind == EKind.INTERACT and box.contains(actor.pos):
                         return False
             # Close menu
             ctrl.dpad.none()

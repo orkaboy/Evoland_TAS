@@ -118,7 +118,7 @@ class Evo2GameEntity2D(GameEntity2D):
 
     def __repr__(self) -> str:
         # kind = self.kind
-        # hp_str = f", hp: {self.hp}" if kind == self.EKind.ENEMY else ""
+        # hp_str = f", hp: {self.hp}" if kind == EKind.MONSTER else ""
         # return f"Ent({kind.name}, {self.pos}{hp_str})"
         return f"Ent({self.pos})"
 

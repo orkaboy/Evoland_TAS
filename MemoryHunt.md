@@ -21,7 +21,7 @@
 
 * Player level
 * Current map
-* Enemy projectiles (EKind.SPECIAL, actor array)
+* Enemy projectiles (EKind.INTERACT, actor array)
 * ATB entity
   * Player/Enemy stats in ATB combat
     * cur/max hp, atk, def, mag, evade, turn gauge, turn gauge speed, name, is running

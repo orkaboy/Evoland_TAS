@@ -1,10 +1,10 @@
 # Libraries and Core Files
 import logging
-from enum import IntEnum
 from typing import Optional, Tuple
 
 from engine.mathlib import Facing, Vec2
 from memory.core import LIBHL_OFFSET, LocProcess
+from memory.evo1.kind import EKind, IKind, IKindToChar, MKind, MKindToChar
 from memory.evo1.zephy import (
     ZephyrosGanonMemory,
     ZephyrosGolemMemory,
@@ -13,22 +13,6 @@ from memory.evo1.zephy import (
 from memory.zelda_base import GameEntity2D, ZeldaMemory
 
 logger = logging.getLogger(__name__)
-
-
-class MKind(IntEnum):
-    OCTOROC = 0
-    ARMOS = 1
-    BAT = 2
-    OCTOROC_ARMOR = 3
-    SKELETON = 4
-    RED_MAGE = 5
-    DARK_CLINK = 6
-    WASP = 7
-    CHAMPI = 8
-    SPIDER = 9
-    WORM = 10
-    LICH = 11
-    UNKNOWN = -1
 
 
 # Only valid when instantiated, on the screen that they live
@@ -49,6 +33,7 @@ class Evo1GameEntity2D(GameEntity2D):
     _ROTATION_PTR = [0x90]  # double (left = 0.0, up = 1.57, right = 3.14, down = -1.57)
     # TODO: _ATTACK_TIMER_PTR = [0xC8]  # double. Attack cooldown
 
+    _IKIND_PTR = [0xA4, 0x4]  # int (MKind)
     # Just for monster, split class?
     _MKIND_PTR = [0xA8, 0x4]  # int (MKind)
     _HP_PTR = [0x100]  # int, for enemies such as knights
@@ -62,8 +47,14 @@ class Evo1GameEntity2D(GameEntity2D):
         self.setup_pointers()
 
     def __eq__(self, other: object) -> bool:
-        kind_match = self.kind == other.kind
+        actor_kind = self.kind
+        kind_match = actor_kind == other.kind
         pos_match = self.pos == other.pos
+        if kind_match:
+            if actor_kind == EKind.MONSTER:
+                kind_match = self.mkind == other.mkind
+            elif actor_kind == EKind.INTERACT:
+                kind_match = self.ikind == other.ikind
         return kind_match and pos_match
 
     def setup_pointers(self) -> None:
@@ -109,30 +100,22 @@ class Evo1GameEntity2D(GameEntity2D):
         self.mkind_ptr = self.process.get_pointer(
             self.entity_ptr, offsets=self._MKIND_PTR
         )
-
-    class EKind(IntEnum):
-        PLAYER = 0
-        # TODO 1=?
-        ENEMY = 2
-        CHEST = 3
-        ITEM = 4
-        NPC = 5
-        PARTICLE = 6  # When breaking pots, closing bars?
-        SPECIAL = 7
-        UNKNOWN = 999
+        self.ikind_ptr = self.process.get_pointer(
+            self.entity_ptr, offsets=self._IKIND_PTR
+        )
 
     @property
     def kind(self) -> EKind:
         kind_val = self.process.read_u32(self.ent_kind_ptr)
         try:
-            return Evo1GameEntity2D.EKind(kind_val)
+            return EKind(kind_val)
         except ValueError:
-            logger.error(f"Unknown GameEntity2D EKind: {kind_val}")
-            return Evo1GameEntity2D.EKind.UNKNOWN
+            logger.error(f"Unknown EKind: {kind_val}")
+            return EKind.UNKNOWN
 
     @property
     def is_enemy(self) -> bool:
-        return self.kind == Evo1GameEntity2D.EKind.ENEMY
+        return self.kind == EKind.MONSTER
 
     @property
     def is_alive(self) -> bool:
@@ -142,20 +125,26 @@ class Evo1GameEntity2D(GameEntity2D):
     def ch(self) -> str:
         actor_kind = self.kind
         match actor_kind:
-            case Evo1GameEntity2D.EKind.PLAYER:
+            case EKind.HERO:
                 return "@"
-            case Evo1GameEntity2D.EKind.ENEMY:
-                return "!"
-            case Evo1GameEntity2D.EKind.CHEST:
-                return "C"
-            case Evo1GameEntity2D.EKind.ITEM:
-                return "$"
-            case Evo1GameEntity2D.EKind.NPC:
+            case EKind.GIRL:
                 return "&"
-            case Evo1GameEntity2D.EKind.PARTICLE:
-                return "%"
-            case Evo1GameEntity2D.EKind.SPECIAL:
-                return "*"
+            case EKind.MONSTER:
+                return MKindToChar(self.mkind)
+            case EKind.CHEST:
+                return "C"
+            case EKind.ITEM:
+                return "$"
+            case EKind.NPC:
+                return "&"
+            case EKind.FX:
+                return "-"
+            case EKind.INTERACT:
+                return IKindToChar(self.ikind)
+            case EKind.FIGHTER:
+                return "F"
+            case EKind.MODEL:
+                return "M"
             case _:
                 return "?"
 
@@ -211,8 +200,18 @@ class Evo1GameEntity2D(GameEntity2D):
 
     def __repr__(self) -> str:
         kind = self.kind
-        hp_str = f", hp: {self.hp}" if kind == self.EKind.ENEMY else ""
+        hp_str = f", hp: {self.hp}" if kind == EKind.MONSTER else ""
         return f"Ent({kind.name}, {self.pos}{hp_str})"
+
+    # Only interactible
+    @property
+    def ikind(self) -> IKind:
+        ikind_val = self.process.read_u32(self.ikind_ptr)
+        try:
+            return IKind(ikind_val)
+        except ValueError:
+            logger.error(f"Unknown IKind: {ikind_val}")
+            return IKind.UNKNOWN
 
     # Only monster
     @property
@@ -221,7 +220,7 @@ class Evo1GameEntity2D(GameEntity2D):
         try:
             return MKind(mkind_val)
         except ValueError:
-            logger.error(f"Unknown GameEntity2D MKind: {mkind_val}")
+            logger.error(f"Unknown MKind: {mkind_val}")
             return MKind.UNKNOWN
 
     @property
