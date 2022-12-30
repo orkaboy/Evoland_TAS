@@ -168,6 +168,8 @@ class TileMap:
         self.tiles = []
         trees_passable = map_data.get("trees_passable", False)
         bitmap = Image.open(filename)
+        if bitmap.mode != "RGB":
+            bitmap = bitmap.convert("RGB")
         W, H = bitmap.size[0], bitmap.size[1]
         logger.debug(f"Map bitmap {filename} dims: {W} x {H}")
         for y in range(H):
