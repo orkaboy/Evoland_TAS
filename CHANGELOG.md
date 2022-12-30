@@ -2,7 +2,9 @@
 
 0.0.8:
 
-*
+* Now tracking IKind of KInteract entities. These are for example fireballs, arrows, bombs, hearts etc.
+* Drawing entities with unique symbols (different types of enemies look different on the mini-map).
+* Fixed some broken pathing on the world map due to missing tiles.
 
 # Older changelogs
 
