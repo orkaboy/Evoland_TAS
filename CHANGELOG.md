@@ -1,5 +1,11 @@
 # Current
 
+0.0.8:
+
+*
+
+# Older changelogs
+
 0.0.7:
 
 * TAS can perform a deathwarp in Noria Mines, skipping a forced combat encounter. Note! This requires using save slot 1, either from new game or when loading.
@@ -8,8 +14,6 @@
 * Very crude routing of Sacred Grove. Has some minor issues still.
 * TAS can kill Zephyros in the first ATB battle.
 * Very crude routing of Aogai sections. Need more work.
-
-# Older changelogs
 
 0.0.6:
 
