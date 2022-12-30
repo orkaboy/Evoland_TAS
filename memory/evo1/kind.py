@@ -51,6 +51,7 @@ class IKind(IntEnum):
     UNKNOWN = 999
 
 
+# TODO: Could maybe be a dict instead
 def IKindToChar(ikind: IKind) -> str:
     match ikind:
         case IKind.PLATE:
@@ -134,6 +135,7 @@ class MKind(IntEnum):
     UNKNOWN = -1
 
 
+# TODO: Could maybe be a dict instead
 def MKindToChar(mkind: MKind) -> str:
     match mkind:
         case MKind.OCTOROC:

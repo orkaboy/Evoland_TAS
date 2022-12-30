@@ -76,6 +76,7 @@ class TileMap:
         WATER = 0x65B4FB
         RIVER = 0x0685F9
         ROCKS = 0x9E9E9E
+        MOUNTAIN = 0x7F8BF9
         DARK_ROCKS = 0xC08879
         CACTI = 0x6FDA02
         BUSH = 0x1EDA02
@@ -128,6 +129,7 @@ class TileMap:
         BitmapTile.WATER_DUNGEON: "~",
         BitmapTile.ROCKS: "o",
         BitmapTile.DARK_ROCKS: "O",
+        BitmapTile.MOUNTAIN: "^",
         BitmapTile.CACTI: "Y",
         BitmapTile.BUSH: "w",
         BitmapTile.POT: "u",
@@ -145,8 +147,8 @@ class TileMap:
         BitmapTile.DIMENSION_STONE: "D",
         BitmapTile.DIMENSION_TREE: "T",
         BitmapTile.SPIKES: "^",
-        BitmapTile.HIDDEN_PASSAGE: "*",
-        BitmapTile.PUZZLE_TILE: "P",
+        BitmapTile.HIDDEN_PASSAGE: ",",
+        BitmapTile.PUZZLE_TILE: ".",
         # Default: '.'
     }
 
@@ -158,7 +160,7 @@ class TileMap:
 
     def _is_passable(self, tile: BitmapTile, trees_passable: bool) -> bool:
         match tile:
-            case self.BitmapTile.EMPTY | self.BitmapTile.EMPTY_DUNGEON | self.BitmapTile.DEAD_TREE | self.BitmapTile.WALLS | self.BitmapTile.WATER | self.BitmapTile.RIVER | self.BitmapTile.WATER_DUNGEON | self.BitmapTile.ROCKS | self.BitmapTile.DARK_ROCKS | self.BitmapTile.CACTI | self.BitmapTile.BUSH | self.BitmapTile.POT | self.BitmapTile.LAVA | self.BitmapTile.LAVA_TRAP | self.BitmapTile.PITFALL | self.BitmapTile.PITFALL2 | self.BitmapTile.STATUE | self.BitmapTile.WIND_TRAP:
+            case self.BitmapTile.EMPTY | self.BitmapTile.EMPTY_DUNGEON | self.BitmapTile.DEAD_TREE | self.BitmapTile.WALLS | self.BitmapTile.WATER | self.BitmapTile.RIVER | self.BitmapTile.WATER_DUNGEON | self.BitmapTile.ROCKS | self.BitmapTile.DARK_ROCKS | self.BitmapTile.MOUNTAIN | self.BitmapTile.CACTI | self.BitmapTile.BUSH | self.BitmapTile.POT | self.BitmapTile.LAVA | self.BitmapTile.LAVA_TRAP | self.BitmapTile.PITFALL | self.BitmapTile.PITFALL2 | self.BitmapTile.STATUE | self.BitmapTile.WIND_TRAP:
                 return False
             case self.BitmapTile.TREE:
                 return trees_passable
