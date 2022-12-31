@@ -1,16 +1,44 @@
 # Evo2
 
-Try to get started with Ghidra
+## Routing TODO
 
-## TODO
+* Examine Any% route
+* Establish a set of saves/checkpoints early
+* Start implementing chronologically to start, at least up to first boss (Guardian)
 
+## Systems TODO
+
+* Handling powers (and being able to upgrade them over time). Let the TAS decide what is best to use in every instance
+* Handling levels (knowing how much damage attacks will do etc.)
+* Map up goals in a dependency hierarchy and let the TAS plan them on its own? Could be used for Rando
+
+## Memory hunting TODO
+
+* Using hlbc and Hashlink memory reader to map out memory
+
+* Level data
+  * Decoded collision for pathfinding
+  * Renderable tiles
+  * World ID (need to know which map we are on, and when maps change)
+  * Saving/caching data to avoid reading from memory every cycle?
 * Player stats
-* Actor/enemy zelda array
 * Gli, exp, level
+* Various game mode states
+  * Zelda (z)
+    * Stealth section
+  * Platformer (p)
+    * Flying
+  * Runner
+  * Lab (ATB battles) (l)
+  * Tactics
+  * DDR (can be skipped, but that's no fun)
+  * Bejeweled
+  * Shoot-em-up (s)
+  * Brawler (dd)
+* Script/logic state
 
 ## Done
 
-* Player zelda position, rotation, cur_hp, IFrame
-* One enemy pos/rot (kinda the structure of the array)
-  * Array size?
-
+* Player zelda position, rotation, life, IFrame
+* Enemy pos/rot, life, template
+* Actor/fighter zelda array
