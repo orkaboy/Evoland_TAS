@@ -36,6 +36,7 @@ class MagiStart(SeqList):
                     num_targets=3,
                     retracking=True,
                 ),
+                # TODO: Move to correct position
                 SeqDirHoldUntilLostControl("Wait", Vec2(0, 0)),
                 SeqInteract("Story stuff"),
             ],

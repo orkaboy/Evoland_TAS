@@ -53,8 +53,7 @@ class CombatPlan:
         player_pos = mem.player.pos
         # Using key sorting, order by closest target to player
         key_list = [(dist(player_pos, target.pos), target) for target in self.targets]
-        sorted_list = sorted(key_list)
-        if sorted_list:
+        if sorted_list := sorted(key_list):
             self.next_target = sorted_list[0][1]
             return self.next_target
         else:
@@ -62,9 +61,7 @@ class CombatPlan:
 
     def remove_dead(self) -> None:
         if self.retracking:
-            # TODO: This sometimes fails for the bats
-            scan = self.track_targets()
-            self.targets = [enemy for enemy in self.targets if enemy in scan]
+            self.targets = self.track_targets()
         else:
             self.targets = [enemy for enemy in self.targets if enemy.is_alive]
         if self.next_target not in self.targets:
