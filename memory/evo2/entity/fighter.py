@@ -1,3 +1,4 @@
+from memory.core import LocProcess
 from memory.evo2.entity.base import entEntity
 
 
@@ -14,6 +15,10 @@ class entFighterBase(entEntity):
     _WKIND_PTR = [0x7C, 0x4]  # ptr to HENUM, WKind
     _COMBO_PTR = [0x80]  # bool
     _ON_DIE_EVENT_PTR = [0x84]  # ptr to HFUN
+
+    def __init__(self, process: LocProcess, entity_ptr: int = 0) -> None:
+        super().__init__(process, entity_ptr)
+        self.fid_ptr = self.process.get_pointer(self.entity_ptr, offsets=self._FID_PTR)
 
     def __eq__(self, other: object) -> bool:
         try:
@@ -36,8 +41,7 @@ class entFighterBase(entEntity):
 
     @property
     def fid(self) -> int:
-        ptr = self.process.get_pointer(self.entity_ptr, offsets=self._FID_PTR)
-        return self.process.read_u32(ptr)
+        return self.process.read_u32(self.fid_ptr)
 
     @property
     def force_aggro(self) -> bool:
