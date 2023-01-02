@@ -44,7 +44,9 @@
   * Improve on 2xBat room (can fail detection)
   * Fallback for floor puzzle
   * Fallback for fireballs? Can sometimes fail on this section.
-  * Deathwarp. Allow for other save slots than 0 to be used
+  * Deathwarp
+    * Allow for other save slots than 0 to be used
+    * Bugs in timing. Use cursor memory value to ensure we are actually selecting things correctly
   * Bossfight Dark Clink
     * Make the logic more complicated (though maybe it doesn't need to be?)
     * Menu glitch after boss death

@@ -20,6 +20,7 @@
   * Decoded collision for pathfinding
   * Renderable tiles
   * World ID (need to know which map we are on, and when maps change)
+    * Can pull this from the level data. There's a name string
   * Saving/caching data to avoid reading from memory every cycle?
 * Player stats
 * Gli, exp, level
