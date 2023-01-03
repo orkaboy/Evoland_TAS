@@ -1,7 +1,10 @@
 # TODO list
 
-* Automate the skeleton/mage fight in the Amulet cave
-* Route Sacred Grove (fallbacks for killing bats, menu glitches, killing skellies/mages)
+* Route Sacred Grove
+  * Fallbacks for accidentally killing bats with the arrows in the puzzle
+    * Safety could be to just kill the first bat?
+  * Menu glitches
+  * Automate the skeleton/mage fight in the Amulet cave
 * Route Sarudnahk (heal glitch, survival/movement, boss fight, comboing)
 
 # Improvements for later

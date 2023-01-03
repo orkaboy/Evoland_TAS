@@ -6,7 +6,7 @@ from engine.move2d import (
     SeqMove2D,
     SeqMove2DConfirm,
 )
-from engine.seq import SeqAttack, SeqDelay, SeqList, SeqMenu
+from engine.seq import SeqAttack, SeqCheckpoint, SeqDelay, SeqList, SeqMenu
 from evo1.combat.weapons import SeqPlaceBomb, SeqSwapWeapon
 from evo1.move2d import SeqZoneTransition
 from maps.evo1 import GetNavmap
@@ -53,10 +53,11 @@ class SacredGroveToBowCave(SeqList):
                     "Move to crystal",
                     coords=_sg_astar.calculate(start=Vec2(14, 38), goal=Vec2(30, 41)),
                 ),
-                SeqSwapWeapon("Bombs", new_weapon=Evo1Weapon.BOMB),
+                SeqAttack("Crystal"),
                 # TODO: Slightly suboptimal movement here
-                SeqPlaceBomb("Crystal", target=Vec2(30, 41), precision=0.1),
-                SeqSwapWeapon("Sword", new_weapon=Evo1Weapon.SWORD),
+                # SeqSwapWeapon("Bombs", new_weapon=Evo1Weapon.BOMB),
+                # SeqPlaceBomb("Crystal", target=Vec2(30, 41), precision=0.1),
+                # SeqSwapWeapon("Sword", new_weapon=Evo1Weapon.SWORD),
                 SeqMove2DClunkyCombat(
                     "Move to crystal",
                     coords=_sg_astar.calculate(start=Vec2(30, 41), goal=Vec2(15, 27)),
@@ -125,7 +126,9 @@ class SacredGroveToAmuletCave(SeqList):
                     coords=_sg_astar.calculate(start=Vec2(17, 22), goal=Vec2(24, 18)),
                 ),
                 SeqSwapWeapon("Bomb", new_weapon=Evo1Weapon.BOMB),
-                SeqAttack("Crystal"),
+                SeqPlaceBomb("Crystal", target=Vec2(24, 18)),
+                # TODO: This can fail if we get hit by the bat
+                # SeqAttack("Crystal"),
                 SeqMove2D(
                     "Skip dimension tree",
                     coords=_sg_astar.calculate(start=Vec2(24, 18), goal=Vec2(27, 21)),
@@ -257,6 +260,9 @@ class AmuletCave(SeqList):
         super().__init__(
             name="Amulet dungeon",
             children=[
+                SeqCheckpoint(
+                    checkpoint_name="amulet_cave"
+                ),  # Checkpoint at start of amulet cave
                 # Push blocks (room with bats)
                 SeqMove2DClunkyCombat(
                     "Move to push block(N)",
