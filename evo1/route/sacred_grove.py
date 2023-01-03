@@ -260,9 +260,8 @@ class AmuletCave(SeqList):
         super().__init__(
             name="Amulet dungeon",
             children=[
-                SeqCheckpoint(
-                    checkpoint_name="amulet_cave"
-                ),  # Checkpoint at start of amulet cave
+                # Checkpoint at start of amulet cave
+                SeqCheckpoint(checkpoint_name="amulet_cave"),
                 # Push blocks (room with bats)
                 SeqMove2DClunkyCombat(
                     "Move to push block(N)",
@@ -279,18 +278,34 @@ class AmuletCave(SeqList):
                 SeqMove2DClunkyCombat(
                     "Move to door",
                     coords=_amulet_astar.calculate(
-                        start=Vec2(11, 22), goal=Vec2(12, 21)
+                        start=Vec2(11, 22),
+                        goal=Vec2(12, 21),
+                        final_pos=Vec2(12.5, 20.5),
                     ),
                 ),
                 SeqMenu("Menu glitch"),
                 SeqDelay("Menu glitch", timeout_in_s=0.5),
                 SeqMenu("Menu glitch"),
-                # TODO: Menu glitch door
+                SeqMove2D(
+                    "Move to chest",
+                    coords=_amulet_astar.calculate(
+                        start=Vec2(12, 21), goal=Vec2(16, 20)
+                    ),
+                ),
+                SeqMenu("Menu glitch"),
+                # Note: Automatically (if unintentionally) switches to bow
+                SeqMove2D(
+                    "Move to chest",
+                    coords=_amulet_astar.calculate(
+                        start=Vec2(16, 20), goal=Vec2(18, 20)
+                    ),
+                ),
+                SeqMenu("Menu glitch"),
                 # Grab amulet
                 SeqMove2D(
                     "Move to chest",
                     coords=_amulet_astar.calculate(
-                        start=Vec2(12, 21), goal=Vec2(26, 20)
+                        start=Vec2(18, 20), goal=Vec2(26, 20)
                     ),
                 ),
                 SeqGrabChestKeyItem("Amulet", direction=Facing.RIGHT, manip=True),
