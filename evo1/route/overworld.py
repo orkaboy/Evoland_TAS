@@ -1,10 +1,11 @@
+import contextlib
 import logging
 from enum import Enum, auto
 from typing import Optional
 
 from control import evo_ctrl
 from engine.mathlib import Facing, Vec2, dist, is_close
-from engine.move2d import SeqGrabChest, SeqMove2D, move_to
+from engine.move2d import SeqGrabChest, SeqMove2D, SeqMove2DCancel, move_to
 from engine.seq import SeqBase, SeqDelay, SeqInteract, SeqList
 from evo1.atb import (
     Encounter,
@@ -16,7 +17,7 @@ from evo1.atb import (
 from evo1.move2d import SeqZoneTransition
 from evo1.route.aogai import AogaiWrongWarp
 from maps.evo1 import GetNavmap
-from memory.evo1 import MapID, get_memory, get_zelda_memory
+from memory.evo1 import EKind, IKind, MapID, get_memory, get_zelda_memory
 from memory.rng import EvolandRNG
 from term.window import WindowLayout
 
@@ -354,22 +355,40 @@ class BlackCitadelToAogai(SeqList):
         )
 
 
-class BoardAirship(SeqBase):
-    _AIRSHIP_SPAWN_POINT = Vec2(92.5, 93)
+class WaitForAirshipToSpawn(SeqBase):
+    _TOGGLE_TIMEOUT = 0.2
 
     def __init__(self):
-        super().__init__(name="Board airship")
+        super().__init__(name="Wait for airship to spawn")
+        self.toggle_state = False
+        self.toggle_time = 0
+
+    def reset(self) -> None:
+        self.toggle_state = False
+        self.toggle_time = 0
 
     def execute(self, delta: float) -> bool:
+        ctrl = evo_ctrl()
+        ctrl.dpad.none()
         mem = get_zelda_memory()
-        # TODO: Currently works without airship skip, not tested with
-        # TODO: Spam past any dialog
-        # TODO: Wait for airship to spawn (check for entity type)
+        # Wait for airship to spawn (check for entity type)
+        with contextlib.suppress(ReferenceError):
+            for actor in mem.actors:
+                if actor.kind == EKind.INTERACT and actor.ikind == IKind.AIR_SHIP:
+                    ctrl.toggle_confirm(False)
+                    return True
 
-        player_pos = mem.player.pos
-        # Board airship
-        move_to(player=player_pos, target=self._AIRSHIP_SPAWN_POINT, precision=0.2)
-        return is_close(player_pos, self._AIRSHIP_SPAWN_POINT, precision=0.2)
+        # Spam past any dialog
+        self.toggle_time += delta
+        if self.toggle_time >= self._TOGGLE_TIMEOUT:
+            self.toggle_time = 0
+            self.toggle_state = not self.toggle_state
+            ctrl.toggle_confirm(self.toggle_state)
+
+        return False
+
+
+_AIRSHIP_SPAWN_POINT = Vec2(92.5, 93)
 
 
 class AogaiToManaTree(SeqList):
@@ -379,20 +398,25 @@ class AogaiToManaTree(SeqList):
         super().__init__(
             name="",
             children=[
-                SeqMove2D(
+                SeqMove2DCancel(
                     "Moving to Airship",
                     coords=_overworld_astar.calculate(
                         start=Vec2(95, 93), goal=Vec2(92, 93)
                     ),
                 ),
                 # Wait for airship to spawn
-                BoardAirship(),
+                WaitForAirshipToSpawn(),
+                SeqMove2D(
+                    "Board airship",
+                    coords=[_AIRSHIP_SPAWN_POINT],
+                ),
                 # Go to the Mana Tree on airship (can't use AStar here)
                 SeqMove2D(
                     "Flying to Mana Tree",
                     coords=[Vec2(101, 90), self._MANA_TREE],
                 ),
                 # Get out of airship
+                # TODO: Does some slightly weird movement due to sleeps
                 SeqInteract("Disembark"),
             ],
         )

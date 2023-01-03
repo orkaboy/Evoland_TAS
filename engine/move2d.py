@@ -343,9 +343,11 @@ class SeqMove2D(SeqSection2D):
 
         if done:
             logger.info(f"Finished moved2D section: {self.name}")
+            evo_ctrl().dpad.none()
         elif self.emergency_skip and self.emergency_skip():
             logger.warning(f"Finished move2D section with emergency skip: {self.name}")
             done = True
+            evo_ctrl().dpad.none()
         return done
 
     def _print_target(self, window: WindowLayout) -> None:

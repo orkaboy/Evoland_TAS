@@ -2,13 +2,7 @@ import logging
 
 from control import evo_ctrl
 from engine.mathlib import Facing, Vec2
-from engine.move2d import (
-    SeqGrabChest,
-    SeqMove2D,
-    SeqMove2DCancel,
-    SeqMove2DConfirm,
-    SeqSection2D,
-)
+from engine.move2d import SeqGrabChest, SeqMove2D, SeqMove2DCancel, SeqSection2D
 from engine.seq import SeqBase, SeqInteract, SeqList, wait_seconds
 from evo1.move2d import SeqZoneTransition
 from maps.evo1 import GetNavmap
@@ -429,7 +423,7 @@ class Aogai4(SeqList):
                 SeqInteract("Talk to Sid", once=True),
                 SeqAirshipSkip(),
                 # Move outside of town while confirming
-                SeqMove2DConfirm(
+                SeqMove2DCancel(
                     "Move to exit",
                     coords=_aogai_nav.calculate(start=_SID, goal=_SOUTH_ENTRANCE),
                     invert=True,

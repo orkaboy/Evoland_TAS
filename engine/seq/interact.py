@@ -57,9 +57,10 @@ class SeqInteract(SeqMashDelay):
 
     def execute(self, delta: float) -> bool:
         self.timer += delta
-        evo_ctrl().confirm(tapping=True)
         if self.once:
+            evo_ctrl().confirm(tapping=False)
             return True
+        evo_ctrl().confirm(tapping=True)
         # Wait out any cutscene/pickup animation
         mem = self.zelda_mem()
         return mem.player.in_control and self.timer >= self.timeout

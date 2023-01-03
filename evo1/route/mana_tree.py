@@ -29,6 +29,7 @@ class ManaTree(SeqList):
                 SeqMove2D(
                     "Move to Mana Tree",
                     coords=[
+                        # Vec2(115, 77),
                         Vec2(115, 76),
                     ],
                 ),
