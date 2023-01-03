@@ -312,7 +312,7 @@ class Aogai2(SeqList):
                     "Move to exit",
                     coords=_aogai_nav.calculate(start=_HEALER, goal=_NORTH_ENTRANCE),
                     invert=True,
-                    steps_to_advance=2,
+                    steps_to_advance=1,
                 ),
                 # Exit north
                 SeqZoneTransition(

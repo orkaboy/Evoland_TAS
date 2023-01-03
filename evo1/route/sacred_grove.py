@@ -12,7 +12,14 @@ from engine.move2d import (
     SeqSection2D,
     move_to,
 )
-from engine.seq import SeqAttack, SeqCheckpoint, SeqDelay, SeqList, SeqMenu
+from engine.seq import (
+    SeqAttack,
+    SeqCheckpoint,
+    SeqDelay,
+    SeqList,
+    SeqMenu,
+    wait_seconds,
+)
 from evo1.combat.weapons import SeqPlaceBomb, SeqSwapWeapon
 from evo1.move2d import SeqZoneTransition
 from maps.evo1 import GetNavmap
@@ -283,53 +290,65 @@ class KillMages(SeqSection2D):
 
     def execute(self, delta: float) -> bool:
         # Track mages
-        target = self._get_next_target()
-        if not target:
-            return True
+        with contextlib.suppress(ReferenceError):
+            target = self._get_next_target()
+            # Check if we are done
+            if not target:
+                self._equip_sword()
+                return True
 
-        ctrl = evo_ctrl()
-        mem = get_zelda_memory()
-        player_pos = mem.player.pos
-        target_pos = target.pos
+            ctrl = evo_ctrl()
+            mem = get_zelda_memory()
+            player_pos = mem.player.pos
+            target_pos = target.pos
 
-        # TODO: Does not account for spikes
-        match self.state:
-            case self._FightFSM.HUNT:
-                # Move to mage
-                move_to(player=player_pos, target=target_pos, precision=0.2)
-                # If we are close to mage, place a bomb
-                if is_close(player_pos, target_pos, precision=1.2):
-                    ctrl.attack(tapping=True)
-                    ctrl.menu(tapping=True)
-                    # Allow time for bomb to spawn
-                    self.state = self._FightFSM.BOMB
-            case self._FightFSM.BOMB:
-                # Wait for bomb to explode
-                with contextlib.suppress(ReferenceError):
+            # TODO: Does not account for spikes
+            match self.state:
+                case self._FightFSM.HUNT:
+                    # Move to mage
+                    move_to(player=player_pos, target=target_pos, precision=0.2)
+                    # If we are close to mage, place a bomb
+                    if is_close(player_pos, target_pos, precision=1.2):
+                        ctrl.attack(tapping=True)
+                        ctrl.menu(tapping=True)
+                        # Allow time for bomb to spawn
+                        self.state = self._FightFSM.BOMB
+                case self._FightFSM.BOMB:
+                    # Wait for bomb to explode
                     for actor in mem.actors:
                         if actor.kind == EKind.INTERACT and actor.ikind == IKind.BOMB:
                             return False
-                # Did not find a bomb, go back to hunting mages
-                self.state = self._FightFSM.HUNT
-                # Close menu
-                ctrl.menu()
+                    # Did not find a bomb, go back to hunting mages
+                    self.state = self._FightFSM.HUNT
+                    # Close menu
+                    ctrl.menu()
 
         # Continue when there are no more mages
         return False
+
+    def _equip_sword(self) -> None:
+        ctrl = evo_ctrl()
+        # Assume menu is open
+        ctrl.dpad.none()
+        # Select sword from bombs
+        ctrl.dpad.tap_left()
+        ctrl.dpad.tap_left()
+        # Confirm selection
+        ctrl.confirm(tapping=True)
+        # Open menu again to keep sword and menu glitch
+        ctrl.menu()
 
     # TODO: Can fail to correctly detect mages (investigate if they are always in memory)
     def _get_next_target(self) -> Optional[Evo1GameEntity2D]:
         mem = get_zelda_memory()
         player_pos = mem.player.pos
         # Using key sorting, order actors by closest to player, filtering out mages
-        with contextlib.suppress(ReferenceError):
-            key_list = [
-                (dist(player_pos, actor.pos), actor)
-                for actor in mem.actors
-                if actor.kind == EKind.MONSTER and actor.mkind == MKind.RED_MAGE
-            ]
-            return sorted_list[0][1] if (sorted_list := sorted(key_list)) else None
-        return None
+        key_list = [
+            (dist(player_pos, actor.pos), actor)
+            for actor in mem.actors
+            if actor.kind == EKind.MONSTER and actor.mkind == MKind.RED_MAGE
+        ]
+        return sorted_list[0][1] if (sorted_list := sorted(key_list)) else None
 
     def __repr__(self) -> str:
         return f"{self.name} ({self.state.name})"
@@ -354,7 +373,7 @@ class AmuletCaveFight(SeqList):
                 SeqAttack("Skeleton"),
                 SeqMove2D(
                     "Move to third skeleton",
-                    coords=[Vec2(23, 17.5), Vec2(22.5, 17), Vec2(20, 17)],
+                    coords=[Vec2(23, 17.5), Vec2(22.5, 17), Vec2(20.5, 17)],
                 ),
                 SeqAttack("Skeleton"),
                 SeqMove2D(
@@ -364,14 +383,13 @@ class AmuletCaveFight(SeqList):
                 SeqAttack("Skeleton"),
                 SeqSwapWeapon("Bombs", Evo1Weapon.BOMB),
                 KillMages(),
+                # TODO: Should end this section with sword equipped and menu open
                 SeqMove2D(
                     "Leave cave",
                     coords=_amulet_astar.calculate(
                         start=Vec2(19, 20), goal=Vec2(14, 20)
                     ),
                 ),
-                # TODO Keep menu glitch (depends on where we are? Or just hold menu open?)
-                SeqSwapWeapon("Sword", Evo1Weapon.SWORD),
             ],
         )
 
@@ -390,14 +408,18 @@ class AmuletCave(SeqList):
                         start=Vec2(4, 20), goal=Vec2(11, 18), final_pos=Vec2(11, 17.3)
                     ),
                 ),
-                SeqSwapWeapon("Bow", Evo1Weapon.BOW),
                 SeqMove2DClunkyCombat(
                     "Move to push block(S)",
                     coords=_amulet_astar.calculate(
-                        start=Vec2(11, 17), goal=Vec2(11, 22), final_pos=Vec2(11, 22.5)
+                        start=Vec2(11, 17), goal=Vec2(11, 22)
                     ),
                 ),
-                SeqMove2DClunkyCombat(
+                SeqSwapWeapon("Bow", Evo1Weapon.BOW),
+                SeqMove2D(
+                    "Move to push block(S)",
+                    coords=[Vec2(11, 22.5)],
+                ),
+                SeqMove2D(
                     "Move to door",
                     coords=_amulet_astar.calculate(
                         start=Vec2(11, 22),
@@ -432,12 +454,13 @@ class AmuletCave(SeqList):
                 SeqGrabChestKeyItem("Amulet", direction=Facing.RIGHT, manip=True),
                 AmuletCaveFight(),
                 # Leave cave
-                SeqMove2D(
+                SeqMove2DClunkyCombat(
                     "Move to exit",
                     coords=_amulet_astar.calculate(
                         start=Vec2(14, 20), goal=Vec2(4, 20)
                     ),
                 ),
+                # Leaving with menu open
                 SeqZoneTransition(
                     "Sacred Grove",
                     direction=Facing.LEFT,
@@ -447,20 +470,33 @@ class AmuletCave(SeqList):
         )
 
 
+class SacredGroveBombSelect(SeqSection2D):
+    def __init__(self):
+        super().__init__(name="Bomb select")
+
+    def execute(self, delta: float) -> bool:
+        ctrl = evo_ctrl()
+        ctrl.dpad.none()
+        ctrl.dpad.tap_right()
+        ctrl.confirm()
+        # Wait for transition to complete before trying to place bomb
+        wait_seconds(2.5)
+        return True
+
+
 class SacredGroveToExit(SeqList):
     def __init__(self):
         super().__init__(
             name="Leave area",
             children=[
-                SeqSwapWeapon("Sword", Evo1Weapon.SWORD),
                 SeqMove2DClunkyCombat(
                     "Move to crystal",
                     coords=_sg_astar.calculate(start=Vec2(62, 27), goal=Vec2(53, 32)),
                 ),
                 # Activate crystal with sword
                 SeqAttack("Crystal"),
-                # TODO: In order for this timing to work, need to carry menu skip and close
-                SeqSwapWeapon("Bombs", Evo1Weapon.BOMB),
+                # In order for this timing to work, need to carry menu skip and close
+                SacredGroveBombSelect(),
                 # Use bomb to skip puzzle
                 SeqPlaceBomb("Crystal", target=Vec2(53, 32.3), precision=0.1),
                 SeqMove2D(

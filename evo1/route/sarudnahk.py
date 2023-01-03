@@ -16,6 +16,7 @@ from engine.move2d import (
 )
 from engine.seq import SeqList
 from evo1.move2d import SeqZoneTransition
+from memory import ZeldaMemory
 from memory.evo1 import EKind, Evo1DiabloEntity, MapID, MKind, get_diablo_memory
 
 logger = logging.getLogger(__name__)
@@ -27,7 +28,9 @@ class SeqDiabloCombat(SeqMove2D):
     def __init__(self, name: str, coords: list[Vec2], precision: float = 0.2):
         # TODO: Could use func here to load_diablo_memory?
         super().__init__(name, coords, precision)
-        self.mem = get_diablo_memory()
+
+    def zelda_mem(self) -> ZeldaMemory:
+        return get_diablo_memory()
 
     # TODO: execute, render
     # TODO: Boid behavior?
@@ -90,10 +93,10 @@ class SeqCharacterSelect(SeqGrabChest):
         super().reset()
 
     # Delay in s for Character Select screen to open
-    _GUI_DELAY = 1.8
+    _GUI_DELAY = 1.9
     _SEL_OFFSET = 10
     # Delay in s for Character Select rotation to complete
-    _SEL_DELAY = 1.3
+    _SEL_DELAY = 1.4
 
     def execute(self, delta: float) -> bool:
         ctrl = evo_ctrl()
@@ -115,6 +118,7 @@ class SeqCharacterSelect(SeqGrabChest):
         else:
             logger.debug("Selecting Kaeris")
             ctrl.dpad.none()
+            # This also advances the heal glitch by one, if open
             ctrl.confirm()
             return True
         return False
