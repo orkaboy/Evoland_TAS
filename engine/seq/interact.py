@@ -50,13 +50,16 @@ class SeqMenu(SeqBase):
 
 
 class SeqInteract(SeqMashDelay):
-    def __init__(self, name: str, timeout_in_s: float = 0.0):
+    def __init__(self, name: str, timeout_in_s: float = 0.0, once: bool = False):
         super().__init__(name, timeout_in_s)
         self.timer = 0
+        self.once = once
 
     def execute(self, delta: float) -> bool:
         self.timer += delta
         evo_ctrl().confirm(tapping=True)
+        if self.once:
+            return True
         # Wait out any cutscene/pickup animation
         mem = self.zelda_mem()
         return mem.player.in_control and self.timer >= self.timeout

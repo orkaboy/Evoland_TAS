@@ -5,7 +5,7 @@ from typing import Optional
 from control import evo_ctrl
 from engine.mathlib import Facing, Vec2, dist, is_close
 from engine.move2d import SeqGrabChest, SeqMove2D, move_to
-from engine.seq import SeqBase, SeqDelay, SeqList
+from engine.seq import SeqBase, SeqDelay, SeqInteract, SeqList
 from evo1.atb import (
     Encounter,
     EncounterID,
@@ -350,5 +350,49 @@ class BlackCitadelToAogai(SeqList):
                     coords=[Vec2(95, 91.4)],
                 ),
                 AogaiWrongWarp("Aogai"),
+            ],
+        )
+
+
+class BoardAirship(SeqBase):
+    _AIRSHIP_SPAWN_POINT = Vec2(92.5, 93)
+
+    def __init__(self):
+        super().__init__(name="Board airship")
+
+    def execute(self, delta: float) -> bool:
+        mem = get_zelda_memory()
+        # TODO: Currently works without airship skip, not tested with
+        # TODO: Spam past any dialog
+        # TODO: Wait for airship to spawn (check for entity type)
+
+        player_pos = mem.player.pos
+        # Board airship
+        move_to(player=player_pos, target=self._AIRSHIP_SPAWN_POINT, precision=0.2)
+        return is_close(player_pos, self._AIRSHIP_SPAWN_POINT, precision=0.2)
+
+
+class AogaiToManaTree(SeqList):
+    _MANA_TREE = Vec2(114, 76)
+
+    def __init__(self):
+        super().__init__(
+            name="",
+            children=[
+                SeqMove2D(
+                    "Moving to Airship",
+                    coords=_overworld_astar.calculate(
+                        start=Vec2(95, 93), goal=Vec2(92, 93)
+                    ),
+                ),
+                # Wait for airship to spawn
+                BoardAirship(),
+                # Go to the Mana Tree on airship (can't use AStar here)
+                SeqMove2D(
+                    "Flying to Mana Tree",
+                    coords=[Vec2(101, 90), self._MANA_TREE],
+                ),
+                # Get out of airship
+                SeqInteract("Disembark"),
             ],
         )

@@ -184,7 +184,9 @@ class SeqSection2D(SeqBase):
     def __init__(self, name: str, func=None):
         super().__init__(name, func=func)
 
-    def turn_towards_pos(self, target_pos: Vec2, invert: bool = False) -> bool:
+    def turn_towards_pos(
+        self, target_pos: Vec2, invert: bool = False, precision: float = math.pi / 3
+    ) -> bool:
         ctrl = evo_ctrl()
         mem = self.zelda_mem()
         player_pos = mem.player.pos
@@ -195,7 +197,7 @@ class SeqSection2D(SeqBase):
         player_angle = rot + math.pi if rot < 0 else rot - math.pi
         # Compare player rotation to angle_to_target
         angle = angle_between(angle_to_target, player_angle)
-        if abs(angle) < math.pi / 3:  # Roughly turned in the right direction
+        if abs(angle) < precision:  # Roughly turned in the right direction
             # We are aligned and in position
             ctrl.dpad.none()
             return True
@@ -379,8 +381,14 @@ class SeqMove2D(SeqSection2D):
 
 # Mash confirm while moving along a path (to get past talk triggers)
 class SeqMove2DConfirm(SeqMove2D):
-    def __init__(self, name: str, coords: list[Vec2], precision: float = 0.2):
-        super().__init__(name, coords, precision)
+    def __init__(
+        self,
+        name: str,
+        coords: list[Vec2],
+        precision: float = 0.2,
+        invert: bool = False,
+    ):
+        super().__init__(name, coords, precision, invert=invert)
 
     def execute(self, delta: float) -> bool:
         done = super().execute(delta=delta)

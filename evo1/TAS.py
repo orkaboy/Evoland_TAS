@@ -18,6 +18,7 @@ from evo1.route import (
     Aogai2,
     Aogai3,
     Aogai4,
+    AogaiToManaTree,
     BlackCitadel,
     BlackCitadelToAogai,
     CrystalCavern,
@@ -169,12 +170,12 @@ def perform_TAS(window: WindowLayout):
             Aogai3(),
             OverworldToBlackCitadel(),
             BlackCitadel(),
+            # Get airship in Aogai (carry menu glitch to Aogai)
             BlackCitadelToAogai(),
-            # TODO: Get airship in Aogai (carry menu glitch to Aogai)
             SeqCheckpoint(checkpoint_name="aogai3"),  # Checkpoint in Aogai
             Aogai4(),
-            # TODO: Trigger conversation and leave, wait for airship to spawn
-            # TODO: Go to the Mana Tree on airship
+            # Trigger conversation and leave, wait for airship to spawn
+            AogaiToManaTree(),
             SeqCheckpoint(checkpoint_name="mana_tree"),  # Checkpoint outside tree
             ManaTree(),
             # TODO: End of game! Watch credits.

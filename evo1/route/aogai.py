@@ -2,7 +2,13 @@ import logging
 
 from control import evo_ctrl
 from engine.mathlib import Facing, Vec2
-from engine.move2d import SeqGrabChest, SeqMove2D, SeqMove2DCancel, SeqSection2D
+from engine.move2d import (
+    SeqGrabChest,
+    SeqMove2D,
+    SeqMove2DCancel,
+    SeqMove2DConfirm,
+    SeqSection2D,
+)
 from engine.seq import SeqBase, SeqInteract, SeqList, wait_seconds
 from evo1.move2d import SeqZoneTransition
 from maps.evo1 import GetNavmap
@@ -23,7 +29,7 @@ _DEPUTY = _aogai_nav.map[21]  # Deputy is left
 _MOM = _aogai_nav.map[7]  # Mom is up
 _CARD_PLAYER = _aogai_nav.map[22]  # Player is left
 _SHOP_KEEPER = _aogai_nav.map[19]  # Shop is up
-_KID_CHEST = _aogai_nav.map[23]  # Chest is up
+_POST_BOMB_SKIP = _aogai_nav.map[9]  # Gets teleported here
 
 
 class AogaiWrongWarp(SeqBase):
@@ -62,15 +68,22 @@ class TalkToGranny(SeqBase):
         # Wait for screen transition
         wait_seconds(0.5)
         # Approach Granny (hold up)
+        player = self.zelda_mem().player
+        ctrl.dpad.none()
+        # TODO: Slightly inefficient
+        while player.pos.y < 7:
+            ctrl.dpad.left()
         ctrl.dpad.none()
         ctrl.dpad.up()
-        player = self.zelda_mem().player
-        # Wait until x < 3.5
-        while player.pos.x > 3.5:
+        # Approach Granny
+        while player.pos.x > 3.75:
             wait_seconds(0.1)
         ctrl.dpad.none()
-        # Talk to Granny (bomb skip?)
-        ctrl.confirm()
+        # Talk to Granny (bomb skip)
+        ctrl.confirm(tapping=True)
+        ctrl.confirm(tapping=True)
+        ctrl.confirm(tapping=True)
+        ctrl.confirm(tapping=False)
         # Go away from Granny
         ctrl.dpad.down()
         # Detect when we return to regular control area
@@ -80,21 +93,23 @@ class TalkToGranny(SeqBase):
         return True
 
 
-class TriggerCardGlitch(SeqBase):
+class TriggerCardGlitch(SeqSection2D):
     def __init__(self):
         super().__init__(name="Card glitch")
 
     def execute(self, delta: float) -> bool:
         ctrl = evo_ctrl()
+        # Turn towards card player (needs to be fully left)
         ctrl.dpad.none()
-        # Turn
         ctrl.dpad.left()
-        wait_seconds(0.4)
+        wait_seconds(0.3)
         ctrl.dpad.none()
         # Talk
         ctrl.confirm(tapping=True)
+        wait_seconds(0.2)
         # Tap past first text
         ctrl.confirm(tapping=True)
+        wait_seconds(0.2)
         # Select "Yes" to trigger glitch
         ctrl.confirm(tapping=False)
         # Move on
@@ -109,6 +124,75 @@ class HealerGlitch(SeqBase):
         ctrl = evo_ctrl()
         ctrl.confirm(tapping=False)
         return True
+
+
+class SeqBombSkip(SeqSection2D):
+    """Perform the Aogai bomb skip. This is triggered by talking to Sid with dialog already active."""
+
+    def __init__(self):
+        super().__init__(name="Bomb skip")
+
+    def execute(self, delta: float) -> bool:
+        ctrl = evo_ctrl()
+        ctrl.dpad.none()
+        # Hold left throughout the entire thing
+        ctrl.dpad.left()
+        # Turn towards Sid
+        wait_seconds(0.2)
+        # Open menu
+        ctrl.menu(tapping=True)
+        # Talk to Sid to trigger glitch
+        ctrl.confirm(tapping=True)
+
+        player = self.zelda_mem().player
+        while not player.in_control:
+            ctrl.confirm(tapping=True)
+        # TODO: Might be slightly unoptimal, but works
+        ctrl.menu()
+
+        return True
+
+
+class SeqAdvanceDialogWhileMove(SeqMove2D):
+    """Same as SeqMove2D, but tap confirm while move a specific number of times. Used for bomb skip."""
+
+    _TOGGLE_TIMEOUT = 0.4
+
+    def __init__(
+        self,
+        name: str,
+        coords: list[Vec2],
+        steps_to_advance: int = 0,
+        precision: float = 0.2,
+        invert: bool = False,
+    ):
+        super().__init__(name=name, coords=coords, precision=precision, invert=invert)
+        self.steps_to_advance = steps_to_advance
+        self.nr_confirms = 0
+        self.toggle_state = False
+        self.toggle_timer = 0
+
+    def reset(self) -> None:
+        self.nr_confirms = 0
+        self.toggle_state = False
+        self.toggle_timer = 0
+        return super().reset()
+
+    def execute(self, delta: float) -> bool:
+        ctrl = evo_ctrl()
+        self.toggle_timer += delta
+        if self.toggle_timer >= self._TOGGLE_TIMEOUT and (
+            self.nr_confirms < self.steps_to_advance or self.toggle_state
+        ):
+            self.toggle_timer = 0
+            self.toggle_state = not self.toggle_state
+            if self.toggle_state:
+                self.nr_confirms += 1
+            ctrl.toggle_confirm(self.toggle_state)
+        done = super().execute(delta)
+        if done:
+            ctrl.toggle_confirm(False)
+        return done
 
 
 class Aogai1(SeqList):
@@ -126,7 +210,7 @@ class Aogai1(SeqList):
                 ),
                 SeqInteract("Sid"),
                 SeqMove2D(
-                    "Move to Card player",
+                    "Move to chest",
                     coords=_aogai_nav.calculate(start=_SID, goal=_CARD_CHEST),
                     invert=True,
                 ),
@@ -151,10 +235,11 @@ class Aogai1(SeqList):
                     invert=True,
                 ),
                 HealerGlitch(),
-                SeqMove2D(
+                SeqAdvanceDialogWhileMove(
                     "Move to Exit",
                     coords=_aogai_nav.calculate(start=_HEALER, goal=_NORTH_ENTRANCE),
                     invert=True,
+                    steps_to_advance=3,
                 ),
                 SeqZoneTransition(
                     "Overworld", direction=Facing.UP, target_zone=MapID.OVERWORLD
@@ -171,28 +256,31 @@ class Aogai1(SeqList):
                 ),
                 # Get bombs by talking to everyone
                 TalkToGranny(),
-                SeqMove2D(
+                SeqAdvanceDialogWhileMove(
                     "Move to Deputy",
                     coords=_aogai_nav.calculate(start=_GRANNY, goal=_DEPUTY),
                     invert=True,
-                ),  # TODO: Bomb glitch
+                    steps_to_advance=5,
+                ),
                 SeqInteract("Deputy"),
-                SeqMove2D(
+                SeqAdvanceDialogWhileMove(
                     "Move to Mom",
                     coords=_aogai_nav.calculate(start=_DEPUTY, goal=_MOM),
                     invert=True,
-                ),  # TODO: Bomb glitch
+                    steps_to_advance=6,
+                ),
                 SeqInteract("Mom"),
                 SeqMove2D(
-                    "Move to kid",
-                    coords=_aogai_nav.calculate(start=_MOM, goal=_KID_CHEST),
+                    "Move to Sid",
+                    coords=_aogai_nav.calculate(start=_MOM, goal=_SID),
                     invert=True,
                 ),
-                # TODO: Get bombs (get chest, talk to kid)
-                # TODO: Bomb skip
+                SeqBombSkip(),
                 SeqMove2D(
                     "Move to exit",
-                    coords=_aogai_nav.calculate(start=_KID_CHEST, goal=_SOUTH_ENTRANCE),
+                    coords=_aogai_nav.calculate(
+                        start=_POST_BOMB_SKIP, goal=_SOUTH_ENTRANCE
+                    ),
                     invert=True,
                 ),
                 SeqZoneTransition(
@@ -210,13 +298,13 @@ class Aogai2(SeqList):
             name="Aogai Village",
             children=[
                 # Get heal bug (card player, healer)
-                # TODO: Consistently fails
                 SeqMove2D(
                     "Move to card player",
                     coords=_aogai_nav.calculate(
                         start=_SOUTH_ENTRANCE, goal=_CARD_PLAYER
                     ),
                     invert=True,
+                    precision=0.1,
                 ),
                 TriggerCardGlitch(),
                 SeqMove2D(
@@ -225,10 +313,12 @@ class Aogai2(SeqList):
                     invert=True,
                 ),
                 HealerGlitch(),
-                SeqMove2D(
+                # Advance to the heal prompt while moving to exit
+                SeqAdvanceDialogWhileMove(
                     "Move to exit",
                     coords=_aogai_nav.calculate(start=_HEALER, goal=_NORTH_ENTRANCE),
                     invert=True,
+                    steps_to_advance=2,
                 ),
                 # Exit north
                 SeqZoneTransition(
@@ -310,6 +400,19 @@ class Aogai3(SeqList):
         )
 
 
+class SeqAirshipSkip(SeqSection2D):
+    def __init__(self):
+        super().__init__(name="Airship skip")
+
+    def execute(self, delta: float) -> bool:
+        ctrl = evo_ctrl()
+        ctrl.dpad.none()
+        wait_seconds(0.4)
+        # Close menu if open
+        ctrl.menu()
+        return True
+
+
 class Aogai4(SeqList):
     """Final Aogai section. Get the airship and leave to the south."""
 
@@ -322,9 +425,11 @@ class Aogai4(SeqList):
                     coords=_aogai_nav.calculate(start=_SOUTH_ENTRANCE, goal=_SID),
                     invert=True,
                 ),
-                # TODO: Trigger conversation to get airship
-                # TODO: Need to leave the menu if holding menu skip
-                SeqMove2D(
+                # Trigger conversation to get airship
+                SeqInteract("Talk to Sid", once=True),
+                SeqAirshipSkip(),
+                # Move outside of town while confirming
+                SeqMove2DConfirm(
                     "Move to exit",
                     coords=_aogai_nav.calculate(start=_SID, goal=_SOUTH_ENTRANCE),
                     invert=True,

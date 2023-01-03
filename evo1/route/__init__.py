@@ -5,6 +5,7 @@ from evo1.route.edel_vale import Edel1, Edel2
 from evo1.route.mana_tree import ManaTree
 from evo1.route.noria_mines import NoriaBoss, NoriaMines
 from evo1.route.overworld import (
+    AogaiToManaTree,
     BlackCitadelToAogai,
     OverworldToAogai,
     OverworldToBlackCitadel,
@@ -43,7 +44,7 @@ __all__ = [
     "BlackCitadel",
     "BlackCitadelToAogai",
     "Aogai4",
-    # TODO: In-between section
+    "AogaiToManaTree",
     "ManaTree",
     # TODO: End
 ]
