@@ -4,6 +4,8 @@
   * Usage of heal glitch
   * Survival/movement, comboing
   * Lich boss fight
+  * Navmesh for Sarudnahk?
+  * Map for Saurdnahk?
 * Blackboard code
   * Need to track what glitches we have active, especially when using save/load
 
@@ -13,8 +15,7 @@
 * Do more memory hunting
   * Sarudnahk
     * Health
-    * Enemies
-    * Boss
+    * Boss (projectiles)
 
 * Seq:
   * Make a SeqConditional (can inherit from) - could do if/match
@@ -32,6 +33,8 @@
   * Use joystick for free movement
 * Pathfinding
   * Fix the pathfinding to reduce the number of nav nodes/checkpoints, and have the TAS beeline for objectives when possible (use rays to detect map collision)
+  * Path adjustments due to being hit/diverging for attacks
+    * Use the full navmap, don't recalculate AStar? This would require holding all the navmaps in memory, so maybe not so good.
 
 * Improve knights combat logic
   * Account for spaces that are invalid (not passable). Can use navmap here
@@ -51,6 +54,8 @@
   * Bossfight Dark Clink
     * Make the logic more complicated (though maybe it doesn't need to be?)
     * Menu glitch after boss death
+* Aogai
+  * Map for display.
 * Sacred Grove
   * Fallbacks for accidentally killing bats with the arrows in the puzzle
     * Safety could be to just kill the first bat?
