@@ -1,16 +1,30 @@
+import contextlib
+from enum import Enum, auto
+from typing import Optional
+
+from control import evo_ctrl
 from engine.combat import SeqMove2DClunkyCombat
-from engine.mathlib import Facing, Vec2
+from engine.mathlib import Facing, Vec2, dist, is_close
 from engine.move2d import (
     SeqGrabChestKeyItem,
-    SeqManualUntilClose,
     SeqMove2D,
     SeqMove2DConfirm,
+    SeqSection2D,
+    move_to,
 )
 from engine.seq import SeqAttack, SeqCheckpoint, SeqDelay, SeqList, SeqMenu
 from evo1.combat.weapons import SeqPlaceBomb, SeqSwapWeapon
 from evo1.move2d import SeqZoneTransition
 from maps.evo1 import GetNavmap
-from memory.evo1 import Evo1Weapon, MapID
+from memory.evo1 import (
+    EKind,
+    Evo1GameEntity2D,
+    Evo1Weapon,
+    IKind,
+    MapID,
+    MKind,
+    get_zelda_memory,
+)
 
 _sg_astar = GetNavmap(MapID.SACRED_GROVE_2D)
 _bow_astar = GetNavmap(MapID.SACRED_GROVE_CAVE_1)
@@ -255,6 +269,113 @@ class SacredGroveToAmuletCave(SeqList):
         )
 
 
+class KillMages(SeqSection2D):
+    class _FightFSM(Enum):
+        HUNT = auto()
+        BOMB = auto()
+
+    def __init__(self):
+        super().__init__("Kill mages")
+        self.state = self._FightFSM.HUNT
+
+    def reset(self):
+        self.state = self._FightFSM.HUNT
+
+    def execute(self, delta: float) -> bool:
+        # Track mages
+        target = self._get_next_target()
+        if not target:
+            return True
+
+        ctrl = evo_ctrl()
+        mem = get_zelda_memory()
+        player_pos = mem.player.pos
+        target_pos = target.pos
+
+        # TODO: Does not account for spikes
+        match self.state:
+            case self._FightFSM.HUNT:
+                # Move to mage
+                move_to(player=player_pos, target=target_pos, precision=0.2)
+                # If we are close to mage, place a bomb
+                if is_close(player_pos, target_pos, precision=1.2):
+                    ctrl.attack(tapping=True)
+                    ctrl.menu(tapping=True)
+                    # Allow time for bomb to spawn
+                    self.state = self._FightFSM.BOMB
+            case self._FightFSM.BOMB:
+                # Wait for bomb to explode
+                with contextlib.suppress(ReferenceError):
+                    for actor in mem.actors:
+                        if actor.kind == EKind.INTERACT and actor.ikind == IKind.BOMB:
+                            return False
+                # Did not find a bomb, go back to hunting mages
+                self.state = self._FightFSM.HUNT
+                # Close menu
+                ctrl.menu()
+
+        # Continue when there are no more mages
+        return False
+
+    # TODO: Can fail to correctly detect mages (investigate if they are always in memory)
+    def _get_next_target(self) -> Optional[Evo1GameEntity2D]:
+        mem = get_zelda_memory()
+        player_pos = mem.player.pos
+        # Using key sorting, order actors by closest to player, filtering out mages
+        with contextlib.suppress(ReferenceError):
+            key_list = [
+                (dist(player_pos, actor.pos), actor)
+                for actor in mem.actors
+                if actor.kind == EKind.MONSTER and actor.mkind == MKind.RED_MAGE
+            ]
+            return sorted_list[0][1] if (sorted_list := sorted(key_list)) else None
+        return None
+
+    def __repr__(self) -> str:
+        return f"{self.name} ({self.state.name})"
+
+
+class AmuletCaveFight(SeqList):
+    def __init__(self):
+        super().__init__(
+            name="Skeleton and Mage fight",
+            children=[
+                # TODO: Sequence will fail if did not manage to get skip
+                # TODO: Sequence can fail if mages are mean
+                SeqMove2D(
+                    "Move to first skeleton",
+                    coords=[Vec2(25, 21), Vec2(24, 21)],
+                ),
+                SeqAttack("Skeleton"),
+                SeqMove2D(
+                    "Move to second skeleton",
+                    coords=[Vec2(23, 20), Vec2(23, 18)],
+                ),
+                SeqAttack("Skeleton"),
+                SeqMove2D(
+                    "Move to third skeleton",
+                    coords=[Vec2(23, 17.5), Vec2(22.5, 17), Vec2(20, 17)],
+                ),
+                SeqAttack("Skeleton"),
+                SeqMove2D(
+                    "Move to last skeleton",
+                    coords=[Vec2(19.5, 17), Vec2(19, 17.5), Vec2(19, 20)],
+                ),
+                SeqAttack("Skeleton"),
+                SeqSwapWeapon("Bombs", Evo1Weapon.BOMB),
+                KillMages(),
+                SeqMove2D(
+                    "Leave cave",
+                    coords=_amulet_astar.calculate(
+                        start=Vec2(19, 20), goal=Vec2(14, 20)
+                    ),
+                ),
+                # TODO Keep menu glitch (depends on where we are? Or just hold menu open?)
+                SeqSwapWeapon("Sword", Evo1Weapon.SWORD),
+            ],
+        )
+
+
 class AmuletCave(SeqList):
     def __init__(self):
         super().__init__(
@@ -269,6 +390,7 @@ class AmuletCave(SeqList):
                         start=Vec2(4, 20), goal=Vec2(11, 18), final_pos=Vec2(11, 17.3)
                     ),
                 ),
+                SeqSwapWeapon("Bow", Evo1Weapon.BOW),
                 SeqMove2DClunkyCombat(
                     "Move to push block(S)",
                     coords=_amulet_astar.calculate(
@@ -293,7 +415,6 @@ class AmuletCave(SeqList):
                     ),
                 ),
                 SeqMenu("Menu glitch"),
-                # Note: Automatically (if unintentionally) switches to bow
                 SeqMove2D(
                     "Move to chest",
                     coords=_amulet_astar.calculate(
@@ -309,12 +430,9 @@ class AmuletCave(SeqList):
                     ),
                 ),
                 SeqGrabChestKeyItem("Amulet", direction=Facing.RIGHT, manip=True),
-                # TODO: Fight the skellies and mages using bow/bombs
-                SeqManualUntilClose("FIGHT SKELLIES AND MAGES", target=Vec2(14, 20)),
-                # TODO: Remove manual
-                # TODO: Keep menu glitch
+                AmuletCaveFight(),
                 # Leave cave
-                SeqMove2DClunkyCombat(
+                SeqMove2D(
                     "Move to exit",
                     coords=_amulet_astar.calculate(
                         start=Vec2(14, 20), goal=Vec2(4, 20)
