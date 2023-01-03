@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 class MainMenuMemory:
     # Only valid in main menu
     _CHOICE_PTR = [0x648, 0x8, 0x1C, 0xC, 0x44]
+    _TEXT_COUNT_PTR = [0x648, 0x8, 0x1C, 0xC, 0x48, 0x4]
     _MENU_COUNT_PTR = [0x648, 0x8, 0x1C, 0xC, 0x4C]
 
     def __init__(self):
@@ -19,8 +20,17 @@ class MainMenuMemory:
 
     @property
     def choice(self) -> int:
+        """Represents the current choice index of each menu (where the cursor is)."""
         ptr = self.process.get_pointer(
             self.base_addr + LIBHL_OFFSET, offsets=self._CHOICE_PTR
+        )
+        return self.process.read_u32(ptr)
+
+    @property
+    def text_count(self) -> int:
+        """The number of texts in this particular menu (known value for some)."""
+        ptr = self.process.get_pointer(
+            self.base_addr + LIBHL_OFFSET, offsets=self._TEXT_COUNT_PTR
         )
         return self.process.read_u32(ptr)
 
