@@ -1,10 +1,5 @@
 # TODO list
 
-* Route Sacred Grove
-  * Fallbacks for accidentally killing bats with the arrows in the puzzle
-    * Safety could be to just kill the first bat?
-  * Menu glitches
-  * Automate the skeleton/mage fight in the Amulet cave
 * Route Sarudnahk (heal glitch, survival/movement, boss fight, comboing)
 
 # Improvements for later
@@ -50,6 +45,10 @@
   * Bossfight Dark Clink
     * Make the logic more complicated (though maybe it doesn't need to be?)
     * Menu glitch after boss death
+* Sacred Grove
+  * Fallbacks for accidentally killing bats with the arrows in the puzzle
+    * Safety could be to just kill the first bat?
+  * Menu glitches
 * Zephyros ATB fight
   * Double turns confuse the TAS (when both Clink and Kaeris act at the same time). Kaeris will take the wrong action
   * Fallback for if we run out of potions
