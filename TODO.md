@@ -1,6 +1,12 @@
 # TODO list
 
-* Route Sarudnahk (heal glitch, survival/movement, boss fight, comboing)
+* Route Sarudnahk
+  * Usage of heal glitch
+  * Survival/movement, comboing
+  * Lich boss fight
+* Blackboard code
+  * Need to track what glitches we have active, especially when using save/load
+
 
 # Improvements for later
 
