@@ -94,6 +94,9 @@ class EvolandController:
     def toggle_confirm(self, state: bool):
         self.set_button(x_key=Buttons.CONFIRM, value=1 if state else 0)
 
+    def toggle_attack(self, state: bool):
+        self.set_button(x_key=Buttons.ATTACK, value=1 if state else 0)
+
     def confirm(self, tapping=False):
         self.set_button(x_key=Buttons.CONFIRM, value=1)
         wait_frames(self.delay)

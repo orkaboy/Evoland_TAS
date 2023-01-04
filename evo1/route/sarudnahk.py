@@ -6,7 +6,7 @@ from typing import Optional
 from control import evo_ctrl
 
 # from engine.combat import SeqMove2DClunkyCombat
-from engine.mathlib import Facing, Vec2
+from engine.mathlib import Facing, Vec2, is_close
 from engine.move2d import (
     SeqGrabChest,
     SeqGrabChestKeyItem,
@@ -18,6 +18,7 @@ from engine.seq import SeqList
 from evo1.move2d import SeqZoneTransition
 from memory import ZeldaMemory
 from memory.evo1 import EKind, Evo1DiabloEntity, MapID, MKind, get_diablo_memory
+from term.window import WindowLayout
 
 logger = logging.getLogger(__name__)
 
@@ -26,14 +27,53 @@ logger = logging.getLogger(__name__)
 # class SeqDiabloCombat(SeqMove2DClunkyCombat):
 class SeqDiabloCombat(SeqMove2D):
     def __init__(self, name: str, coords: list[Vec2], precision: float = 0.2):
-        # TODO: Could use func here to load_diablo_memory?
         super().__init__(name, coords, precision)
+        self.attack_state = False
+        self.attack_timer = 0
+
+    def reset(self) -> None:
+        super().reset()
+        self.attack_state = False
+        self.attack_timer = 0
+
+    _ATTACK_TIMER = 0.1
+    _ATTACK_RANGE = 0.8
 
     def zelda_mem(self) -> ZeldaMemory:
         return get_diablo_memory()
 
-    # TODO: execute, render
-    # TODO: Boid behavior?
+    # TODO: Boid behavior? deviation from baseline movement?
+    def execute(self, delta: float) -> bool:
+        ctrl = evo_ctrl()
+        done = super().execute(delta)
+        if not done:
+            mem = get_diablo_memory()
+            player_pos = mem.player.pos
+
+            target = self.coords[self.step]
+            direction_vec = (target - player_pos).normalized
+            ahead = player_pos + direction_vec
+
+            # TODO: More complex attack pattern? Currently clears ahead with combo
+            with contextlib.suppress(ReferenceError):
+                for actor in mem.actors:
+                    if actor.kind == EKind.MONSTER and is_close(
+                        ahead, actor.pos, precision=self._ATTACK_RANGE
+                    ):
+                        self.attack_timer += delta
+                        if self.attack_timer >= self._ATTACK_TIMER:
+                            self.attack_timer = 0
+                            self.attack_state = not self.attack_state
+                            ctrl.toggle_attack(self.attack_state)
+                        return False
+            self.attack_state = False
+            self.attack_timer = 0
+        ctrl.toggle_attack(False)
+        return done
+
+    # TODO: Render?
+    # def render(self, window: WindowLayout) -> None:
+    #     return super().render(window)
 
 
 # TODO: NavMap for Sarudnahk
@@ -43,13 +83,23 @@ class SeqDiabloBoss(SeqSection2D):
     class FightState(Enum):
         NOT_STARTED = auto()
         STARTED = auto()
-        # TODO: Hide behind rock state
+        # TODO: Hide behind rock state? Attack state?
 
     def __init__(self):
         super().__init__(name="Lich")
         self.state = self.FightState.NOT_STARTED
         self.lich: Optional[Evo1DiabloEntity] = None
         self.precision = 0.3
+        self.attack_state = False
+        self.attack_timer = 0
+
+    def reset(self) -> None:
+        self.state = self.FightState.NOT_STARTED
+        self.lich: Optional[Evo1DiabloEntity] = None
+        self.attack_state = False
+        self.attack_timer = 0
+
+    _ATTACK_TIMER = 0.1
 
     def execute(self, delta: float) -> bool:
         mem = get_diablo_memory()
@@ -64,20 +114,47 @@ class SeqDiabloBoss(SeqSection2D):
                                 self.state = self.FightState.STARTED
                             else:
                                 # TODO: diag manip
-                                ctrl.confirm(tapping=True)
+                                ctrl.cancel(tapping=True)
             case self.FightState.STARTED:
                 move_to(
                     player=mem.player.pos,
                     target=self.lich.pos,
                     precision=self.precision,
                 )
-                # TODO: Should hold attack for combo
-                ctrl.attack(tapping=True)
+                # Should hold attack for combo
+                self.attack_timer += delta
+                # TODO: Should be in range
+                if self.attack_timer >= self._ATTACK_TIMER:
+                    self.attack_timer = 0
+                    self.attack_state = not self.attack_state
+                    ctrl.toggle_attack(self.attack_state)
                 if self.lich.hp <= 0:
+                    ctrl.toggle_attack(False)
                     return True
         return False
 
-    # TODO: render
+    _LICH_HP = 15000
+
+    def render(self, window: WindowLayout) -> None:
+        super().render(window)
+        if self.lich is not None:
+            life = self.lich.hp
+            window.stats.addstr(pos=Vec2(1, 8), text="")
+            window.stats.addstr(
+                pos=Vec2(1, 9), text=f"  HP: {int(life):5}/{self._LICH_HP}"
+            )
+
+            window_width = window.stats.size.x - 4
+            percentage = life / self._LICH_HP
+            bar_width = int(window_width * percentage)
+            window.stats.addch(pos=Vec2(1, 10), text="[")
+            window.stats.addch(pos=Vec2(window.stats.size.x - 2, 10), text="]")
+            for i in range(window_width):
+                ch = "#" if i <= bar_width else " "
+                window.stats.addch(pos=Vec2(2 + i, 10), text=ch)
+
+    def __repr__(self) -> str:
+        return f"{self.name} ({self.state.name})"
 
 
 # TODO: NavMap for Sarudnahk
