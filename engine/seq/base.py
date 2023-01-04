@@ -155,3 +155,44 @@ class SeqIf(SeqBase):
         if branch is not None:
             return f"{self.name}({self.selection}): {branch.__repr__()}"
         return f"{self.name}({self.selection}): Null"
+
+
+class SeqWhile(SeqBase):
+    def __init__(self, name: str, child: SeqBase, default: bool = False):
+        super().__init__(name)
+        self.child = child
+        self.default = default
+        self.result = None
+
+    def reset(self) -> None:
+        self.result = None
+
+    def advance_to_checkpoint(self, checkpoint: str) -> bool:
+        return self.child.advance_to_checkpoint(checkpoint) if self.default else False
+
+    # OVERRIDE
+    def condition(self) -> bool:
+        return self.default
+
+    def execute(self, delta: float) -> bool:
+        # First time
+        if self.result is None:
+            self.result = self.condition()
+        # Check loop condition
+        if self.result is True:
+            ret = self.child.execute(delta)
+            # Loop is done, recalculate loop condition
+            if ret is True:
+                self.result = self.condition()
+        # If result is False, we are done
+        return not self.result
+
+    def render(self, window: WindowLayout) -> None:
+        if self.result is None:
+            return
+        self.child.render(window)
+
+    def __repr__(self) -> str:
+        if self.result is None:
+            return self.name
+        return f"While({self.name}): {self.child.__repr__()}"
