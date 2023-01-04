@@ -17,9 +17,6 @@
     * Health
     * Boss (projectiles)
 
-* Seq:
-  * Make a SeqWhile/For or similar to allow for routing loops
-
 * Save games/Main menu
   * Clean up main menu navigation code? Checking for if New game is available
   * Actually use menu memory pos

@@ -3,6 +3,7 @@
 0.0.9:
 
 * Added a timekeeping module to log segment timing.
+* Added backend: SeqIf/SeqWhile building blocks. Removed SeqOptional.
 
 # Older changelogs
 
