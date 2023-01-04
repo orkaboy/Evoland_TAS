@@ -18,7 +18,6 @@
     * Boss (projectiles)
 
 * Seq:
-  * Make a SeqConditional (can inherit from) - could do if/match
   * Make a SeqWhile/For or similar to allow for routing loops
 
 * Save games/Main menu

@@ -1,6 +1,6 @@
 # Libraries and Core Files
 import logging
-from typing import Any, Callable, Optional
+from typing import Optional
 
 from engine.blackboard import blackboard
 from engine.game import get_current_tilemap, get_zelda_memory
@@ -114,66 +114,44 @@ class SeqList(SeqBase):
         return f"{self.name}[{cur_step}/{num_children}] =>\n  {cur_child}"
 
 
-class SeqOptional(SeqBase):
+class SeqIf(SeqBase):
     def __init__(
-        self,
-        name: str,
-        cases: dict[Any, SeqBase],
-        selector: Callable | int,
-        fallback: SeqBase = SeqBase(),
-        shadow: bool = False,
+        self, name: str, when_true: SeqBase, when_false: SeqBase, default: bool = False
     ):
-        self.fallback = fallback
-        self.selector = selector
-        self.selector_repr = selector
-        self.selected = False
-        self.selection = None
-        self.cases = cases
-        self.shadow = shadow
         super().__init__(name)
+        self.when_true = when_true
+        self.when_false = when_false
+        self.default = default
+        self.selection = None
 
     def reset(self) -> None:
-        self.selected = False
         self.selection = None
 
     def advance_to_checkpoint(self, checkpoint: str) -> bool:
-        selector_repr = self.selector() if callable(self.selector) else self.selector
-        if selection := self.cases.get(selector_repr):
-            return selection.advance_to_checkpoint(checkpoint)
-        if self.fallback:
-            return self.fallback.advance_to_checkpoint(checkpoint)
-        return False
+        branch = self.when_true if self.default else self.when_false
+        return branch.advance_to_checkpoint(checkpoint)
+
+    # OVERRIDE
+    def condition(self) -> bool:
+        return self.default
 
     def execute(self, delta: float) -> bool:
-        if not self.selected:
-            self.selector_repr = (
-                self.selector() if callable(self.selector) else self.selector
-            )
-            self.selection = self.cases.get(self.selector_repr)
-            self.selected = True
-
-        if self.selection:
-            return self.selection.execute(delta=delta)
-        if self.fallback:
-            return self.fallback.execute(delta=delta)
-        logging.getLogger(self.name).warning(
-            f"Missing case {self.selector_repr} and no fallback, skipping!"
-        )
-        return True
+        if self.selection is None:
+            self.selection = self.condition()
+        branch = self.when_true if self.selection else self.when_false
+        return branch.execute(delta) if branch is not None else True
 
     def render(self, window: WindowLayout) -> None:
-        if self.selection:
-            self.selection.render(window=window)
-        elif self.fallback:
-            self.fallback.render(window=window)
+        if self.selection is None:
+            return
+        branch = self.when_true if self.selection else self.when_false
+        if branch is not None:
+            branch.render(window)
 
     def __repr__(self) -> str:
-        if self.selection:
-            if self.shadow:
-                return f"{self.selection}"
-            return f"<{self.name}:{self.selector_repr}> => {self.selection}"
-        if self.selected and self.fallback:
-            if self.shadow:
-                return f"{self.fallback}"
-            return f"<{self.name}:fallback> => {self.fallback}"
-        return f"<{self.name}>"
+        if self.selection is None:
+            return self.name
+        branch = self.when_true if self.selection else self.when_false
+        if branch is not None:
+            return f"{self.name}({self.selection}): {branch.__repr__()}"
+        return f"{self.name}({self.selection}): Null"

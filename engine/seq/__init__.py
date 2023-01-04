@@ -1,4 +1,4 @@
-from engine.seq.base import SeqBase, SeqCheckpoint, SeqList, SeqOptional
+from engine.seq.base import SeqBase, SeqCheckpoint, SeqIf, SeqList
 from engine.seq.interact import (
     SeqAttack,
     SeqDirHoldUntilLostControl,
@@ -22,7 +22,7 @@ __all__ = [
     "wait_seconds",
     "SeqBase",
     "SeqList",
-    "SeqOptional",
+    "SeqIf",
     "SeqCheckpoint",
     "SeqTapDirection",
     "SeqAttack",

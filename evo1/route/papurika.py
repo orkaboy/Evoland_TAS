@@ -1,6 +1,6 @@
 from engine.mathlib import Box2, Facing, Vec2
 from engine.move2d import SeqCtrlNeutral, SeqGrabChest, SeqMove2D
-from engine.seq import SeqInteract, SeqList, SeqLog, SeqOptional
+from engine.seq import SeqIf, SeqInteract, SeqList, SeqLog
 from evo1.combat import SeqKnight2D
 from evo1.move2d import SeqZoneTransition
 from evo1.shop import SeqShopBuy
@@ -62,6 +62,16 @@ def need_to_steal_cash() -> int:
         return 0
 
 
+class SeqNeedToStealCash(SeqIf):
+    def condition(self) -> bool:
+        try:
+            mem = get_memory()
+            return mem.gli < 250
+        # This fallback clause is for load game past this point
+        except AttributeError:
+            return False
+
+
 class PapurikaVillageShopping(SeqList):
     def __init__(self):
         super().__init__(
@@ -74,25 +84,23 @@ class PapurikaVillageShopping(SeqList):
                         Vec2(39, 40.2),
                     ],
                 ),
-                SeqOptional(
+                SeqNeedToStealCash(
                     "Checking wallet",
-                    cases={
-                        # Check if we have enough cash
-                        0: SeqLog("Wallet", "We don't need to break any laws today"),
-                        1: SeqList(
-                            "Pillaging",
-                            children=[
-                                SeqMove2D(
-                                    "Moving to barrel",
-                                    coords=[Vec2(40, 40.3)],
-                                ),
-                                SeqCtrlNeutral(),
-                                SeqInteract("Grabbing 50 gli"),
-                                SeqInteract("Confirming"),
-                            ],
-                        ),
-                    },
-                    selector=need_to_steal_cash,
+                    when_true=SeqList(
+                        "Pillaging",
+                        children=[
+                            SeqMove2D(
+                                "Moving to barrel",
+                                coords=[Vec2(40, 40.3)],
+                            ),
+                            SeqCtrlNeutral(),
+                            SeqInteract("Grabbing 50 gli"),
+                            SeqInteract("Confirming"),
+                        ],
+                    ),
+                    when_false=SeqLog(
+                        "Wallet", "We don't need to break any laws today"
+                    ),
                 ),
                 SeqMove2D(
                     "Shopping",
