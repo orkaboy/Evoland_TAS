@@ -2,10 +2,12 @@
 import contextlib
 import logging
 
+from engine.blackboard import blackboard
 from engine.game import GameVersion, set_game_version
 from engine.mathlib import Vec2
 from engine.seq import (
     EvolandStartGame,
+    SeqBase,
     SeqCheckpoint,
     SeqList,
     SequencerEngine,
@@ -45,6 +47,10 @@ from memory.evo1 import load_diablo_memory, load_memory, load_zelda_memory
 from term.window import WindowLayout
 
 logger = logging.getLogger("SYSTEM")
+
+
+def stop_timer() -> None:
+    blackboard().stop()
 
 
 def setup_memory() -> None:
@@ -179,6 +185,8 @@ def perform_TAS(window: WindowLayout):
             SeqCheckpoint(checkpoint_name="mana_tree"),  # Checkpoint outside tree
             ManaTree(),
             # TODO: End of game! Watch credits.
+            SeqCheckpoint(checkpoint_name="ending"),  # End of game (for timekeeping)
+            SeqBase(func=stop_timer),
         ],
     )
 

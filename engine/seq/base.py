@@ -2,6 +2,7 @@
 import logging
 from typing import Any, Callable, Optional
 
+from engine.blackboard import blackboard
 from engine.game import get_current_tilemap, get_zelda_memory
 from engine.pathing import TileMap
 from memory.zelda_base import ZeldaMemory
@@ -52,7 +53,12 @@ class SeqCheckpoint(SeqBase):
         self.checkpoint = checkpoint_name
 
     def advance_to_checkpoint(self, checkpoint: str) -> bool:
+        blackboard().log_checkpoint(f"{self.checkpoint} (skipped)")
         return checkpoint == self.checkpoint
+
+    def execute(self, delta: float) -> bool:
+        blackboard().log_checkpoint(self.checkpoint)
+        return True
 
 
 class SeqList(SeqBase):

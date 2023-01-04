@@ -1,8 +1,14 @@
 from control import SeqLoadGame, SeqMenuConfirm, SeqMenuDown
+from engine.blackboard import blackboard, clear_blackboard
 from engine.seq.base import SeqBase, SeqList, SeqOptional
 from engine.seq.log import SeqDebug, SeqLog
 from engine.seq.time import SeqDelay
 from term.log_init import reset_logging_time_reference
+
+
+def start_timer():
+    reset_logging_time_reference()
+    blackboard().start()
 
 
 class EvolandStartGame(SeqList):
@@ -10,6 +16,7 @@ class EvolandStartGame(SeqList):
         super().__init__(
             name="Start game",
             children=[
+                SeqBase(func=clear_blackboard),
                 SeqLog(
                     name="SYSTEM", text=f"Starting Evoland {game} from main menu..."
                 ),
@@ -76,7 +83,7 @@ class EvolandStartGame(SeqList):
                         ],
                     ),
                 ),
-                SeqBase(func=reset_logging_time_reference),
+                SeqBase(func=start_timer),
                 SeqLog(name="SYSTEM", text="Starting timer!"),
                 SeqMenuConfirm(),
                 # Loading the game needs a slightly longer delay than starting a new game, it seems

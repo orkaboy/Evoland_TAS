@@ -2,7 +2,7 @@
 
 0.0.9:
 
-*
+* Added a timekeeping module to log segment timing.
 
 # Older changelogs
 
