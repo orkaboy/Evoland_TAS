@@ -6,6 +6,7 @@ from typing import Optional
 from control import evo_ctrl
 
 # from engine.combat import SeqMove2DClunkyCombat
+from engine.blackboard import blackboard
 from engine.mathlib import Facing, Vec2, is_close
 from engine.move2d import (
     SeqGrabChest,
@@ -42,7 +43,12 @@ class SeqDiabloCombat(SeqMove2D):
     def zelda_mem(self) -> ZeldaMemory:
         return get_diablo_memory()
 
-    # TODO: Boid behavior? deviation from baseline movement?
+    def _has_heal_glitch(self) -> bool:
+        return blackboard().get("hack_heal")
+
+    # TODO: Boid behavior? deviation-from-baseline movement?
+    # TODO: Detect and pick up health?
+    # TODO: Implement application of heal bug using blackboard
     def execute(self, delta: float) -> bool:
         ctrl = evo_ctrl()
         done = super().execute(delta)
