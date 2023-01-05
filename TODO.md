@@ -1,8 +1,7 @@
 # TODO list
 
 * Route Sarudnahk
-  * Usage of heal glitch
-  * Survival/movement, comboing
+  * Survival/movement (tweak boid behavior)
   * Lich boss fight
   * Navmesh for Sarudnahk?
   * Map for Saurdnahk?

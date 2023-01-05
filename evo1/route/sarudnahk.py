@@ -18,7 +18,15 @@ from engine.move2d import (
 from engine.seq import SeqList
 from evo1.move2d import SeqZoneTransition
 from memory import ZeldaMemory
-from memory.evo1 import EKind, Evo1DiabloEntity, IKind, MapID, MKind, get_diablo_memory
+from memory.evo1 import (
+    EKind,
+    Evo1DiabloEntity,
+    IKind,
+    MapID,
+    MKind,
+    get_diablo_memory,
+    get_memory,
+)
 from term.window import WindowLayout
 
 logger = logging.getLogger(__name__)
@@ -46,16 +54,16 @@ class SeqDiabloCombat(SeqMove2D):
 
     # True if we could use some healing
     def _need_healing(self) -> bool:
-        mem = get_diablo_memory()
-        health: float = mem.player.hp
+        mem = get_memory()
+        health: float = mem.player_hearts
         return health < 10
 
-    _HEAL_GLITCH_THRESHOLD = 2.1  # TODO
+    _HEAL_GLITCH_THRESHOLD = 1.1
 
     # True if we are very low on health and need to use glitch
     def _critical_health(self) -> bool:
-        mem = get_diablo_memory()
-        health: float = mem.player.hp
+        mem = get_memory()
+        health: float = mem.player_hearts
         return health < self._HEAL_GLITCH_THRESHOLD
 
     # Boid rules:
