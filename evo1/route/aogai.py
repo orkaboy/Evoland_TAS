@@ -1,6 +1,7 @@
 import logging
 
 from control import evo_ctrl
+from engine.blackboard import blackboard
 from engine.mathlib import Facing, Vec2
 from engine.move2d import SeqGrabChest, SeqMove2D, SeqMove2DCancel, SeqSection2D
 from engine.seq import SeqBase, SeqInteract, SeqList, wait_seconds
@@ -284,6 +285,15 @@ class Aogai1(SeqList):
         )
 
 
+class RegisterHealGlitch(SeqBase):
+    def __init__(self):
+        super().__init__(name="Register heal glitch")
+
+    def execute(self, delta: float) -> bool:
+        blackboard().set(key="hack_heal", value=True)
+        return True
+
+
 class Aogai2(SeqList):
     """Back in Aogai village, preparing for Sarudnahk. Leave to the north."""
 
@@ -307,6 +317,8 @@ class Aogai2(SeqList):
                     invert=True,
                 ),
                 HealerGlitch(),
+                # Save the heal glitch to the blackboard so that Sarudnahk code can make use of it
+                RegisterHealGlitch(),
                 # Advance to the heal prompt while moving to exit
                 SeqAdvanceDialogWhileMove(
                     "Move to exit",

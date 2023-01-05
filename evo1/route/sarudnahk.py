@@ -7,7 +7,7 @@ from control import evo_ctrl
 
 # from engine.combat import SeqMove2DClunkyCombat
 from engine.blackboard import blackboard
-from engine.mathlib import Facing, Vec2, is_close
+from engine.mathlib import Facing, Vec2, dist, is_close
 from engine.move2d import (
     SeqGrabChest,
     SeqGrabChestKeyItem,
@@ -46,11 +46,17 @@ class SeqDiabloCombat(SeqMove2D):
 
     # True if we could use some healing
     def _need_healing(self) -> bool:
-        return True
+        mem = get_diablo_memory()
+        health: float = mem.player.hp
+        return health < 10
+
+    _HEAL_GLITCH_THRESHOLD = 2.1  # TODO
 
     # True if we are very low on health and need to use glitch
     def _critical_health(self) -> bool:
-        return False
+        mem = get_diablo_memory()
+        health: float = mem.player.hp
+        return health < self._HEAL_GLITCH_THRESHOLD
 
     # Boid rules:
     # 1. Move towards goal
@@ -60,7 +66,7 @@ class SeqDiabloCombat(SeqMove2D):
     # Restrict vision to a cone to avoid distractions?
 
     _BOID_AVOID_RANGE = 4
-    _BOID_AVOID_FACTOR = 0.05
+    _BOID_AVOID_FACTOR = 0.1
 
     def _get_boid_enemy_adjustment(self, player_pos: Vec2) -> Vec2:
         mem = get_diablo_memory()
@@ -80,7 +86,7 @@ class SeqDiabloCombat(SeqMove2D):
         return ret * self._BOID_AVOID_FACTOR
 
     _BOID_HEALTH_RANGE = 3
-    _BOID_HEALTH_FACTOR = 0.1
+    _BOID_HEALTH_FACTOR = 0.2
 
     def _get_boid_health_adjustment(self, player_pos: Vec2) -> Vec2:
         mem = get_diablo_memory()
@@ -94,7 +100,12 @@ class SeqDiabloCombat(SeqMove2D):
                         player_pos, actor_pos, precision=self._BOID_HEALTH_RANGE
                     ):
                         ret = ret + (actor_pos - player_pos)
-        return ret * self._BOID_HEALTH_FACTOR
+        heal_factor = (
+            self._BOID_HEALTH_FACTOR
+            if self._need_healing()
+            else self._BOID_HEALTH_FACTOR / 3
+        )
+        return ret * heal_factor
 
     _MIN_TARGET_WEIGHT = 10
 
@@ -134,8 +145,6 @@ class SeqDiabloCombat(SeqMove2D):
     _ATTACK_TIMER = 0.1
     _ATTACK_RANGE = 0.8
 
-    # TODO: Boid behavior? deviation-from-baseline movement?
-    # TODO: Detect and pick up health?
     # TODO: Implement application of heal bug using blackboard
     def execute(self, delta: float) -> bool:
         ctrl = evo_ctrl()
@@ -182,8 +191,8 @@ class SeqDiabloCombat(SeqMove2D):
 class SeqDiabloBoss(SeqSection2D):
     class FightState(Enum):
         NOT_STARTED = auto()
-        STARTED = auto()
-        # TODO: Hide behind rock state? Attack state?
+        SETUP = auto()
+        FIGHT = auto()
 
     def __init__(self):
         super().__init__(name="Lich")
@@ -199,7 +208,54 @@ class SeqDiabloBoss(SeqSection2D):
         self.attack_state = False
         self.attack_timer = 0
 
+    _SETUP_POSITION = Vec2(114, 93)
+    _ROCK_POSITION = [
+        Vec2(112.5, 92.5),
+        Vec2(109.5, 86.5),
+        Vec2(116, 84),
+        Vec2(118, 90),
+    ]
+    _ROCK_DISTANCE = 0.8
+
+    def _get_closest_rock(self, player_pos: Vec2) -> Vec2:
+        shortest_dist = 999
+        closest_rock = self._ROCK_POSITION[0]
+        for rock in self._ROCK_POSITION:
+            distance = dist(player_pos, rock)
+            if distance < shortest_dist:
+                shortest_dist = distance
+                closest_rock = rock
+        return closest_rock
+
+    def _get_safe_spot(self, rock_pos: Vec2, lich_pos: Vec2) -> Vec2:
+        # Get direction from lich to rock
+        direction_vec = (rock_pos - lich_pos).normalized
+        # Add offset
+        return rock_pos + direction_vec * self._ROCK_DISTANCE
+
     _ATTACK_TIMER = 0.1
+
+    def _attack_combo(self, delta: float) -> None:
+        # Should hold attack for combo
+        self.attack_timer += delta
+        if self.attack_timer >= self._ATTACK_TIMER:
+            ctrl = evo_ctrl()
+            self.attack_timer = 0
+            self.attack_state = not self.attack_state
+            ctrl.toggle_attack(self.attack_state)
+
+    def _handle_lich_fight(self, delta: float) -> None:
+        mem = get_diablo_memory()
+        player_pos = mem.player.pos
+        rock_pos = self._get_closest_rock(player_pos=player_pos)
+        lich_pos = self.lich.pos
+        # TODO: Need to be able to go around the rock to hide
+        target_pos = self._get_safe_spot(rock_pos=rock_pos, lich_pos=lich_pos)
+        if is_close(player_pos, target_pos, precision=self.precision):
+            if self.turn_towards_pos(target_pos=target_pos):
+                self._attack_combo(delta)
+        else:
+            move_to(player=player_pos, target=target_pos, precision=self.precision)
 
     def execute(self, delta: float) -> bool:
         mem = get_diablo_memory()
@@ -211,23 +267,20 @@ class SeqDiabloBoss(SeqSection2D):
                         if actor.kind == EKind.MONSTER and actor.mkind == MKind.LICH:
                             self.lich = actor
                             if mem.player.in_control:
-                                self.state = self.FightState.STARTED
+                                self.state = self.FightState.SETUP
                             else:
-                                # TODO: diag manip
                                 ctrl.cancel(tapping=True)
-            case self.FightState.STARTED:
+            case self.FightState.SETUP:
+                player_pos = mem.player.pos
                 move_to(
-                    player=mem.player.pos,
-                    target=self.lich.pos,
+                    player=player_pos,
+                    target=self._SETUP_POSITION,
                     precision=self.precision,
                 )
-                # Should hold attack for combo
-                self.attack_timer += delta
-                # TODO: Should be in range
-                if self.attack_timer >= self._ATTACK_TIMER:
-                    self.attack_timer = 0
-                    self.attack_state = not self.attack_state
-                    ctrl.toggle_attack(self.attack_state)
+                if is_close(player_pos, self._SETUP_POSITION, self.precision):
+                    self.state = self.FightState.FIGHT
+            case self.FightState.FIGHT:
+                self._handle_lich_fight(delta)
                 if self.lich.hp <= 0:
                     ctrl.toggle_attack(False)
                     return True
@@ -360,8 +413,8 @@ class Sarudnahk(SeqList):
                         Vec2(114, 88.5),
                     ],
                 ),
-                # TODO: Move into SeqDiabloBoss
                 SeqGrabChestKeyItem("Boss", Facing.UP),
+                # TODO: Manip if carrying heal glitch
                 SeqDiabloBoss(),
                 # Navigate past enemies in the Diablo section and grab the second part of the amulet
                 SeqDiabloCombat(

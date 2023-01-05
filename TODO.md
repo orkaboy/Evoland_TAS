@@ -6,8 +6,14 @@
   * Lich boss fight
   * Navmesh for Sarudnahk?
   * Map for Saurdnahk?
-* Blackboard code
-  * Need to track what glitches we have active, especially when using save/load
+
+* Joystick movement
+* Fix saves so that shopkeeper is unlocked:
+  * sacred_grove
+  * amulet_cave
+  * aogai2
+  * sarudnahk
+  * black_citadel
 
 
 # Improvements for later
