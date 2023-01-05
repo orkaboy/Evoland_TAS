@@ -19,7 +19,7 @@ class SeqMove2DClunkyCombat(SeqMove2D):
 
     def execute(self, delta: float) -> bool:
         if self.should_move():
-            self._navigate_to_checkpoint()
+            self.navigate_to_checkpoint()
 
         target = (
             self.coords[self.step] if self.step < len(self.coords) else self.coords[-1]

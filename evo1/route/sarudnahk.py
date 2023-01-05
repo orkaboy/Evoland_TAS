@@ -18,7 +18,7 @@ from engine.move2d import (
 from engine.seq import SeqList
 from evo1.move2d import SeqZoneTransition
 from memory import ZeldaMemory
-from memory.evo1 import EKind, Evo1DiabloEntity, MapID, MKind, get_diablo_memory
+from memory.evo1 import EKind, Evo1DiabloEntity, IKind, MapID, MKind, get_diablo_memory
 from term.window import WindowLayout
 
 logger = logging.getLogger(__name__)
@@ -37,14 +37,98 @@ class SeqDiabloCombat(SeqMove2D):
         self.attack_state = False
         self.attack_timer = 0
 
-    _ATTACK_TIMER = 0.1
-    _ATTACK_RANGE = 0.8
-
     def zelda_mem(self) -> ZeldaMemory:
         return get_diablo_memory()
 
+    # True if we are carrying heal glitch from Aogai (will be False if we load a save)
     def _has_heal_glitch(self) -> bool:
         return blackboard().get("hack_heal")
+
+    # True if we could use some healing
+    def _need_healing(self) -> bool:
+        return True
+
+    # True if we are very low on health and need to use glitch
+    def _critical_health(self) -> bool:
+        return False
+
+    # Boid rules:
+    # 1. Move towards goal
+    # 2. Avoid enemies
+    # 3. Grab health
+    # Move at full speed using the final direction vector from all rules
+    # Restrict vision to a cone to avoid distractions?
+
+    _BOID_AVOID_RANGE = 4
+    _BOID_AVOID_FACTOR = 0.05
+
+    def _get_boid_enemy_adjustment(self, player_pos: Vec2) -> Vec2:
+        mem = get_diablo_memory()
+        ret = Vec2(0, 0)
+        with contextlib.suppress(ReferenceError):
+            for actor in mem.actors:
+                actor_kind = actor.kind
+                # Avoid enemies and fireballs
+                if actor_kind == EKind.MONSTER or (
+                    actor_kind == EKind.INTERACT and actor.ikind == IKind.FIRE
+                ):
+                    actor_pos = actor.pos
+                    if is_close(
+                        player_pos, actor_pos, precision=self._BOID_AVOID_RANGE
+                    ):
+                        ret = ret + (player_pos - actor_pos)
+        return ret * self._BOID_AVOID_FACTOR
+
+    _BOID_HEALTH_RANGE = 3
+    _BOID_HEALTH_FACTOR = 0.1
+
+    def _get_boid_health_adjustment(self, player_pos: Vec2) -> Vec2:
+        mem = get_diablo_memory()
+        ret = Vec2(0, 0)
+        with contextlib.suppress(ReferenceError):
+            for actor in mem.actors:
+                # Move towards life pickups
+                if actor.kind == EKind.INTERACT and actor.ikind == IKind.LIFE_GLOBE:
+                    actor_pos = actor.pos
+                    if is_close(
+                        player_pos, actor_pos, precision=self._BOID_HEALTH_RANGE
+                    ):
+                        ret = ret + (actor_pos - player_pos)
+        return ret * self._BOID_HEALTH_FACTOR
+
+    def _get_boid_movement(self, player_pos: Vec2, target: Vec2) -> Vec2:
+        """Combine movement from target, enemy and health"""
+        move_vector = (target - player_pos).normalized
+        move_vector = move_vector + self._get_boid_enemy_adjustment(player_pos)
+        move_vector = move_vector + self._get_boid_health_adjustment(player_pos)
+
+        return move_vector.normalized
+
+    # OVERRIDE OF SeqMove2d
+    def navigate_to_checkpoint(self) -> None:
+        # Move towards target
+        if self.step >= len(self.coords):
+            return
+        target = self.coords[self.step]
+        mem = self.zelda_mem()
+        cur_pos = mem.player.pos
+
+        ctrl = evo_ctrl()
+        # If arrived, go to next coordinate in the list
+        if is_close(cur_pos, target, self.precision):
+            logger.debug(
+                f"Checkpoint reached {self.step}. Player: {cur_pos} Target: {target}"
+            )
+            self.step = self.step + 1
+            ctrl.set_neutral()
+        else:
+            move_vector = self._get_boid_movement(player_pos=cur_pos, target=target)
+            # Adjust directions
+            move_vector = move_vector.invert_y
+            ctrl.set_joystick(move_vector)
+
+    _ATTACK_TIMER = 0.1
+    _ATTACK_RANGE = 0.8
 
     # TODO: Boid behavior? deviation-from-baseline movement?
     # TODO: Detect and pick up health?
@@ -56,9 +140,15 @@ class SeqDiabloCombat(SeqMove2D):
             mem = get_diablo_memory()
             player_pos = mem.player.pos
 
+            # Check for healing using glitch
+            if self._critical_health() and self._has_heal_glitch():
+                blackboard().set("hack_heal", False)
+                ctrl.confirm()
+                return False
+
             target = self.coords[self.step]
             direction_vec = (target - player_pos).normalized
-            ahead = player_pos + direction_vec
+            ahead = player_pos + direction_vec * 0.5
 
             # TODO: More complex attack pattern? Currently clears ahead with combo
             with contextlib.suppress(ReferenceError):

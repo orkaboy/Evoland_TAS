@@ -317,7 +317,7 @@ class SeqMove2D(SeqSection2D):
         # If we are already done with the entire sequence, terminate early
         return self.step >= num_coords
 
-    def _navigate_to_checkpoint(self) -> None:
+    def navigate_to_checkpoint(self) -> None:
         # Move towards target
         if self.step >= len(self.coords):
             return
@@ -337,7 +337,7 @@ class SeqMove2D(SeqSection2D):
             self.step = self.step + 1
 
     def execute(self, delta: float) -> bool:
-        self._navigate_to_checkpoint()
+        self.navigate_to_checkpoint()
 
         done = self._nav_done()
 

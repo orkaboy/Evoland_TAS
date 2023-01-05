@@ -106,7 +106,7 @@ class SeqATBmove2D(SeqMove2D):
     def navigate_to_goal(self) -> bool:
         if self.do_encounter_manip():
             return True
-        self._navigate_to_checkpoint()
+        self.navigate_to_checkpoint()
         return False
 
     def check_farming_goals(self) -> bool:

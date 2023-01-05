@@ -43,6 +43,10 @@ class Vec2(NamedTuple):
         return Vec2(xnew, ynew) + center
 
     @property
+    def invert_y(self):
+        return Vec2(self.x, -self.y)
+
+    @property
     def norm(self) -> float:
         return math.sqrt(self.x * self.x + self.y * self.y)
 

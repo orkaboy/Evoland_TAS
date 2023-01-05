@@ -36,8 +36,10 @@ class SequencerEngine(object):
         return self.root.advance_to_checkpoint(checkpoint=checkpoint)
 
     def pause(self) -> None:
+        ctrl = evo_ctrl()
         # Restore controls to neutral state
-        evo_ctrl().dpad.none()
+        ctrl.dpad.none()
+        ctrl.set_neutral()
         self.paused = True
         logger.info("------------------------")
         logger.info("  TAS EXECUTION PAUSED  ")
