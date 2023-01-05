@@ -1,8 +1,13 @@
 # TODO list
 
 * Route Sarudnahk
-  * Survival/movement (tweak boid behavior)
+  * Survival/movement
+    * Tweak boid behavior (weights)
   * Lich boss fight
+    * Movement around rocks (gets stuck)
+    * Turning the correct direction after rocks
+    * Completing combo correctly when fighting Lich
+    * Movement post-battle (gets stuck on rocks). Boid-like behavior with list of obstacles?
   * Navmesh for Sarudnahk?
   * Map for Saurdnahk?
 
