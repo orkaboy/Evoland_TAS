@@ -96,9 +96,13 @@ class SeqDiabloCombat(SeqMove2D):
                         ret = ret + (actor_pos - player_pos)
         return ret * self._BOID_HEALTH_FACTOR
 
+    _MIN_TARGET_WEIGHT = 10
+
     def _get_boid_movement(self, player_pos: Vec2, target: Vec2) -> Vec2:
         """Combine movement from target, enemy and health"""
-        move_vector = (target - player_pos).normalized
+        move_vector = target - player_pos
+        if move_vector.norm < self._MIN_TARGET_WEIGHT:
+            move_vector = move_vector.normalized * self._MIN_TARGET_WEIGHT
         move_vector = move_vector + self._get_boid_enemy_adjustment(player_pos)
         move_vector = move_vector + self._get_boid_health_adjustment(player_pos)
 
