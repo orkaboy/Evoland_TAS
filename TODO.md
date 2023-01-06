@@ -1,12 +1,19 @@
 # TODO list
 
 * Route Sarudnahk
+  * Refactor attack pattern into superclass shared between both movement and boss code
   * Survival/movement
     * Tweak boid behavior (weights)
+      * Need to become better at juking/avoiding getting hit
+      * Need to handle the skeletons differently, they hit very hard (bigger weight to avoid)
+    * Improve health pickup code
+      * (r^2 distance? Must find a way to only prioritize closest, or risk missing a bunch)
+      * Weight according to health level
+      * Maybe just pick closest and put all boid behavior on that
   * Lich boss fight
     * Movement around rocks (gets stuck)
     * Turning the correct direction after rocks
-    * Completing combo correctly when fighting Lich
+    * Completing combo correctly when fighting Lich (sometimes fails to combo)
     * Movement post-battle (gets stuck on rocks). Boid-like behavior with list of obstacles?
   * Navmesh for Sarudnahk?
   * Map for Saurdnahk?
@@ -22,11 +29,6 @@
 
 # Improvements for later
 
-* Do more memory hunting
-  * Sarudnahk
-    * Health
-    * Boss (projectiles)
-
 * Save games/Main menu
   * Clean up main menu navigation code? Checking for if New game is available
   * Actually use menu memory pos
@@ -37,6 +39,7 @@
   * Clink attacks from just out of range, swinging in the air
   * Handle pathfinding past breakable objects (bushes/pots). Can do this manually, but it's less elegant
   * Use joystick for free movement
+  * Some broken ekind/mkind refs sometimes (especially in diablo section)
 * Pathfinding
   * Fix the pathfinding to reduce the number of nav nodes/checkpoints, and have the TAS beeline for objectives when possible (use rays to detect map collision)
   * Path adjustments due to being hit/diverging for attacks
@@ -68,12 +71,13 @@
   * Menu glitches
 * Zephyros ATB fight
   * Double turns confuse the TAS (when both Clink and Kaeris act at the same time). Kaeris will take the wrong action
-  * Fallback for if we run out of potions
+  * Fallback for if we run out of potions (hasn't happened so far, but could in theory)
 * Final Zephyros fight
   * Improve/optimize movement
   * Get in 3-4 attacks in the first phase
-  * Dodge attacks in armless phase
-  * Dodge red attacks in Ganon phase
+  * Dodge attacks in armless phase (run in the correct direction)
+  * Improve on movement in armless phase (doesn't correctly anticipate where the enemy will end up. Sometimes hit twice)
+  * Dodge red attacks in Ganon phase (detect, move out of the way) if we are low on health
 
 
 * Terminal improvements
