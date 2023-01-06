@@ -43,7 +43,7 @@
 * Pathfinding
   * Fix the pathfinding to reduce the number of nav nodes/checkpoints, and have the TAS beeline for objectives when possible (use rays to detect map collision)
   * Path adjustments due to being hit/diverging for attacks
-    * Use the full navmap, don't recalculate AStar? This would require holding all the navmaps in memory, so maybe not so good.
+    * Use the full navmap, don't recalculate AStar? This would require holding all the navmaps in memory, so maybe not so good
 
 * Improve knights combat logic
   * Account for spaces that are invalid (not passable). Can use navmap here
@@ -55,8 +55,8 @@
     * Read chest timers from memory and avoid moving just before they advance RNG?
 * Noria
   * Improve on 2xBat room (can fail detection)
-  * Fallback for floor puzzle
-  * Fallback for fireballs? Can sometimes fail on this section.
+  * Fallback for floor puzzle (need to know when we fail)
+  * Fallback for fireballs? Can sometimes fail on this section (need to be able to reset the maze)
   * Deathwarp
     * Allow for other save slots than 0 to be used
     * Bugs in timing. Use cursor memory value to ensure we are actually selecting things correctly
@@ -64,7 +64,8 @@
     * Make the logic more complicated (though maybe it doesn't need to be?)
     * Menu glitch after boss death
 * Aogai
-  * Map for display.
+  * Map for display
+  * Joystick movement
 * Sacred Grove
   * Fallbacks for accidentally killing bats with the arrows in the puzzle
     * Safety could be to just kill the first bat?

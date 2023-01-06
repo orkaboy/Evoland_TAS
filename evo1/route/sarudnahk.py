@@ -32,18 +32,37 @@ from term.window import WindowLayout
 logger = logging.getLogger(__name__)
 
 
+class ComAttackToggle:
+    def __init__(self, attack_timeout: float = 0.1) -> None:
+        self.attack_timeout = attack_timeout
+        self.attack_timer = 0
+        self.attack_state = False
+
+    def reset(self) -> None:
+        self.attack_timer = 0
+        self.attack_state = False
+        ctrl = evo_ctrl()
+        ctrl.toggle_attack(False)
+
+    def update(self, delta: float) -> None:
+        self.attack_timer += delta
+        if self.attack_timer >= self.attack_timer:
+            ctrl = evo_ctrl()
+            self.attack_timer = 0
+            self.attack_state = not self.attack_state
+            ctrl.toggle_attack(self.attack_state)
+
+
 # TODO: Should maybe inherit SeqMove2D instead, since we usually don't want to attack everything that moves here (slow)
 # class SeqDiabloCombat(SeqMove2DClunkyCombat):
 class SeqDiabloCombat(SeqMove2D):
     def __init__(self, name: str, coords: list[Vec2], precision: float = 0.2):
         super().__init__(name, coords, precision)
-        self.attack_state = False
-        self.attack_timer = 0
+        self.attack = ComAttackToggle()
 
     def reset(self) -> None:
         super().reset()
-        self.attack_state = False
-        self.attack_timer = 0
+        self.attack.reset()
 
     def zelda_mem(self) -> ZeldaMemory:
         return get_diablo_memory()
@@ -150,7 +169,6 @@ class SeqDiabloCombat(SeqMove2D):
             move_vector = move_vector.invert_y
             ctrl.set_joystick(move_vector)
 
-    _ATTACK_TIMER = 0.1
     _ATTACK_RANGE = 0.8
 
     # TODO: Implement application of heal bug using blackboard
@@ -177,14 +195,9 @@ class SeqDiabloCombat(SeqMove2D):
                     if actor.kind == EKind.MONSTER and is_close(
                         ahead, actor.pos, precision=self._ATTACK_RANGE
                     ):
-                        self.attack_timer += delta
-                        if self.attack_timer >= self._ATTACK_TIMER:
-                            self.attack_timer = 0
-                            self.attack_state = not self.attack_state
-                            ctrl.toggle_attack(self.attack_state)
+                        self.attack.update(delta)
                         return False
-            self.attack_state = False
-            self.attack_timer = 0
+            self.attack.reset()
         ctrl.toggle_attack(False)
         return done
 
@@ -207,14 +220,12 @@ class SeqDiabloBoss(SeqSection2D):
         self.state = self.FightState.NOT_STARTED
         self.lich: Optional[Evo1DiabloEntity] = None
         self.precision = 0.3
-        self.attack_state = False
-        self.attack_timer = 0
+        self.attack = ComAttackToggle()
 
     def reset(self) -> None:
         self.state = self.FightState.NOT_STARTED
         self.lich: Optional[Evo1DiabloEntity] = None
-        self.attack_state = False
-        self.attack_timer = 0
+        self.attack.reset()
 
     _SETUP_POSITION = Vec2(114, 93)
     _ROCK_POSITION = [
@@ -241,17 +252,6 @@ class SeqDiabloBoss(SeqSection2D):
         # Add offset
         return rock_pos + direction_vec * self._ROCK_DISTANCE
 
-    _ATTACK_TIMER = 0.1
-
-    def _attack_combo(self, delta: float) -> None:
-        # Should hold attack for combo
-        self.attack_timer += delta
-        if self.attack_timer >= self._ATTACK_TIMER:
-            ctrl = evo_ctrl()
-            self.attack_timer = 0
-            self.attack_state = not self.attack_state
-            ctrl.toggle_attack(self.attack_state)
-
     def _handle_lich_fight(self, delta: float) -> None:
         mem = get_diablo_memory()
         player_pos = mem.player.pos
@@ -261,23 +261,29 @@ class SeqDiabloBoss(SeqSection2D):
         target_pos = self._get_safe_spot(rock_pos=rock_pos, lich_pos=lich_pos)
         if is_close(player_pos, target_pos, precision=self.precision):
             if self.turn_towards_pos(target_pos=target_pos):
-                self._attack_combo(delta)
+                self.attack.update(delta)
         else:
             move_to(player=player_pos, target=target_pos, precision=self.precision)
+
+    def _get_lich(self) -> Optional[Evo1DiabloEntity]:
+        with contextlib.suppress(ReferenceError):
+            mem = get_diablo_memory()
+            for actor in mem.actors:
+                if actor.kind == EKind.MONSTER and actor.mkind == MKind.LICH:
+                    return actor
+        return None
 
     def execute(self, delta: float) -> bool:
         mem = get_diablo_memory()
         ctrl = evo_ctrl()
         match self.state:
             case self.FightState.NOT_STARTED:
-                with contextlib.suppress(ReferenceError):
-                    for actor in mem.actors:
-                        if actor.kind == EKind.MONSTER and actor.mkind == MKind.LICH:
-                            self.lich = actor
-                            if mem.player.in_control:
-                                self.state = self.FightState.SETUP
-                            else:
-                                ctrl.cancel(tapping=True)
+                self.lich = self._get_lich()
+                if self.lich is not None:
+                    if mem.player.in_control:
+                        self.state = self.FightState.SETUP
+                    else:
+                        ctrl.cancel(tapping=True)
             case self.FightState.SETUP:
                 player_pos = mem.player.pos
                 move_to(
@@ -362,10 +368,10 @@ class SeqCharacterSelect(SeqGrabChest):
         return False
 
 
-class Sarudnahk(SeqList):
+class SarudnahkToBoss(SeqList):
     def __init__(self):
         super().__init__(
-            name="Sarudnahk",
+            name="Go to the boss",
             children=[
                 SeqDiabloCombat(
                     "Move to chest",
@@ -422,8 +428,15 @@ class Sarudnahk(SeqList):
                     ],
                 ),
                 SeqGrabChestKeyItem("Boss", Facing.UP),
-                # TODO: Manip if carrying heal glitch
-                SeqDiabloBoss(),
+            ],
+        )
+
+
+class SarudnahkToAogai(SeqList):
+    def __init__(self):
+        super().__init__(
+            name="Get the amulet",
+            children=[
                 # Navigate past enemies in the Diablo section and grab the second part of the amulet
                 SeqDiabloCombat(
                     "Navigate ruins",
@@ -445,7 +458,7 @@ class Sarudnahk(SeqList):
                 ),
                 SeqGrabChest("Amulet", Facing.UP),
                 # Grab the portal chest and teleport to Aogai
-                SeqDiabloCombat(
+                SeqMove2D(
                     "Move to chest",
                     coords=[
                         Vec2(114, 53.6),
@@ -462,5 +475,18 @@ class Sarudnahk(SeqList):
                     precision=0.1,
                 ),
                 SeqZoneTransition("Town portal", Facing.UP, target_zone=MapID.AOGAI),
+            ],
+        )
+
+
+class Sarudnahk(SeqList):
+    def __init__(self):
+        super().__init__(
+            name="Sarudnahk",
+            children=[
+                SarudnahkToBoss(),
+                # TODO: Manip if carrying heal glitch
+                SeqDiabloBoss(),
+                SarudnahkToAogai(),
             ],
         )
