@@ -43,7 +43,7 @@ _maps: Dict[MapID, NavMap] = {
     MapID.SACRED_GROVE_3D: _sacred_grove,
     MapID.SACRED_GROVE_CAVE_1: AStarNavMap("maps/evo1/sacred_grove_cave1.yaml"),
     MapID.SACRED_GROVE_CAVE_2: AStarNavMap("maps/evo1/sacred_grove_cave2.yaml"),
-    # TODO: Sarudnahk
+    MapID.SARUDNAHK: NavMeshNavMap("maps/evo1/sarudnahk.yaml"),
     MapID.END: AStarNavMap("maps/evo1/end.yaml"),
     # TODO: Side dungeons
 }

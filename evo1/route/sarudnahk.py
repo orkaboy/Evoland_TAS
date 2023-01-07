@@ -17,6 +17,7 @@ from engine.move2d import (
 )
 from engine.seq import SeqList
 from evo1.move2d import SeqZoneTransition
+from maps.evo1.maps import GetNavmap
 from memory import ZeldaMemory
 from memory.evo1 import (
     EKind,
@@ -30,6 +31,8 @@ from memory.evo1 import (
 from term.window import WindowLayout
 
 logger = logging.getLogger(__name__)
+
+_ruins_nav = GetNavmap(MapID.SARUDNAHK)
 
 
 class ComAttackToggle:
@@ -53,8 +56,6 @@ class ComAttackToggle:
             ctrl.toggle_attack(self.attack_state)
 
 
-# TODO: Should maybe inherit SeqMove2D instead, since we usually don't want to attack everything that moves here (slow)
-# class SeqDiabloCombat(SeqMove2DClunkyCombat):
 class SeqDiabloCombat(SeqMove2D):
     def __init__(self, name: str, coords: list[Vec2], precision: float = 0.2):
         super().__init__(name, coords, precision)
@@ -368,6 +369,11 @@ class SeqCharacterSelect(SeqGrabChest):
         return False
 
 
+_ENTRANCE = _ruins_nav.map[0]
+_CHAR_SEL_CHEST = _ruins_nav.map[2]
+_BOSS_CHEST = _ruins_nav.map[38]
+
+
 class SarudnahkToBoss(SeqList):
     def __init__(self):
         super().__init__(
@@ -375,57 +381,17 @@ class SarudnahkToBoss(SeqList):
             children=[
                 SeqDiabloCombat(
                     "Move to chest",
-                    coords=[Vec2(15, 119), Vec2(15, 112.5)],
+                    coords=_ruins_nav.calculate(start=_ENTRANCE, goal=_CHAR_SEL_CHEST),
                 ),
                 SeqCharacterSelect(),
-                # TODO: Navigate through the Diablo section (Boid behavior?)
-                # TODO: Map
+                # Navigate through the Diablo section using boid behavior
+                # TODO: Crude routing
                 # Pick up chests: Combo, Life meter, Ambient light (can glitch otherwise?), Boss
-                # TODO: Extremely crude routing
                 SeqDiabloCombat(
                     "Navigate ruins",
-                    coords=[
-                        Vec2(17, 109),
-                        Vec2(25, 102.5),
-                        # GC(Combo)
-                        Vec2(26, 102),
-                        Vec2(32, 100),
-                        # TODO: Can fail if hit off course
-                        Vec2(39, 96.5),
-                        # GC(N) Lifebar
-                        Vec2(39, 96),
-                        Vec2(40, 94),
-                        Vec2(45, 93),
-                        Vec2(50, 93.7),
-                        Vec2(51, 93.7),
-                        Vec2(51.5, 93),
-                        Vec2(58, 87),
-                        Vec2(58, 78),
-                        Vec2(54, 70),
-                        Vec2(53.6, 68),
-                        # Ambient?
-                        Vec2(52, 66),
-                        Vec2(52, 62),
-                        Vec2(44, 54),
-                        Vec2(44, 39),
-                        Vec2(47, 36),
-                        Vec2(47, 32),
-                        Vec2(52, 27),
-                        Vec2(53, 23),
-                        Vec2(58, 22.3),
-                        Vec2(62, 22.3),
-                        Vec2(75, 33),
-                        Vec2(88, 38),
-                        Vec2(90, 45),
-                        Vec2(91, 48),
-                        Vec2(91, 61),
-                        Vec2(100, 68),
-                        Vec2(108, 70),
-                        Vec2(112, 76),
-                        Vec2(113, 89),
-                        Vec2(114, 89),
-                        Vec2(114, 88.5),
-                    ],
+                    coords=_ruins_nav.calculate(
+                        start=_CHAR_SEL_CHEST, goal=_BOSS_CHEST
+                    ),
                 ),
                 SeqGrabChestKeyItem("Boss", Facing.UP),
             ],
