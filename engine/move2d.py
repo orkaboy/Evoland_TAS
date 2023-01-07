@@ -323,7 +323,8 @@ class SeqMove2D(SeqSection2D):
                 f"Checkpoint reached {self.step}. Player: {cur_pos} Target: {target}"
             )
             self.step = self.step + 1
-            ctrl.set_neutral()
+            if self.step >= len(self.coords):
+                ctrl.set_neutral()
         else:
             self.move_function(player_pos=cur_pos, target_pos=target)
 
@@ -399,7 +400,7 @@ class SeqMove2DCancel(SeqMove2D):
         name: str,
         coords: list[Vec2],
         precision: float = 0.2,
-        timeout_in_s: float = 0.2,
+        timeout_in_s: float = 0.1,
         invert: bool = False,
     ):
         super().__init__(name, coords, precision, invert=invert)

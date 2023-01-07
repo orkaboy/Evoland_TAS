@@ -119,7 +119,7 @@ class VgTranslator:
             logger.exception(E)
 
     def set_neutral(self):
-        self.gamepad.reset()
+        self.gamepad.left_joystick_float(x_value_float=0, y_value_float=0)
         self.gamepad.update()
 
 
