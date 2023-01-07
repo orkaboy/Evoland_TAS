@@ -148,10 +148,10 @@ class OverworldToMeadow(SeqList):
                 SeqMove2D(
                     "Pick up encounters",
                     coords=[
-                        Vec2(79.7, 54.8),
+                        Vec2(79.1, 55.5),
                         # Nudge chest (encounters) at (79, 54)
                         # TODO: Improve nudge to avoid stopping
-                        Vec2(79.5, 53),
+                        Vec2(80, 55),
                     ],
                 ),
                 # Battle handler for random battles, mashing confirm is fine for now

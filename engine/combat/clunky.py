@@ -46,6 +46,8 @@ class SeqMove2DClunkyCombat(SeqMove2D):
 
     # TODO: Handle some edge cases, like when the enemy is at a diagonal, moving into the target space
     def _clunky_combat2d(self, target: Vec2) -> None:
+        ctrl = evo_ctrl()
+        ctrl.dpad.none()
         mem = self.zelda_mem()
         player_pos = mem.player.pos
         player_angle = (target - player_pos).angle
@@ -67,13 +69,11 @@ class SeqMove2DClunkyCombat(SeqMove2D):
     def _clunky_counter_with_sword(self, angle: float, enemy_angle: float) -> None:
         # If in front, attack!
         # TODO Arbitrary magic number, angle difference between where we are heading and where the enemy is
+        ctrl = evo_ctrl()
         if abs(angle) < math.pi / 4:
-            ctrl = evo_ctrl()
             ctrl.attack(tapping=False)
         elif abs(angle) <= math.pi / 2:  # TODO On our sides
-            ctrl = evo_ctrl()
             ctrl.attack(tapping=False)
-            ctrl.dpad.none()
             # Turn and attack (angle is in the range +PI to -PI, with 0 to our right)
             if abs(enemy_angle) < math.pi / 4:
                 ctrl.dpad.right()
