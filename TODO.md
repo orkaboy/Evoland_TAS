@@ -12,7 +12,6 @@
     * Some broken ekind/mkind refs after defeating the boss/passing the gate
   * Lich boss fight
     * Movement around rocks (gets stuck)
-    * Turning the correct direction after rocks
     * Completing combo correctly when fighting Lich (sometimes fails to combo)
     * Movement post-battle (gets stuck on rocks). Boid-like behavior with list of obstacles?
   * Map for Saurdnahk?
