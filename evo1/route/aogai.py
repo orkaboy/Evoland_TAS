@@ -35,7 +35,6 @@ class AogaiWrongWarp(SeqBase):
 
     def execute(self, delta: float) -> bool:
         ctrl = evo_ctrl()
-        ctrl.dpad.none()
         ctrl.set_joystick(Vec2(-1, -0.1))
 
         mem = get_memory()
@@ -411,10 +410,9 @@ class SeqAirshipSkip(SeqSection2D):
         super().__init__(name="Airship skip")
 
     def execute(self, delta: float) -> bool:
-        ctrl = evo_ctrl()
-        ctrl.dpad.none()
         wait_seconds(0.4)
         # Close menu if open
+        ctrl = evo_ctrl()
         ctrl.menu()
         return True
 

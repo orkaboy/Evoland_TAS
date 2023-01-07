@@ -1,7 +1,7 @@
 import logging
 
 from control import evo_ctrl
-from engine.mathlib import Facing, facing_str
+from engine.mathlib import Facing, Vec2, facing_str
 from engine.seq import SeqBase
 from memory.evo1 import MapID, get_memory
 
@@ -16,20 +16,19 @@ class SeqZoneTransition(SeqBase):
 
     def execute(self, delta: float) -> bool:
         ctrl = evo_ctrl()
-        ctrl.dpad.none()
         match self.direction:
             case Facing.LEFT:
-                ctrl.dpad.left()
+                ctrl.set_joystick(Vec2(-1, 0))
             case Facing.RIGHT:
-                ctrl.dpad.right()
+                ctrl.set_joystick(Vec2(1, 0))
             case Facing.UP:
-                ctrl.dpad.up()
+                ctrl.set_joystick(Vec2(0, 1))
             case Facing.DOWN:
-                ctrl.dpad.down()
+                ctrl.set_joystick(Vec2(0, -1))
 
         mem = get_memory()
         if mem.map_id == self.target_zone:
-            ctrl.dpad.none()
+            ctrl.set_neutral()
             logger.info(f"Transitioned to zone: {self.target_zone.name}")
             return True
         return False

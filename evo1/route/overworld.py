@@ -369,7 +369,7 @@ class WaitForAirshipToSpawn(SeqBase):
 
     def execute(self, delta: float) -> bool:
         ctrl = evo_ctrl()
-        ctrl.dpad.none()
+        ctrl.set_neutral()
         mem = get_zelda_memory()
         # Wait for airship to spawn (check for entity type)
         with contextlib.suppress(ReferenceError):

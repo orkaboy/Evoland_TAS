@@ -58,7 +58,7 @@ class CrystalCavernEncManip(SeqATBmove2D):
 
         # Wait until a better encounter
         ctrl = evo_ctrl()
-        ctrl.dpad.none()
+        ctrl.set_neutral()
 
         return True
 
@@ -85,7 +85,7 @@ class SeqKefkasGhost(SeqATBCombat):
             return
         # TODO: Very, very dumb combat. Should maybe check for healing
         ctrl = evo_ctrl()
-        ctrl.dpad.none()
+        ctrl.set_neutral()
         ctrl.confirm(tapping=True)
 
     def execute(self, delta: float) -> bool:

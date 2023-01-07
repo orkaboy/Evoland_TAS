@@ -44,19 +44,19 @@ class SeqKnight2D(SeqArenaCombat):
         if box.contains(weak_spot):
             if player_facing == facing_to_enemy:
                 # We are aligned and in position. Attack!
-                ctrl.dpad.none()
+                ctrl.set_neutral()
                 ctrl.attack()
                 return True
             else:  # Not currently facing the enemy. Turn towards enemy
-                ctrl.dpad.none()
+                ctrl.set_neutral()
                 match facing_to_enemy:
                     case Facing.UP:
-                        ctrl.dpad.up()
+                        ctrl.set_joystick(Vec2(0, 1))
                     case Facing.DOWN:
-                        ctrl.dpad.down()
+                        ctrl.set_joystick(Vec2(0, -1))
                     case Facing.LEFT:
-                        ctrl.dpad.left()
+                        ctrl.set_joystick(Vec2(-1, 0))
                     case Facing.RIGHT:
-                        ctrl.dpad.right()
+                        ctrl.set_joystick(Vec2(1, 0))
                 return False
         return False  # Couldn't attack this target right now

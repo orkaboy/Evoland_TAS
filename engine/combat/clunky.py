@@ -69,6 +69,7 @@ class SeqMove2DClunkyCombat(SeqMove2D):
     def _clunky_counter_with_sword(self, angle: float, enemy_angle: float) -> None:
         # If in front, attack!
         # TODO Arbitrary magic number, angle difference between where we are heading and where the enemy is
+        # TODO: Adjust to used joystick
         ctrl = evo_ctrl()
         if abs(angle) < math.pi / 4:
             ctrl.attack(tapping=False)

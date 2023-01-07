@@ -23,14 +23,6 @@ def move_to(player: Vec2, target: Vec2, precision: float, invert: bool = False) 
     ctrl.set_joystick(joy)
 
 
-class SeqCtrlNeutral(SeqBase):
-    def execute(self, delta: float) -> bool:
-        ctrl = evo_ctrl()
-        ctrl.dpad.none()
-        ctrl.set_neutral()
-        return True
-
-
 # TODO: Improve on class to be able to handle free move/3d
 class SeqGrabChest(SeqBase):
     def __init__(self, name: str, direction: Facing):
@@ -78,16 +70,15 @@ class SeqGrabChestKeyItem(SeqBase):
         ctrl = evo_ctrl()
         mem = self.zelda_mem()
         if not self.grabbed:
-            ctrl.dpad.none()
             match self.dir:
                 case Facing.LEFT:
-                    ctrl.dpad.left()
+                    ctrl.set_joystick(Vec2(-1, 0))
                 case Facing.RIGHT:
-                    ctrl.dpad.right()
+                    ctrl.set_joystick(Vec2(1, 0))
                 case Facing.UP:
-                    ctrl.dpad.up()
+                    ctrl.set_joystick(Vec2(0, 1))
                 case Facing.DOWN:
-                    ctrl.dpad.down()
+                    ctrl.set_joystick(Vec2(0, -1))
             if not mem.player.in_control:
                 logger.info(f"Picking up {self.name}!")
                 self.grabbed = True
@@ -97,7 +88,7 @@ class SeqGrabChestKeyItem(SeqBase):
             ctrl.menu(tapping=False)
             return True
         # Tap past any popups
-        ctrl.dpad.none()
+        ctrl.set_neutral()
         ctrl.confirm(tapping=True)
         # Wait out any cutscene/pickup animation
         return mem.player.in_control
@@ -119,6 +110,7 @@ class SeqManualUntilClose(SeqBase):
         super().execute(delta)
         # Stay still
         ctrl = evo_ctrl()
+        ctrl.set_neutral()
         ctrl.dpad.none()
         # Check if we have reached the goal
         with contextlib.suppress(ReferenceError, ValueError):
@@ -150,6 +142,7 @@ class SeqHoldInPlace(SeqDelay):
         # Stay still
         ctrl = evo_ctrl()
         ctrl.dpad.none()
+        ctrl.set_neutral()
         # Wait for a while
         self.timer = self.timer + delta
         if self.timer >= self.timeout:
@@ -166,6 +159,7 @@ class SeqSection2D(SeqBase):
     def __init__(self, name: str, func=None):
         super().__init__(name, func=func)
 
+    # TODO: Adapt to using joystick
     def turn_towards_pos(
         self, target_pos: Vec2, invert: bool = False, precision: float = math.pi / 3
     ) -> bool:
@@ -334,11 +328,11 @@ class SeqMove2D(SeqSection2D):
 
         if done:
             logger.info(f"Finished moved2D section: {self.name}")
-            evo_ctrl().dpad.none()
+            evo_ctrl().set_neutral()
         elif self.emergency_skip and self.emergency_skip():
             logger.warning(f"Finished move2D section with emergency skip: {self.name}")
             done = True
-            evo_ctrl().dpad.none()
+            evo_ctrl().set_neutral()
         return done
 
     def _print_target(self, window: WindowLayout) -> None:

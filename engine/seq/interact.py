@@ -88,19 +88,12 @@ class SeqDirHoldUntilLostControl(SeqWaitForControl):
 
     def execute(self, delta: float) -> bool:
         ctrl = evo_ctrl()
-        if self.direction.x > 0:
-            ctrl.dpad.right()
-        elif self.direction.x < 0:
-            ctrl.dpad.left()
-        if self.direction.y > 0:
-            ctrl.dpad.down()
-        elif self.direction.y < 0:
-            ctrl.dpad.up()
+        ctrl.set_joystick(self.direction)
 
         mem = self.zelda_mem()
         done = not mem.player.in_control
         if done:
-            ctrl.dpad.none()
+            ctrl.set_neutral()
         return done
 
     def __repr__(self) -> str:

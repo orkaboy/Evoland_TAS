@@ -1,5 +1,5 @@
 from engine.mathlib import Box2, Facing, Vec2
-from engine.move2d import SeqCtrlNeutral, SeqGrabChest, SeqMove2D
+from engine.move2d import SeqGrabChest, SeqMove2D
 from engine.seq import SeqIf, SeqInteract, SeqList, SeqLog
 from evo1.combat import SeqKnight2D
 from evo1.move2d import SeqZoneTransition
@@ -93,7 +93,6 @@ class PapurikaVillageShopping(SeqList):
                                 "Moving to barrel",
                                 coords=[Vec2(40, 40.3)],
                             ),
-                            SeqCtrlNeutral(),
                             SeqInteract("Grabbing 50 gli"),
                             SeqInteract("Confirming"),
                         ],

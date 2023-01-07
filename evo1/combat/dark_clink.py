@@ -164,7 +164,7 @@ class SeqDarkClinkFight(SeqDarkClinkObserver):
     def fight_logic(self):
         """The actual fight logic."""
         ctrl = evo_ctrl()
-        ctrl.dpad.none()
+        ctrl.set_neutral()
         mem = get_zelda_memory()
         player_pos = mem.player.pos
 

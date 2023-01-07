@@ -28,7 +28,7 @@ class SeqGridLockedCombat(SeqMove2DClunkyCombat):
                     continue
                 enemy_target = actor.target
                 if enemy_target is not None and enemy_target == target:
-                    evo_ctrl().dpad.none()
+                    evo_ctrl().set_neutral()
                     return False
         return True
 

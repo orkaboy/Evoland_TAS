@@ -329,7 +329,7 @@ class KillMages(SeqSection2D):
     def _equip_sword(self) -> None:
         ctrl = evo_ctrl()
         # Assume menu is open
-        ctrl.dpad.none()
+        ctrl.set_neutral()
         # Select sword from bombs
         ctrl.dpad.tap_left()
         ctrl.dpad.tap_left()
@@ -476,7 +476,7 @@ class SacredGroveBombSelect(SeqSection2D):
 
     def execute(self, delta: float) -> bool:
         ctrl = evo_ctrl()
-        ctrl.dpad.none()
+        ctrl.set_neutral()
         ctrl.dpad.tap_right()
         ctrl.confirm()
         # Wait for transition to complete before trying to place bomb

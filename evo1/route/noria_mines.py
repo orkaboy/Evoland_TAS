@@ -321,6 +321,7 @@ class Whackamole(SeqSection2D):
 
     def execute(self, delta: float) -> bool:
         # Bump enemy into pit algorithm
+        ctrl = evo_ctrl()
 
         # 1. Detect and track enemy
         enemy = self.enemy
@@ -329,6 +330,7 @@ class Whackamole(SeqSection2D):
             # 4. Detect when enemy falls into pit
             # 5. Move towards exit instead of following enemy
             # 6. Trigger menu glitch before cutscene triggers
+            ctrl.dpad.none()
             return self.spawned
         self.spawned = True
 
@@ -342,8 +344,6 @@ class Whackamole(SeqSection2D):
             move_to(player=player_pos, target=target_pos, precision=0.3)
         else:
             # 3. Attack downwards to push enemy towards pit
-            ctrl = evo_ctrl()
-            ctrl.dpad.none()
             ctrl.dpad.down()
             ctrl.attack(tapping=True)
 
@@ -361,7 +361,7 @@ class NavigateWindtraps(SeqSection2D):
     def execute(self, delta: float) -> bool:
         ctrl = evo_ctrl()
         # 1. Walk south [start=Vec2(39, 16), goal=Vec2(39, 26)]
-        ctrl.dpad.down()
+        ctrl.set_joystick(Vec2(0, -1))
 
         mem = get_zelda_memory()
         player_pos = mem.player.pos
@@ -382,7 +382,7 @@ class NavigateWindtraps(SeqSection2D):
         done = player_pos.y >= 26
 
         if done:
-            ctrl.dpad.none()
+            ctrl.set_neutral()
         return done
 
 
