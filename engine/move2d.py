@@ -13,7 +13,6 @@ logger = logging.getLogger(__name__)
 
 def move_to(player: Vec2, target: Vec2, precision: float, invert: bool = False) -> None:
     ctrl = evo_ctrl()
-    ctrl.set_neutral()
 
     diff = (target - player).normalized
 

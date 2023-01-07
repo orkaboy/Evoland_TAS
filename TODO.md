@@ -15,6 +15,7 @@
     * Movement post-battle (gets stuck on rocks). Boid-like behavior with list of obstacles?
 
 * Joystick movement
+  * Need to better deal with sword targeting (especially in 2d)
 * Fix saves so that shopkeeper is unlocked:
   * sacred_grove
   * amulet_cave
