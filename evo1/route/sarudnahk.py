@@ -99,7 +99,8 @@ class SeqDiabloCombat(SeqDiabloMove2D):
     # Restrict vision to a cone to avoid distractions?
 
     _BOID_AVOID_RANGE = 4
-    _BOID_AVOID_FACTOR = 0.1
+    # Weigh skeletons higher, they are dangerous
+    _BOID_SKELETON_MULT = 2
 
     def _get_boid_enemy_adjustment(self, player_pos: Vec2) -> Vec2:
         mem = get_diablo_memory()
@@ -111,15 +112,19 @@ class SeqDiabloCombat(SeqDiabloMove2D):
                 if actor_kind == EKind.MONSTER or (
                     actor_kind == EKind.INTERACT and actor.ikind == IKind.FIRE
                 ):
+                    # Check if we should weigh this enemy more heavily
+                    if actor_kind == EKind.MONSTER and actor.mkind == MKind.SKELETON:
+                        factor = self._BOID_SKELETON_MULT
+                    else:
+                        factor = 1
                     actor_pos = actor.pos
                     if is_close(
                         player_pos, actor_pos, precision=self._BOID_AVOID_RANGE
                     ):
-                        ret = ret + (player_pos - actor_pos)
-        return ret * self._BOID_AVOID_FACTOR
+                        ret = ret + ((player_pos - actor_pos) * factor)
+        return ret
 
     _BOID_HEALTH_RANGE = 3
-    _BOID_HEALTH_FACTOR = 0.2
 
     def _get_boid_health_adjustment(self, player_pos: Vec2) -> Vec2:
         mem = get_diablo_memory()
@@ -133,47 +138,39 @@ class SeqDiabloCombat(SeqDiabloMove2D):
                         player_pos, actor_pos, precision=self._BOID_HEALTH_RANGE
                     ):
                         ret = ret + (actor_pos - player_pos)
-        heal_factor = (
-            self._BOID_HEALTH_FACTOR
-            if self._need_healing()
-            else self._BOID_HEALTH_FACTOR / 3
-        )
-        return ret * heal_factor
+        return ret
 
     _MIN_TARGET_WEIGHT = 10
+    _BOID_HEALTH_FACTOR = 0.2
+    _BOID_AVOID_FACTOR = 0.1
 
+    # TODO: Tweak weights
     def _get_boid_movement(self, player_pos: Vec2, target: Vec2) -> Vec2:
         """Combine movement from target, enemy and health"""
         move_vector = target - player_pos
         if move_vector.norm < self._MIN_TARGET_WEIGHT:
             move_vector = move_vector.normalized * self._MIN_TARGET_WEIGHT
-        move_vector = move_vector + self._get_boid_enemy_adjustment(player_pos)
-        move_vector = move_vector + self._get_boid_health_adjustment(player_pos)
+        move_vector = move_vector + (
+            self._get_boid_enemy_adjustment(player_pos) * self._BOID_AVOID_FACTOR
+        )
+        heal_factor = (
+            self._BOID_HEALTH_FACTOR
+            if self._need_healing()
+            else self._BOID_HEALTH_FACTOR / 3
+        )
+        move_vector = move_vector + (
+            self._get_boid_health_adjustment(player_pos) * heal_factor
+        )
 
         return move_vector.normalized
 
     # OVERRIDE OF SeqMove2d
-    def navigate_to_checkpoint(self) -> None:
-        # Move towards target
-        if self.step >= len(self.coords):
-            return
-        target = self.coords[self.step]
-        mem = self.zelda_mem()
-        cur_pos = mem.player.pos
-
+    def move_function(self, player_pos: Vec2, target_pos: Vec2):
         ctrl = evo_ctrl()
-        # If arrived, go to next coordinate in the list
-        if is_close(cur_pos, target, self.precision):
-            logger.debug(
-                f"Checkpoint reached {self.step}. Player: {cur_pos} Target: {target}"
-            )
-            self.step = self.step + 1
-            ctrl.set_neutral()
-        else:
-            move_vector = self._get_boid_movement(player_pos=cur_pos, target=target)
-            # Adjust directions
-            move_vector = move_vector.invert_y
-            ctrl.set_joystick(move_vector)
+        move_vector = self._get_boid_movement(player_pos=player_pos, target=target_pos)
+        # Adjust directions
+        move_vector = move_vector.invert_y
+        ctrl.set_joystick(move_vector)
 
     _ATTACK_RANGE = 0.8
 

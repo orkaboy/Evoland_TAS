@@ -13,39 +13,22 @@ logger = logging.getLogger(__name__)
 
 def move_to(player: Vec2, target: Vec2, precision: float, invert: bool = False) -> None:
     ctrl = evo_ctrl()
-    ctrl.dpad.none()
-    # Very dumb
-    diff = target - player
-    controller_precision = (
-        precision / 2
-    )  # Need to get closer so that is_close() will trigger on diagonals
-    # Left right
-    if (
-        diff.x > controller_precision
-        and invert
-        or diff.x <= controller_precision
-        and diff.x < -controller_precision
-        and not invert
-    ):
-        ctrl.dpad.left()
-    elif diff.x > controller_precision or diff.x < -controller_precision:
-        ctrl.dpad.right()
-    # Up down
-    if (
-        diff.y > controller_precision
-        and invert
-        or diff.y <= controller_precision
-        and diff.y < -controller_precision
-        and not invert
-    ):
-        ctrl.dpad.up()
-    elif diff.y > controller_precision or diff.y < -controller_precision:
-        ctrl.dpad.down()
+    ctrl.set_neutral()
+
+    diff = (target - player).normalized
+
+    joy = diff.invert_y
+    if invert:
+        joy = Vec2(-joy.x, -joy.y)
+
+    ctrl.set_joystick(joy)
 
 
 class SeqCtrlNeutral(SeqBase):
     def execute(self, delta: float) -> bool:
-        evo_ctrl().dpad.none()
+        ctrl = evo_ctrl()
+        ctrl.dpad.none()
+        ctrl.set_neutral()
         return True
 
 
@@ -317,6 +300,14 @@ class SeqMove2D(SeqSection2D):
         # If we are already done with the entire sequence, terminate early
         return self.step >= num_coords
 
+    def move_function(self, player_pos: Vec2, target_pos: Vec2):
+        move_to(
+            player=player_pos,
+            target=target_pos,
+            precision=self.precision,
+            invert=self.invert,
+        )
+
     def navigate_to_checkpoint(self) -> None:
         # Move towards target
         if self.step >= len(self.coords):
@@ -325,16 +316,16 @@ class SeqMove2D(SeqSection2D):
         mem = self.zelda_mem()
         cur_pos = mem.player.pos
 
-        move_to(
-            player=cur_pos, target=target, precision=self.precision, invert=self.invert
-        )
-
+        ctrl = evo_ctrl()
         # If arrived, go to next coordinate in the list
         if is_close(cur_pos, target, self.precision):
             logger.debug(
                 f"Checkpoint reached {self.step}. Player: {cur_pos} Target: {target}"
             )
             self.step = self.step + 1
+            ctrl.set_neutral()
+        else:
+            self.move_function(player_pos=cur_pos, target_pos=target)
 
     def execute(self, delta: float) -> bool:
         self.navigate_to_checkpoint()
