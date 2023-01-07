@@ -207,9 +207,6 @@ class SeqDiabloCombat(SeqMove2D):
     #     return super().render(window)
 
 
-# TODO: NavMap for Sarudnahk
-
-
 class SeqDiabloBoss(SeqSection2D):
     class FightState(Enum):
         NOT_STARTED = auto()

@@ -14,7 +14,6 @@
     * Movement around rocks (gets stuck)
     * Completing combo correctly when fighting Lich (sometimes fails to combo)
     * Movement post-battle (gets stuck on rocks). Boid-like behavior with list of obstacles?
-  * Map for Saurdnahk?
 
 * Joystick movement
 * Fix saves so that shopkeeper is unlocked:

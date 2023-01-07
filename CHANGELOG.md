@@ -3,6 +3,7 @@
 0.0.9:
 
 * Added simple boid behavior for Sarudnahk. Not able to complete the dungeon yet.
+* Added a map for Sarudnahk. Nav graph is used for pathing, not AStar.
 * Added a timekeeping module to log segment timing.
 * Added backend: SeqIf/SeqWhile building blocks. Removed SeqOptional.
 
