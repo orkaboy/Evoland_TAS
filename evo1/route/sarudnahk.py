@@ -372,6 +372,10 @@ class SeqCharacterSelect(SeqGrabChest):
 _ENTRANCE = _ruins_nav.map[0]
 _CHAR_SEL_CHEST = _ruins_nav.map[2]
 _BOSS_CHEST = _ruins_nav.map[38]
+_GATE = _ruins_nav.map[41]
+_AMULET_CHEST = _ruins_nav.map[45]
+_PORTAL_CHEST = _ruins_nav.map[47]
+_TOWN_PORTAL = _ruins_nav.map[48]
 
 
 class SarudnahkToBoss(SeqList):
@@ -406,38 +410,30 @@ class SarudnahkToAogai(SeqList):
                 # Navigate past enemies in the Diablo section and grab the second part of the amulet
                 SeqDiabloCombat(
                     "Navigate ruins",
-                    coords=[
-                        Vec2(113, 86),
-                        Vec2(113, 76),
-                        Vec2(108, 67),
-                    ],
+                    coords=_ruins_nav.calculate(start=_BOSS_CHEST, goal=_GATE),
                 ),
                 SeqMove2D(
                     "Move to chest",
-                    coords=[
-                        Vec2(107.2, 63),
-                        Vec2(107.2, 61),
-                        Vec2(115, 54),
-                        Vec2(115, 52.5),
-                    ],
+                    coords=_ruins_nav.calculate(start=_GATE, goal=_AMULET_CHEST),
                     precision=0.1,
                 ),
                 SeqGrabChest("Amulet", Facing.UP),
                 # Grab the portal chest and teleport to Aogai
                 SeqMove2D(
                     "Move to chest",
-                    coords=[
-                        Vec2(114, 53.6),
-                        Vec2(113, 53.6),
-                    ],
+                    coords=_ruins_nav.calculate(
+                        start=_AMULET_CHEST,
+                        goal=_PORTAL_CHEST,
+                    ),
                     precision=0.1,
                 ),
                 SeqGrabChest("Town portal", Facing.UP),
                 SeqMove2D(
                     "Move to portal",
-                    coords=[
-                        Vec2(115, 53.6),
-                    ],
+                    coords=_ruins_nav.calculate(
+                        start=_PORTAL_CHEST,
+                        goal=_TOWN_PORTAL,
+                    ),
                     precision=0.1,
                 ),
                 SeqZoneTransition("Town portal", Facing.UP, target_zone=MapID.AOGAI),

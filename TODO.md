@@ -1,7 +1,6 @@
 # TODO list
 
 * Route Sarudnahk
-  * Refactor attack pattern into superclass shared between both movement and boss code
   * Survival/movement
     * Tweak boid behavior (weights)
       * Need to become better at juking/avoiding getting hit
@@ -10,12 +9,12 @@
       * (r^2 distance? Must find a way to only prioritize closest, or risk missing a bunch)
       * Weight according to health level
       * Maybe just pick closest and put all boid behavior on that
+    * Some broken ekind/mkind refs after defeating the boss/passing the gate
   * Lich boss fight
     * Movement around rocks (gets stuck)
     * Turning the correct direction after rocks
     * Completing combo correctly when fighting Lich (sometimes fails to combo)
     * Movement post-battle (gets stuck on rocks). Boid-like behavior with list of obstacles?
-  * Navmesh for Sarudnahk?
   * Map for Saurdnahk?
 
 * Joystick movement
@@ -23,7 +22,6 @@
   * sacred_grove
   * amulet_cave
   * aogai2
-  * sarudnahk
   * black_citadel
 
 
@@ -39,7 +37,6 @@
   * Clink attacks from just out of range, swinging in the air
   * Handle pathfinding past breakable objects (bushes/pots). Can do this manually, but it's less elegant
   * Use joystick for free movement
-  * Some broken ekind/mkind refs sometimes (especially in diablo section)
 * Pathfinding
   * Fix the pathfinding to reduce the number of nav nodes/checkpoints, and have the TAS beeline for objectives when possible (use rays to detect map collision)
   * Path adjustments due to being hit/diverging for attacks
