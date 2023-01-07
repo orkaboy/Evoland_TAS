@@ -9,7 +9,6 @@
       * (r^2 distance? Must find a way to only prioritize closest, or risk missing a bunch)
       * Weight according to health level
       * Maybe just pick closest and put all boid behavior on that
-    * Some broken ekind/mkind refs after defeating the boss/passing the gate
   * Lich boss fight
     * Movement around rocks (gets stuck)
     * Completing combo correctly when fighting Lich (sometimes fails to combo)

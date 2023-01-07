@@ -56,7 +56,12 @@ class ComAttackToggle:
             ctrl.toggle_attack(self.attack_state)
 
 
-class SeqDiabloCombat(SeqMove2D):
+class SeqDiabloMove2D(SeqMove2D):
+    def zelda_mem(self) -> ZeldaMemory:
+        return get_diablo_memory()
+
+
+class SeqDiabloCombat(SeqDiabloMove2D):
     def __init__(self, name: str, coords: list[Vec2], precision: float = 0.2):
         super().__init__(name, coords, precision)
         self.attack = ComAttackToggle()
@@ -409,14 +414,14 @@ class SarudnahkToAogai(SeqList):
                     "Navigate ruins",
                     coords=_ruins_nav.calculate(start=_BOSS_CHEST, goal=_GATE),
                 ),
-                SeqMove2D(
+                SeqDiabloMove2D(
                     "Move to chest",
                     coords=_ruins_nav.calculate(start=_GATE, goal=_AMULET_CHEST),
                     precision=0.1,
                 ),
                 SeqGrabChest("Amulet", Facing.UP),
                 # Grab the portal chest and teleport to Aogai
-                SeqMove2D(
+                SeqDiabloMove2D(
                     "Move to chest",
                     coords=_ruins_nav.calculate(
                         start=_AMULET_CHEST,
@@ -425,7 +430,7 @@ class SarudnahkToAogai(SeqList):
                     precision=0.1,
                 ),
                 SeqGrabChest("Town portal", Facing.UP),
-                SeqMove2D(
+                SeqDiabloMove2D(
                     "Move to portal",
                     coords=_ruins_nav.calculate(
                         start=_PORTAL_CHEST,
