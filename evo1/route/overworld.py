@@ -223,16 +223,25 @@ class OverworldToNoria(SeqList):
         )
 
 
+class EncounterChestSkip(SeqMove2D):
+    def __init__(self):
+        super().__init__(
+            name="Performing chest skip",
+            coords=[Vec2(75, 84.96), Vec2(78, 84.96)],
+            precision=0.02,
+        )
+
+    def execute(self, delta: float) -> bool:
+        mem = self.zelda_mem()
+        return True if mem.player.pos.x > 77.8 else super().execute(delta)
+
+
 class OverworldToAogai(SeqList):
     def __init__(self):
         super().__init__(
             name="Overworld",
             children=[
-                SeqMove2D(
-                    "Performing skip",
-                    coords=[Vec2(75, 84.97), Vec2(78, 84.97)],
-                    precision=0.03,
-                ),
+                EncounterChestSkip(),
                 # Navigate to Aogai village
                 SeqMove2D(
                     "Moving to Aogai",

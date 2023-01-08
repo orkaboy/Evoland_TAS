@@ -14,8 +14,6 @@
     * Completing combo correctly when fighting Lich (sometimes fails to combo)
     * Movement post-battle (gets stuck on rocks). Boid-like behavior with list of obstacles?
 
-* Joystick movement
-  * Need to better deal with sword targeting (especially in 2d)
 * Fix saves so that shopkeeper is unlocked:
   * sacred_grove
   * amulet_cave
@@ -34,7 +32,6 @@
   * Display hp in zelda mode
   * Clink attacks from just out of range, swinging in the air
   * Handle pathfinding past breakable objects (bushes/pots). Can do this manually, but it's less elegant
-  * Use joystick for free movement
 * Pathfinding
   * Fix the pathfinding to reduce the number of nav nodes/checkpoints, and have the TAS beeline for objectives when possible (use rays to detect map collision)
   * Path adjustments due to being hit/diverging for attacks
@@ -45,6 +42,8 @@
 * Overworld gli farm
   * Improve on encounter manip logic
     * Allow for entering/leaving Meadow as manip (relatively quick, worth it? Consistency?)
+* Papurika
+  * Minor pathing issues
 * Cavern
   * Improve on encounter manip logic
     * Read chest timers from memory and avoid moving just before they advance RNG?
@@ -60,7 +59,6 @@
     * Menu glitch after boss death
 * Aogai
   * Map for display
-  * Joystick movement
 * Sacred Grove
   * Fallbacks for accidentally killing bats with the arrows in the puzzle
     * Safety could be to just kill the first bat?

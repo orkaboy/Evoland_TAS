@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 def _tap_confirm() -> None:
     ctrl = evo_ctrl()
     ctrl.dpad.none()
+    ctrl.set_neutral()
     ctrl.confirm(tapping=True)
 
 

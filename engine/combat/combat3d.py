@@ -54,7 +54,9 @@ class SeqCombat3D(SeqCombat):
         mem = self.zelda_mem()
         player_pos = mem.player.pos
         closest_weak_spot = find_closest_point(origin=player_pos, points=attack_vectors)
+        # Attempt to attack if in range
+        if self._try_attack(target=target, weak_spot=closest_weak_spot):
+            return True
         # Move towards target weak point
         move_to(player=player_pos, target=closest_weak_spot, precision=self.precision)
-        # Attempt to attack if in range
-        return self._try_attack(target=target, weak_spot=closest_weak_spot)
+        return False
