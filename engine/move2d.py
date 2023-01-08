@@ -110,8 +110,8 @@ class SeqManualUntilClose(SeqBase):
         super().execute(delta)
         # Stay still
         ctrl = evo_ctrl()
-        ctrl.set_neutral()
         ctrl.dpad.none()
+        ctrl.set_neutral()
         # Check if we have reached the goal
         with contextlib.suppress(ReferenceError, ValueError):
             mem = self.zelda_mem()
@@ -159,7 +159,6 @@ class SeqSection2D(SeqBase):
     def __init__(self, name: str, func=None):
         super().__init__(name, func=func)
 
-    # TODO: Adapt to using joystick
     def turn_towards_pos(
         self, target_pos: Vec2, invert: bool = False, precision: float = math.pi / 3
     ) -> bool:
@@ -167,7 +166,8 @@ class SeqSection2D(SeqBase):
         mem = self.zelda_mem()
         player_pos = mem.player.pos
 
-        angle_to_target = (target_pos - player_pos).angle
+        vector_to_target = (target_pos - player_pos).normalized
+        angle_to_target = vector_to_target.angle
         # The rotation is stored somewhat strangely in memory
         rot = mem.player.rotation
         player_angle = rot + math.pi if rot < 0 else rot - math.pi
@@ -175,33 +175,14 @@ class SeqSection2D(SeqBase):
         angle = angle_between(angle_to_target, player_angle)
         if abs(angle) < precision:  # Roughly turned in the right direction
             # We are aligned and in position
-            ctrl.dpad.none()
+            ctrl.set_neutral()
             return True
         else:
             # Turn to the correct direction, facing the enemy
-            # Split into 8 directions. 0 is to the right
-            # Horizontal axis
-            if abs(angle_to_target) < 3 * math.pi / 8:
-                if invert:
-                    ctrl.dpad.left()
-                else:
-                    ctrl.dpad.right()
-            elif abs(angle_to_target) > 5 * math.pi / 8:
-                if invert:
-                    ctrl.dpad.right()
-                else:
-                    ctrl.dpad.left()
-            # Vertical axis
-            if angle_to_target > math.pi / 8 and angle_to_target < 5 * math.pi / 8:
-                if invert:
-                    ctrl.dpad.up()
-                else:
-                    ctrl.dpad.down()
-            elif angle_to_target < -math.pi / 8 and angle_to_target > -5 * math.pi / 8:
-                if invert:
-                    ctrl.dpad.down()
-                else:
-                    ctrl.dpad.up()
+            vector_to_target = vector_to_target.invert_y
+            if invert:
+                vector_to_target = Vec2(-vector_to_target.x, -vector_to_target.y)
+            ctrl.set_joystick(vector_to_target)
             return False
 
     # Map starts at line 2 and fills the rest of the map window

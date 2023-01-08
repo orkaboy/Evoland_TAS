@@ -3,7 +3,7 @@ import logging
 import math
 
 from control import evo_ctrl
-from engine.mathlib import Vec2, angle_between, dist
+from engine.mathlib import dist
 from engine.move2d import SeqMove2D
 
 logger = logging.getLogger(__name__)
@@ -18,13 +18,10 @@ class SeqMove2DClunkyCombat(SeqMove2D):
         return True
 
     def execute(self, delta: float) -> bool:
-        if self.should_move():
+        if self._clunky_combat2d():
+            pass
+        elif self.should_move():
             self.navigate_to_checkpoint()
-
-        target = (
-            self.coords[self.step] if self.step < len(self.coords) else self.coords[-1]
-        )
-        self._clunky_combat2d(target=target)
 
         done = self._nav_done()
 
@@ -45,42 +42,20 @@ class SeqMove2DClunkyCombat(SeqMove2D):
     # * The goal is not to kill the enemy, but to get past them!
 
     # TODO: Handle some edge cases, like when the enemy is at a diagonal, moving into the target space
-    def _clunky_combat2d(self, target: Vec2) -> None:
-        ctrl = evo_ctrl()
-        ctrl.dpad.none()
+    def _clunky_combat2d(self) -> bool:
         mem = self.zelda_mem()
         player_pos = mem.player.pos
-        player_angle = (target - player_pos).angle
-        # Needed until I figure out which enemies are valid (broken pointers will throw an exception)
+
         with contextlib.suppress(ReferenceError):
             for actor in mem.actors:
                 if not actor.is_enemy:
                     continue
                 enemy_pos = actor.pos
                 dist_to_player = dist(player_pos, enemy_pos)
-                if dist_to_player < self.DETECTION_DISTANCE:
-                    enemy_angle = (enemy_pos - player_pos).angle
-                    angle = angle_between(enemy_angle, player_angle)
-                    # logger.debug(f"Enemy {i} dist: {dist_to_player}, angle_to_e: {enemy_angle}. angle: {angle}")
-                    self._clunky_counter_with_sword(
-                        angle=angle, enemy_angle=enemy_angle
-                    )
-
-    def _clunky_counter_with_sword(self, angle: float, enemy_angle: float) -> None:
-        # If in front, attack!
-        # TODO Arbitrary magic number, angle difference between where we are heading and where the enemy is
-        # TODO: Adjust to used joystick
-        ctrl = evo_ctrl()
-        if abs(angle) < math.pi / 4:
-            ctrl.attack(tapping=False)
-        elif abs(angle) <= math.pi / 2:  # TODO On our sides
-            ctrl.attack(tapping=False)
-            # Turn and attack (angle is in the range +PI to -PI, with 0 to our right)
-            if abs(enemy_angle) < math.pi / 4:
-                ctrl.dpad.right()
-            elif abs(enemy_angle) > 3 * math.pi / 4:
-                ctrl.dpad.left()
-            elif enemy_angle > 0:
-                ctrl.dpad.down()
-            else:
-                ctrl.dpad.up()
+                if dist_to_player < self.DETECTION_DISTANCE and self.turn_towards_pos(
+                    target_pos=enemy_pos, precision=math.pi / 4
+                ):
+                    ctrl = evo_ctrl()
+                    ctrl.attack(tapping=False)
+                    return True
+        return False

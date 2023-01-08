@@ -1,4 +1,5 @@
 import logging
+import math
 
 from control import evo_ctrl
 from engine.blackboard import blackboard
@@ -345,7 +346,9 @@ class AogaiPotionShopping(SeqSection2D):
     _SHOP_KEEPER_POS = Vec2(-11, -3)
 
     def execute(self, delta: float) -> bool:
-        ret = self.turn_towards_pos(self._SHOP_KEEPER_POS, invert=True)
+        ret = self.turn_towards_pos(
+            self._SHOP_KEEPER_POS, precision=math.pi / 4, invert=True
+        )
         if ret is False:
             return False
 

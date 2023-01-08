@@ -1,5 +1,6 @@
 import contextlib
 import logging
+import math
 from enum import Enum, auto
 from typing import Optional
 
@@ -260,7 +261,7 @@ class SeqDiabloBoss(SeqSection2D):
         # TODO: Need to be able to go around the rock to hide
         target_pos = self._get_safe_spot(rock_pos=rock_pos, lich_pos=lich_pos)
         if is_close(player_pos, target_pos, precision=self.precision):
-            if self.turn_towards_pos(target_pos=lich_pos):
+            if self.turn_towards_pos(target_pos=lich_pos, precision=math.pi / 4):
                 self.attack.update(delta)
         else:
             move_to(player=player_pos, target=target_pos, precision=self.precision)

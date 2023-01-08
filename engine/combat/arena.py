@@ -2,13 +2,7 @@ import math
 
 from control import evo_ctrl
 from engine.combat.base import SeqCombat
-from engine.mathlib import (
-    Vec2,
-    angle_between,
-    dist,
-    find_closest_point,
-    get_box_with_size,
-)
+from engine.mathlib import Vec2, dist, find_closest_point, get_box_with_size
 from engine.move2d import move_to
 from memory.zelda_base import GameEntity2D
 
@@ -30,33 +24,12 @@ class SeqArenaCombat(SeqCombat):
         box = get_box_with_size(center=player_pos, half_size=self.precision)
         # Check facing (are we facing enemy)
         enemy_pos = target.pos
-        dir_to_enemy = (enemy_pos - player_pos).normalized
-        horizontal = abs(dir_to_enemy.x) > abs(dir_to_enemy.y)
-        rot_to_enemy = dir_to_enemy.angle
-        player_rot = mem.player.rotation
-        angle = angle_between(player_rot, rot_to_enemy)
         # Check position (must be in range, in a weak spot)
-        # TODO: Magic number distance
-        # TODO: Use joystick instead
-        if box.contains(weak_spot) or dist(player_pos, enemy_pos) < self.MIN_DISTANCE:
-            if abs(angle) < math.pi / 4:
-                # We are aligned and in position. Attack!
-                ctrl.dpad.none()
-                ctrl.attack()
-                return True
-            else:  # Not currently facing the enemy. Turn towards enemy
-                ctrl.dpad.none()
-                if horizontal:
-                    if dir_to_enemy.x > 0:
-                        ctrl.dpad.right()
-                    else:
-                        ctrl.dpad.left()
-                # Vertical
-                elif dir_to_enemy.y > 0:
-                    ctrl.dpad.down()
-                else:
-                    ctrl.dpad.up()
-                return False
+        if (
+            box.contains(weak_spot) or dist(player_pos, enemy_pos) < self.MIN_DISTANCE
+        ) and self.turn_towards_pos(enemy_pos, precision=math.pi / 4):
+            ctrl.attack()
+            return True
         return False  # Couldn't attack this target right now
 
     # TODO: Possibly refactor this so parts of it can be reused for SeqCombat3D

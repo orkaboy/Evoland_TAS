@@ -123,6 +123,7 @@ class SeqDarkClinkFight(SeqDarkClinkObserver):
         )
 
     _FIRE_HITBOX_SIZE = 0.7
+    _BAT_DISTANCE = 1.2
 
     # Potentially dodge fireballs and kill bats
     def _handle_bats_and_fireballs(self) -> bool:
@@ -150,9 +151,9 @@ class SeqDarkClinkFight(SeqDarkClinkObserver):
                 is_bat = kind == EKind.MONSTER and actor.mkind == MKind.BAT
                 if is_bat:
                     enemy_pos = actor.pos
-                    if is_close(player_pos, enemy_pos, 1.2) and self.turn_towards_pos(
-                        enemy_pos
-                    ):
+                    if is_close(
+                        player_pos, enemy_pos, self._BAT_DISTANCE
+                    ) and self.turn_towards_pos(enemy_pos):
                         ctrl.attack()
                         return True  # We are out of date, refresh state
         return False
@@ -190,9 +191,9 @@ class SeqDarkClinkFight(SeqDarkClinkObserver):
                 # If dizzy, close in and attack!
                 enemy_pos = self.dark_clink.pos
                 move_to(player=player_pos, target=enemy_pos, precision=0.7)
-                if is_close(player_pos, enemy_pos, 0.8) and self.turn_towards_pos(
-                    enemy_pos
-                ):
+                if is_close(
+                    player_pos, enemy_pos, precision=0.8
+                ) and self.turn_towards_pos(enemy_pos):
                     ctrl.attack(tapping=True)
         # TODO: Handle boss death menu glitch
 
