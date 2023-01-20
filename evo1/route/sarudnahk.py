@@ -84,7 +84,7 @@ class SeqDiabloCombat(SeqDiabloMove2D):
         health: float = mem.player_hearts
         return health < 10
 
-    _HEAL_GLITCH_THRESHOLD = 1.1
+    _HEAL_GLITCH_THRESHOLD = 1.5
 
     # True if we are very low on health and need to use glitch
     def _critical_health(self) -> bool:
@@ -124,7 +124,7 @@ class SeqDiabloCombat(SeqDiabloMove2D):
                         ret = ret + ((player_pos - actor_pos) * factor)
         return ret
 
-    _BOID_HEALTH_RANGE = 3
+    _BOID_HEALTH_RANGE = 2
 
     # TODO: Move towards closest instead?
     def _get_boid_health_adjustment(self, player_pos: Vec2) -> Vec2:
@@ -142,7 +142,7 @@ class SeqDiabloCombat(SeqDiabloMove2D):
         return ret
 
     _MIN_TARGET_WEIGHT = 1
-    _BOID_HEALTH_FACTOR = 0.4
+    _BOID_HEALTH_FACTOR = 0.8
     _BOID_AVOID_FACTOR = 0.4
 
     # TODO: Tweak weights
