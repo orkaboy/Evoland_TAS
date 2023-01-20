@@ -53,7 +53,7 @@ class Vec2(NamedTuple):
     @property
     def normalized(self):
         norm = self.norm
-        return Vec2(self.x / norm, self.y / norm)
+        return self if norm == 0 else Vec2(self.x / norm, self.y / norm)
 
     @property
     def angle(self) -> float:

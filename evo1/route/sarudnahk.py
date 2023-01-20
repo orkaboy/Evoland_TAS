@@ -113,11 +113,10 @@ class SeqDiabloCombat(SeqDiabloMove2D):
                 if actor_kind == EKind.MONSTER or (
                     actor_kind == EKind.INTERACT and actor.ikind == IKind.FIRE
                 ):
+                    factor = 1
                     # Check if we should weigh this enemy more heavily
                     if actor_kind == EKind.MONSTER and actor.mkind == MKind.SKELETON:
                         factor = self._BOID_SKELETON_MULT
-                    else:
-                        factor = 1
                     actor_pos = actor.pos
                     if is_close(
                         player_pos, actor_pos, precision=self._BOID_AVOID_RANGE
@@ -127,6 +126,7 @@ class SeqDiabloCombat(SeqDiabloMove2D):
 
     _BOID_HEALTH_RANGE = 3
 
+    # TODO: Move towards closest instead?
     def _get_boid_health_adjustment(self, player_pos: Vec2) -> Vec2:
         mem = get_diablo_memory()
         ret = Vec2(0, 0)
@@ -141,18 +141,22 @@ class SeqDiabloCombat(SeqDiabloMove2D):
                         ret = ret + (actor_pos - player_pos)
         return ret
 
-    _MIN_TARGET_WEIGHT = 10
-    _BOID_HEALTH_FACTOR = 0.2
-    _BOID_AVOID_FACTOR = 0.1
+    _MIN_TARGET_WEIGHT = 1
+    _BOID_HEALTH_FACTOR = 0.4
+    _BOID_AVOID_FACTOR = 0.4
 
     # TODO: Tweak weights
     def _get_boid_movement(self, player_pos: Vec2, target: Vec2) -> Vec2:
         """Combine movement from target, enemy and health"""
         move_vector = target - player_pos
+        # Check if we are close enough to proceed to the next checkpoint
         if move_vector.norm < self._MIN_TARGET_WEIGHT:
-            move_vector = move_vector.normalized * self._MIN_TARGET_WEIGHT
+            return move_vector.normalized
+        move_vector = move_vector.normalized
+
         move_vector = move_vector + (
-            self._get_boid_enemy_adjustment(player_pos) * self._BOID_AVOID_FACTOR
+            self._get_boid_enemy_adjustment(player_pos).normalized
+            * self._BOID_AVOID_FACTOR
         )
         heal_factor = (
             self._BOID_HEALTH_FACTOR
@@ -160,7 +164,7 @@ class SeqDiabloCombat(SeqDiabloMove2D):
             else self._BOID_HEALTH_FACTOR / 3
         )
         move_vector = move_vector + (
-            self._get_boid_health_adjustment(player_pos) * heal_factor
+            self._get_boid_health_adjustment(player_pos).normalized * heal_factor
         )
 
         return move_vector.normalized
@@ -369,8 +373,38 @@ class SeqCharacterSelect(SeqGrabChest):
         return False
 
 
+class SeqGrabChestDiablo(SeqSection2D):
+    def __init__(
+        self, name: str, chest_area: Vec2, precision: float = 0.2, radius: float = 2
+    ):
+        super().__init__(name)
+        self.chest_area = chest_area
+        self.precision = precision
+        self.radius = radius
+
+    def execute(self, delta: float) -> bool:
+        mem = get_diablo_memory()
+        player_pos = mem.player.pos
+        with contextlib.suppress(ReferenceError):
+            for actor in mem.actors:
+                if actor.kind != EKind.CHEST:
+                    continue
+                actor_pos = actor.pos
+                if is_close(actor_pos, self.chest_area, precision=self.radius):
+                    move_to(
+                        player=player_pos, target=actor_pos, precision=self.precision
+                    )
+                    return False
+            logger.info(f"Grabbed chest: {self.name}")
+            return True
+        return False
+
+
 _ENTRANCE = _ruins_nav.map[0]
 _CHAR_SEL_CHEST = _ruins_nav.map[2]
+_COMBO_CHEST = _ruins_nav.map[4]
+_LIFEBAR_CHEST = _ruins_nav.map[7]
+_AMBIENT_CHEST = _ruins_nav.map[13]
 _BOSS_CHEST = _ruins_nav.map[38]
 _GATE = _ruins_nav.map[41]
 _AMULET_CHEST = _ruins_nav.map[45]
@@ -394,8 +428,27 @@ class SarudnahkToBoss(SeqList):
                 SeqDiabloCombat(
                     "Navigate ruins",
                     coords=_ruins_nav.calculate(
-                        start=_CHAR_SEL_CHEST, goal=_BOSS_CHEST
+                        start=_CHAR_SEL_CHEST, goal=_COMBO_CHEST
                     ),
+                ),
+                SeqGrabChestDiablo("Combo", chest_area=_COMBO_CHEST),
+                SeqDiabloCombat(
+                    "Navigate ruins",
+                    coords=_ruins_nav.calculate(
+                        start=_COMBO_CHEST, goal=_LIFEBAR_CHEST
+                    ),
+                ),
+                SeqGrabChestDiablo("Lifebar", chest_area=_LIFEBAR_CHEST),
+                SeqDiabloCombat(
+                    "Navigate ruins",
+                    coords=_ruins_nav.calculate(
+                        start=_LIFEBAR_CHEST, goal=_AMBIENT_CHEST
+                    ),
+                ),
+                SeqGrabChestDiablo("Ambient", chest_area=_AMBIENT_CHEST),
+                SeqDiabloCombat(
+                    "Navigate ruins",
+                    coords=_ruins_nav.calculate(start=_AMBIENT_CHEST, goal=_BOSS_CHEST),
                 ),
                 SeqGrabChestKeyItem("Boss", Facing.UP),
             ],
