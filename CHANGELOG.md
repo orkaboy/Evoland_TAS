@@ -8,7 +8,7 @@
 * Added backend: SeqIf/SeqWhile building blocks. Removed SeqOptional.
 * Applied usage of joystick instead of dpad for the majority of the game. This means smoother movement (and it looks like improved combat behavior).
 
-# Older changelogs
+## Older changelogs
 
 0.0.8:
 

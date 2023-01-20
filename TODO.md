@@ -20,8 +20,7 @@
   * aogai2
   * black_citadel
 
-
-# Improvements for later
+## Improvements for later
 
 * Save games/Main menu
   * Clean up main menu navigation code? Checking for if New game is available
@@ -72,7 +71,6 @@
   * Dodge attacks in armless phase (run in the correct direction)
   * Improve on movement in armless phase (doesn't correctly anticipate where the enemy will end up. Sometimes hit twice)
   * Dodge red attacks in Ganon phase (detect, move out of the way) if we are low on health
-
 
 * Terminal improvements
   * Experiment more with Textual/Rich
