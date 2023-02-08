@@ -14,6 +14,7 @@ from engine.seq import (
     wait_seconds,
 )
 from evo1.combat import SeqDarkClinkObserver
+from evo1.move_test import Evo1MoveTest
 from evo1.observer import SeqObserver2D
 from evo1.route import (
     Aogai1,
@@ -99,6 +100,31 @@ def dark_clink_observer(window: WindowLayout):
     engine = SequencerEngine(
         window=window,
         root=obs,
+    )
+
+    engine.run_engine()
+
+    wait_seconds(3)
+
+
+def move_speed_test(window: WindowLayout):
+    set_game_version(GameVersion.EVOLAND_1)
+
+    # Start on overworld save in slot 1
+    start_game = EvolandStartGame(1, game=1)
+
+    move_test_root = Evo1MoveTest(setup_memory)
+
+    engine = SequencerEngine(
+        window=window,
+        root=start_game,
+    )
+    # Run the initial start game sequence
+    engine.run_engine()
+
+    engine = SequencerEngine(
+        window=window,
+        root=move_test_root,
     )
 
     engine.run_engine()

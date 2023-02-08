@@ -40,6 +40,11 @@ def main_menu(window: WindowLayout):
                 "key": "6",
                 "func": rng_observer,
             },
+            {
+                "name": "Evoland 1 Move Test",
+                "key": "7",
+                "func": evo1.move_speed_test,
+            },
         ]
 
         # Update side window

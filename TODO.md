@@ -20,6 +20,11 @@
   * aogai2
   * black_citadel
 
+* Timing tests:
+  * Testing diagonal movement speed in 2D/3D
+  * Testing Mode7 movement speed
+
+
 ## Improvements for later
 
 * Save games/Main menu
