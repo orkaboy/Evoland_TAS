@@ -5,10 +5,13 @@
     * Tweak boid behavior (weights)
       * Need to become better at juking/avoiding getting hit
       * Need to handle the skeletons differently, they hit very hard (bigger weight to avoid)
+      * Need to avoid getting stuck on terrain
+      * Fix heal glitch (can switch to "no" option)
     * Improve health pickup code
       * (r^2 distance? Must find a way to only prioritize closest, or risk missing a bunch)
       * Weight according to health level
       * Maybe just pick closest and put all boid behavior on that
+      * Must avoid issues where the code locks movement
   * Lich boss fight
     * Movement around rocks (gets stuck). There is some math that could be done to repel from a cone starting from the lich and going around the rock
     * Completing combo correctly when fighting Lich (sometimes fails to combo)
@@ -20,11 +23,6 @@
   * amulet_cave
   * aogai2
   * black_citadel
-
-* Timing tests:
-  * Testing diagonal movement speed in 2D/3D
-  * Testing Mode7 movement speed
-
 
 ## Improvements for later
 
