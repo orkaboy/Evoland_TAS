@@ -10,11 +10,12 @@
       * Weight according to health level
       * Maybe just pick closest and put all boid behavior on that
   * Lich boss fight
-    * Movement around rocks (gets stuck)
+    * Movement around rocks (gets stuck). There is some math that could be done to repel from a cone starting from the lich and going around the rock
     * Completing combo correctly when fighting Lich (sometimes fails to combo)
     * Movement post-battle (gets stuck on rocks). Boid-like behavior with list of obstacles?
 
 * Fix saves so that shopkeeper is unlocked:
+(Could also check in final turn if the shopkeeper/chest is there and adjust)
   * sacred_grove
   * amulet_cave
   * aogai2

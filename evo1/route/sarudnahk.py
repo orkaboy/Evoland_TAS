@@ -16,7 +16,7 @@ from engine.move2d import (
     SeqSection2D,
     move_to,
 )
-from engine.seq import SeqList
+from engine.seq import SeqCheckpoint, SeqList
 from evo1.move2d import SeqZoneTransition
 from maps.evo1.maps import GetNavmap
 from memory import ZeldaMemory
@@ -142,7 +142,7 @@ class SeqDiabloCombat(SeqDiabloMove2D):
         return ret
 
     _MIN_TARGET_WEIGHT = 1
-    _BOID_HEALTH_FACTOR = 0.8
+    _BOID_HEALTH_FACTOR = 0.4
     _BOID_AVOID_FACTOR = 0.4
 
     # TODO: Tweak weights
@@ -450,6 +450,8 @@ class SarudnahkToBoss(SeqList):
                     "Navigate ruins",
                     coords=_ruins_nav.calculate(start=_AMBIENT_CHEST, goal=_BOSS_CHEST),
                 ),
+                # Practice save
+                SeqCheckpoint(checkpoint_name="lich"),
                 SeqGrabChestKeyItem("Boss", Facing.UP),
             ],
         )

@@ -4,6 +4,8 @@
 
 * Added simple boid behavior for Sarudnahk. Not able to complete the dungeon yet.
 * Added a map for Sarudnahk. Nav graph is used for pathing, not AStar.
+* Updated aogai2 save to have full health.
+* Added a save/checkpoint just before Lich boss.
 * Added a timekeeping module to log segment timing.
 * Added backend: SeqIf/SeqWhile building blocks. Removed SeqOptional.
 * Applied usage of joystick instead of dpad for the majority of the game. This means smoother movement (and it looks like improved combat behavior).

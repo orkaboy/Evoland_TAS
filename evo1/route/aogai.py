@@ -378,6 +378,7 @@ class Aogai3(SeqList):
         super().__init__(
             name="Aogai Village",
             children=[
+                # TODO: Optional grab chest
                 # Teleport into town square
                 SeqMove2D(
                     "Move to shop keeper",
