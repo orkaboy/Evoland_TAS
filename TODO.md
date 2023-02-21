@@ -64,8 +64,10 @@
 * Aogai
   * Map for display
 * Sacred Grove
+  * Optimize weapon swapping in the south-east puzzle
   * Fallbacks for accidentally killing bats with the arrows in the puzzle
     * Safety could be to just kill the first bat?
+    * Can check for statue on the way north and shoot an arrow.
   * Menu glitches
 * Zephyros ATB fight
   * Double turns confuse the TAS (when both Clink and Kaeris act at the same time). Kaeris will take the wrong action
