@@ -8,7 +8,7 @@ from control import evo_ctrl
 
 # from engine.combat import SeqMove2DClunkyCombat
 from engine.blackboard import blackboard
-from engine.mathlib import Facing, Vec2, dist, is_close
+from engine.mathlib import Facing, Vec2, cross, dist, is_close, is_left
 from engine.move2d import (
     SeqGrabChest,
     SeqGrabChestKeyItem,
@@ -257,18 +257,52 @@ class SeqDiabloBoss(SeqSection2D):
         # Add offset
         return rock_pos + direction_vec * self._ROCK_DISTANCE
 
+    # Go around nearest rock and hide
+    def _navigate_to_safe_spot(self, player_pos: Vec2) -> bool:
+        rock_pos = self._get_closest_rock(player_pos=player_pos)
+        lich_pos = self.lich.pos
+        target_pos = self._get_safe_spot(rock_pos=rock_pos, lich_pos=lich_pos)
+        # Vector from lich to safe spot
+        target_vec = (target_pos - lich_pos).normalized
+        # 90 degree angle away from direction vector
+        orto_vec = target_vec.rotated(math.pi / 2)
+        rock_p2 = rock_pos + orto_vec
+
+        ctrl = evo_ctrl()
+        ctrl.set_neutral()
+        # Check if between lich and rock
+        if is_left(rock_pos, rock_p2, player_pos):
+            # Check if to the left side of rock or not. Move away from the centerline
+            cross_prod = cross(target_pos, lich_pos, player_pos)
+            distance = abs(cross_prod) / (target_pos - lich_pos).norm
+            # Check if we are too close to the centerline
+            if distance < self._ROCK_DISTANCE:
+                # Move left or right depending on which side of the centerline we are on
+                if cross_prod > 0:
+                    ctrl.set_joystick((target_vec - orto_vec).normalized.invert_y)
+                else:
+                    ctrl.set_joystick((target_vec + orto_vec).normalized.invert_y)
+            else:
+                # We are on the near side of the rock, but far enough away to go around
+                ctrl.set_joystick(target_vec.invert_y)
+        # We are on the far side of the rock
+        else:
+            # Get the direct line to safe spot and move there
+            player_to_target = (target_pos - player_pos).normalized
+            ctrl.set_joystick(player_to_target.invert_y)
+
+        # Return when player has arrived at target
+        return bool(is_close(player_pos, target_pos, precision=self.precision))
+
     def _handle_lich_fight(self, delta: float) -> None:
         mem = get_diablo_memory()
         player_pos = mem.player.pos
-        rock_pos = self._get_closest_rock(player_pos=player_pos)
         lich_pos = self.lich.pos
-        # TODO: Need to be able to go around the rock to hide
-        target_pos = self._get_safe_spot(rock_pos=rock_pos, lich_pos=lich_pos)
-        if is_close(player_pos, target_pos, precision=self.precision):
-            if self.turn_towards_pos(target_pos=lich_pos, precision=math.pi / 4):
-                self.attack.update(delta)
-        else:
-            move_to(player=player_pos, target=target_pos, precision=self.precision)
+        # Need to be able to go around the rock to hide
+        if self._navigate_to_safe_spot(player_pos) and self.turn_towards_pos(
+            target_pos=lich_pos, precision=math.pi / 4
+        ):
+            self.attack.update(delta)
 
     def _get_lich(self) -> Optional[Evo1DiabloEntity]:
         with contextlib.suppress(ReferenceError):
@@ -283,6 +317,7 @@ class SeqDiabloBoss(SeqSection2D):
         ctrl = evo_ctrl()
         match self.state:
             case self.FightState.NOT_STARTED:
+                # TODO: Menu-skip if carrying manip
                 self.lich = self._get_lich()
                 if self.lich is not None:
                     if mem.player.in_control:
@@ -291,15 +326,11 @@ class SeqDiabloBoss(SeqSection2D):
                         ctrl.cancel(tapping=True)
             case self.FightState.SETUP:
                 player_pos = mem.player.pos
-                move_to(
-                    player=player_pos,
-                    target=self._SETUP_POSITION,
-                    precision=self.precision,
-                )
-                if is_close(player_pos, self._SETUP_POSITION, self.precision):
+                if self._navigate_to_safe_spot(player_pos):
                     self.state = self.FightState.FIGHT
             case self.FightState.FIGHT:
                 self._handle_lich_fight(delta)
+                # Combo while the boss is alive
                 if self.lich.hp <= 0:
                     ctrl.toggle_attack(False)
                     return True
@@ -327,9 +358,6 @@ class SeqDiabloBoss(SeqSection2D):
 
     def __repr__(self) -> str:
         return f"{self.name} ({self.state.name})"
-
-
-# TODO: NavMap for Sarudnahk
 
 
 class SeqCharacterSelect(SeqGrabChest):
@@ -462,6 +490,7 @@ class SarudnahkToAogai(SeqList):
         super().__init__(
             name="Get the amulet",
             children=[
+                # TODO: Need to navigate around any rocks in the way
                 # Navigate past enemies in the Diablo section and grab the second part of the amulet
                 SeqDiabloCombat(
                     "Navigate ruins",

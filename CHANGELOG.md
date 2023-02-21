@@ -2,7 +2,8 @@
 
 0.0.9:
 
-* Added simple boid behavior for Sarudnahk. Not able to complete the dungeon yet.
+* Added simple boid behavior for Sarudnahk. Not able to complete the dungeon consistently yet.
+* Added simple logic for fighting the Lich boss.
 * Added a map for Sarudnahk. Nav graph is used for pathing, not AStar.
 * Updated aogai2 save to have full health.
 * Added a save/checkpoint just before Lich boss.

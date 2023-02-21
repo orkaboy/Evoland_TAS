@@ -63,6 +63,14 @@ class Vec2(NamedTuple):
         return f"Vec2({self.x:0.3f}, {self.y:0.3f})"
 
 
+def cross(p1: Vec2, p2: Vec2, point: Vec2) -> float:
+    return (p2.x - p1.x) * (point.y - p1.y) - (p2.y - p1.y) * (point.x - p1.x)
+
+
+def is_left(p1: Vec2, p2: Vec2, point: Vec2) -> bool:
+    return cross(p1, p2, point) > 0
+
+
 class Polar(NamedTuple):
     r: float
     theta: float
