@@ -158,7 +158,12 @@ class NoriaToMaze(SeqList):
                         start=Vec2(29, 43), goal=Vec2(22, 40), final_pos=Vec2(22, 39.6)
                     ),
                 ),
-                SeqGrabChest("Maze", direction=Facing.UP),
+                SeqGrabChestKeyItem("Key", direction=Facing.UP, manip=True),
+                SeqMove2D(
+                    "Menu manip",
+                    coords=[Vec2(22, 38)],
+                ),
+                SeqMenu("Menu manip"),
             ],
         )
 
@@ -173,7 +178,7 @@ class NoriaMazeAndBlocks(SeqList):
                 SeqMove2DClunkyCombat(
                     "Maze",
                     coords=_noria_astar.calculate(
-                        start=Vec2(22, 39), goal=Vec2(27, 24), final_pos=Vec2(27, 23.6)
+                        start=Vec2(22, 38), goal=Vec2(27, 24), final_pos=Vec2(27, 23.6)
                     ),
                 ),
                 SeqGrabChestKeyItem("Key", direction=Facing.UP, manip=True),

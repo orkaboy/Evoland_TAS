@@ -51,8 +51,10 @@
   * Improve on encounter manip logic
     * Read chest timers from memory and avoid moving just before they advance RNG?
 * Noria
-  * Improve on 2xBat room (can fail detection)
+  * Improve on 2xBat room (can fail detection). Should menu-skip on bat kills.
+  * Improve on skeleton juking. Can lure the first one to not get in the way.
   * Fallback for floor puzzle (need to know when we fail)
+  * Add menu-manip on floor puzzle end.
   * Fallback for fireballs? Can sometimes fail on this section (need to be able to reset the maze)
   * Deathwarp
     * Allow for other save slots than 0 to be used

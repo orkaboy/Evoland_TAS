@@ -9,6 +9,7 @@
 * Added a timekeeping module to log segment timing.
 * Added backend: SeqIf/SeqWhile building blocks. Removed SeqOptional.
 * Applied usage of joystick instead of dpad for the majority of the game. This means smoother movement (and it looks like improved combat behavior).
+* Added a menu-skip in Noria, just after picking up maze chest. Saves a fraction of a second.
 
 ## Older changelogs
 
