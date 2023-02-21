@@ -405,11 +405,11 @@ _CHAR_SEL_CHEST = _ruins_nav.map[2]
 _COMBO_CHEST = _ruins_nav.map[4]
 _LIFEBAR_CHEST = _ruins_nav.map[7]
 _AMBIENT_CHEST = _ruins_nav.map[13]
-_BOSS_CHEST = _ruins_nav.map[38]
-_GATE = _ruins_nav.map[41]
-_AMULET_CHEST = _ruins_nav.map[45]
-_PORTAL_CHEST = _ruins_nav.map[47]
-_TOWN_PORTAL = _ruins_nav.map[48]
+_BOSS_CHEST = _ruins_nav.map[39]
+_GATE = _ruins_nav.map[42]
+_AMULET_CHEST = _ruins_nav.map[46]
+_PORTAL_CHEST = _ruins_nav.map[48]
+_TOWN_PORTAL = _ruins_nav.map[49]
 
 
 class SarudnahkToBoss(SeqList):
