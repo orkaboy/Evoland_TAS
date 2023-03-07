@@ -10,7 +10,6 @@ logger = logging.getLogger(__name__)
 
 
 class SeqMove2DClunkyCombat(SeqMove2D):
-
     DETECTION_DISTANCE = 1.5
 
     # OVERRIDE

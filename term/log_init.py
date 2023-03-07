@@ -13,6 +13,7 @@ def reset_logging_time_reference():
 # Basic documentation here:     https://docs.python.org/3/howto/logging.html
 # Advanced documentation here:  https://docs.python.org/3/howto/logging-cookbook.html
 
+
 # Create a custom formatter for the timestamp, adding the delta property to the record
 # This will hold the time from the start of the program
 class DeltaTimeFormatter(logging.Formatter):

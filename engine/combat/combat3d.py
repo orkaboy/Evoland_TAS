@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 # TODO: WIP base
 # TODO: This class can be used as the base of 3D combat, both for killing bats, skeletons/mages and even Dark Clink
 class SeqCombat3D(SeqCombat):
-
     # TODO: This isn't going to work for the skeletons (need to attack them from the sides/behind, just like the knights)
     def _get_attack_vectors(self, target: GameEntity2D) -> list[Vec2]:
         mem = self.zelda_mem()

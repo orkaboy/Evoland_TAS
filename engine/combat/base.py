@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 
 # Base class for combat. Mostly handles target selection and rendering
 class SeqCombat(SeqSection2D):
-
     MIN_DISTANCE = 1.2
 
     def __init__(

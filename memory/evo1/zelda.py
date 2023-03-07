@@ -242,7 +242,6 @@ class Evo1GameEntity2D(GameEntity2D):
 
 
 class Evo1ZeldaMemory(ZeldaMemory):
-
     # Zelda-related things:
     _ZELDA_PTR = [0x7C8, 0x8, 0x3C]
     _PLAYER_PTR = [0x30]

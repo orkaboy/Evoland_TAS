@@ -16,7 +16,6 @@ def start_timer():
 
 
 class Evo1MoveTest(SeqList):
-
     _ENTRANCE = Vec2(54, 30)
     _DOWN = Vec2(54, 33)
     _DOWN_RIGHT = Vec2(57, 33)

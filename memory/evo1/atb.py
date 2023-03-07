@@ -9,7 +9,6 @@ logger = logging.getLogger(__name__)
 
 
 class BattleEntity:
-
     _TIMER_SINCE_TURN_PTR = [0xD0]  # double (could also be animation frame counter?)
     _MAX_HP_PTR = [0xF0]  # int
     _CUR_HP_PTR = [0xF4]  # int
