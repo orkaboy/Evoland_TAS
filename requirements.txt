@@ -1,8 +1,8 @@
-vgamepad==0.0.8
-pyyaml==6.0
-tqdm==4.64.1
+vgamepad==0.1.0
+pyyaml==6.0.1
+tqdm==4.66.1
 ReadWriteMemory==0.1.5
-Pymem==1.10.0
+Pymem==1.13.0
 windows-curses==2.3.1
 Pillow==10.1.0
 tmx==1.10
