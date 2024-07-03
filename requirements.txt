@@ -1,6 +1,6 @@
 vgamepad==0.1.0
 pyyaml==6.0.1
-tqdm==4.66.1
+tqdm==4.66.3
 ReadWriteMemory==0.1.5
 Pymem==1.13.0
 windows-curses==2.3.3
